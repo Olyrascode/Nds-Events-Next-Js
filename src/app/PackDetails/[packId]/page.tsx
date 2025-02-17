@@ -203,6 +203,7 @@ interface PackProduct {
     _id: string;
     title: string;
     imageUrl?: string;
+    price: number; // <-- Ajouté ici
   };
   quantity: number;
 }
@@ -378,13 +379,13 @@ export default function PackDetails() {
         />
         {error && <Alert severity="error">{error}</Alert>}
         <PriceCalculation
-          products={pack?.products || []}
-          quantity={quantity}
-          startDate={startDate}
-          endDate={endDate}
-          discountPercentage={pack?.discountPercentage}
-          setFinalPrice={setFinalPrice}
-        />
+  products={pack?.products || []}
+  quantity={quantity}
+  startDate={startDate}
+  endDate={endDate}
+  discountPercentage={pack?.discountPercentage || 0}
+  setFinalPrice={setFinalPrice}
+/>
      <Button
   variant="contained"
   color="primary"
