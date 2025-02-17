@@ -1,6 +1,5 @@
 import { Typography, Box } from '@mui/material';
 import { format } from 'date-fns';
-import { formatPrice } from '../../../utils/priceUtils';
 import { calculateRentalDays } from '../../../utils/dateUtils';
 
 export default function CartSummary({ cart }) {

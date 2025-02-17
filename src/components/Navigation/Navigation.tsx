@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -67,9 +68,11 @@ export default function Navigation() {
         </IconButton>
 
         <Link href="/" passHref>
-          <img
+          <Image
             src="/img/home/logoHomePage.png"
             alt="NDS Events"
+            width={100}
+            height={40}
             className={styles.navigation__logo}
           />
         </Link>

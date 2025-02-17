@@ -24,7 +24,7 @@ export default function Evenements() {
               </div>
               <div className={styles.rightItem}>
                 <ul>
-                  <li>Fête de fin d'année</li>
+                  <li>Fête de fin d&apos;année</li>
                   <li>Gala Caritatif</li>
                   <li>Cérémonie de remise de prix</li>
                 </ul>
@@ -49,7 +49,7 @@ export default function Evenements() {
               </div>
               <div className={styles.rightItem}>
                 <ul>
-                  <li>Fête de fin d'année</li>
+                  <li>Fête de fin d&apos;année</li>
                   <li>Gala Caritatif</li>
                   <li>Cérémonie de remise de prix</li>
                 </ul>
@@ -74,7 +74,7 @@ export default function Evenements() {
               </div>
               <div className={styles.rightItem}>
                 <ul>
-                  <li>Fête de fin d'année</li>
+                  <li>Fête de fin d&apos;année</li>
                   <li>Gala Caritatif</li>
                   <li>Cérémonie de remise de prix</li>
                 </ul>

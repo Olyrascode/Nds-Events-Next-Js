@@ -1,4 +1,4 @@
-import { Container, Typography, Button, Box } from '@mui/material';
+
 import HeroBanner from '@/components/Home/heroBanner/HeroBanner';
 import ShortDescription from '@/components/Home/shortDescription/ShortDescription';
 import GaleryShop from '@/components/Home/galeryShop/GaleryShop';

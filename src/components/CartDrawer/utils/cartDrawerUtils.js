@@ -13,7 +13,7 @@ export const validateCartDates = (startDate, endDate) => {
     const parsedStart = parseISO(startDate);
     const parsedEnd = parseISO(endDate);
     return isValid(parsedStart) && isValid(parsedEnd);
-  } catch (err) {
+  } catch {
     return false;
   }
 };

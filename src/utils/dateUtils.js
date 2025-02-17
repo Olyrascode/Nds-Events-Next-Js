@@ -1,5 +1,5 @@
 
-import { isWithinInterval, parseISO, differenceInDays } from 'date-fns';
+import { isWithinInterval, differenceInDays } from 'date-fns';
 
 export const calculateRentalDays = (startDate, endDate) => {
   const start = new Date(startDate);

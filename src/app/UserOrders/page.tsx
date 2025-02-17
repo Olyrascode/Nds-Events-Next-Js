@@ -1,7 +1,6 @@
 // "use client";
 // import { useState, useEffect, useRef } from 'react';
 // import { jsPDF } from 'jspdf';
-
 // import {
 //   Container,
 //   Paper,
@@ -27,18 +26,48 @@
 // import DownloadIcon from '@mui/icons-material/Download';
 // import { generateInvoicePDF } from '../../utils/invoiceGenerator';
 
+// // Define interfaces for your data
+// interface Product {
+//   _id?: string;
+//   id?: string;
+//   reference?: string;
+//   title: string;
+//   quantity: number;
+//   price: number;
+// }
 
+// interface BillingInfo {
+//   firstName: string;
+//   lastName: string;
+//   address: string;
+//   zipCode: string;
+//   city: string;
+// }
+
+// interface Order {
+//   _id?: string;
+//   id?: string;
+//   createdAt: string; // or Date if you prefer
+//   products: Product[];
+//   total: number;
+//   status: string;
+//   subTotal: number;
+//   taxRate: number;
+//   taxAmount: number;
+//   billingInfo: BillingInfo;
+// }
 
 // export default function UserOrders() {
-//   const [orders, setOrders] = useState([]);
+//   // Type your state hooks
+//   const [orders, setOrders] = useState<Order[]>([]);
 //   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
+//   const [error, setError] = useState<string | null>(null);
 //   const { currentUser } = useAuth();
 //   const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
-//   const [selectedOrder, setSelectedOrder] = useState(null);
-//   const [generatePDF, setGeneratePDF] = useState(false);
+//   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-//   const invoiceRef = useRef();
+//   // Provide an initial value for useRef
+//   const invoiceRef = useRef<HTMLDivElement>(null);
 
 //   useEffect(() => {
 //     loadOrders();
@@ -48,8 +77,15 @@
 //     try {
 //       setLoading(true);
 //       setError(null);
+//       // Assuming currentUser has either id or _id as a string
 //       const userOrders = await fetchUserOrders(currentUser.id || currentUser._id);
-//       setOrders(userOrders.sort((a, b) => b.createdAt - a.createdAt));
+//       // TypeScript now knows orders is an array of Order objects
+//       setOrders(
+//         userOrders.sort((a: Order, b: Order) => {
+//           // If createdAt is a string, convert to Date first
+//           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+//         })
+//       );
 //     } catch (err) {
 //       setError('Failed to load orders. Please try again.');
 //       console.error('Error loading orders:', err);
@@ -58,25 +94,22 @@
 //     }
 //   };
 
-//   const handleDownloadInvoice = async (order) => {
+//   // Type the parameter as Order
+//   const handleDownloadInvoice = async (order: Order) => {
 //     if (!order) {
 //       console.error('No order provided for invoice generation.');
 //       return;
 //     }
-  
+
 //     try {
-//       await generateInvoicePDF(order); // Appel à votre fichier invoiceGenerator.js
+//       await generateInvoicePDF(order); // Call your invoiceGenerator
 //     } catch (err) {
 //       console.error('Failed to generate invoice:', err);
 //       setError('Impossible de générer la facture. Veuillez réessayer.');
 //     }
 //   };
-  
-  
-  
-  
 
-//   const handleOpenInvoiceModal = (order) => {
+//   const handleOpenInvoiceModal = (order: Order) => {
 //     setSelectedOrder(order);
 //     setOpenInvoiceModal(true);
 //   };
@@ -110,9 +143,7 @@
 //         </Typography>
 
 //         {orders.length === 0 ? (
-//           <Alert severity="info">
-//             Vous n'avez pas encore de commande.
-//           </Alert>
+//           <Alert severity="info">Vous n'avez pas encore de commande.</Alert>
 //         ) : (
 //           <TableContainer>
 //             <Table>
@@ -127,30 +158,29 @@
 //                 </TableRow>
 //               </TableHead>
 //               <TableBody>
-//               {orders.map((order) => (
-//   <TableRow key={order._id || order.id}>
-//     <TableCell>{order._id || order.id}</TableCell>
-//     <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
-//     <TableCell>{order.products.length} Produit</TableCell>
-//     <TableCell>{formatPrice(order.total)}</TableCell>
-//     <TableCell>{order.status}</TableCell>
-//     <TableCell align="right">
-//       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-//         <Button onClick={() => handleOpenInvoiceModal(order)} size="small">
-//           Voir
-//         </Button>
-//         <Button
-//           startIcon={<DownloadIcon />}
-//           onClick={() => handleDownloadInvoice(order)}
-//           size="small"
-//         >
-//           Télécharger la facture
-//         </Button>
-//       </Box>
-//     </TableCell>
-//   </TableRow>
-// ))}
-
+//                 {orders.map((order) => (
+//                   <TableRow key={order._id || order.id}>
+//                     <TableCell>{order._id || order.id}</TableCell>
+//                     <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
+//                     <TableCell>{order.products.length} Produit</TableCell>
+//                     <TableCell>{formatPrice(order.total)}</TableCell>
+//                     <TableCell>{order.status}</TableCell>
+//                     <TableCell align="right">
+//                       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+//                         <Button onClick={() => handleOpenInvoiceModal(order)} size="small">
+//                           Voir
+//                         </Button>
+//                         <Button
+//                           startIcon={<DownloadIcon />}
+//                           onClick={() => handleDownloadInvoice(order)}
+//                           size="small"
+//                         >
+//                           Télécharger la facture
+//                         </Button>
+//                       </Box>
+//                     </TableCell>
+//                   </TableRow>
+//                 ))}
 //               </TableBody>
 //             </Table>
 //           </TableContainer>
@@ -158,127 +188,115 @@
 //       </Paper>
 
 //       {/* Modal pour afficher la facture */}
-//       <Dialog
-//   open={openInvoiceModal}
-//   onClose={handleCloseInvoiceModal}
-//   maxWidth="md"
-//   fullWidth
-// >
-//   <DialogTitle>
-//     Facture pour la commande #{selectedOrder?.id}
-//   </DialogTitle>
-//   <DialogContent dividers>
-//     {selectedOrder && (
-//       <Box sx={{ p: 3 }}>
-//         {/* En-tête : logo et informations principales */}
-//         <Box
-//           sx={{
-//             display: 'flex',
-//             justifyContent: 'space-between',
-//             alignItems: 'center',
-//             mb: 3,
-//           }}
-//         >
-//           <Box>
-//             <Typography variant="h6">NDS Event's</Typography>
-//             <Typography variant="body2">
-//               8 Avenue Victor Hugo, 38130 Échirolles
-//             </Typography>
-//             <Typography variant="body2">Tél : 04-80-80-98-51</Typography>
-//             <Typography variant="body2">contact@nds-events.fr</Typography>
-//           </Box>
-//           <Box>
-//             <img
-//               src="../../img/divers/nds-events-logo.png"
-//               alt="Logo"
-//               style={{ height: 80 }}
-//             />
-//           </Box>
-//         </Box>
+//       <Dialog open={openInvoiceModal} onClose={handleCloseInvoiceModal} maxWidth="md" fullWidth>
+//         <DialogTitle>
+//           Facture pour la commande #{selectedOrder?.id || selectedOrder?._id}
+//         </DialogTitle>
+//         <DialogContent dividers>
+//           {selectedOrder && (
+//             <Box sx={{ p: 3 }}>
+//               {/* En-tête : logo et informations principales */}
+//               <Box
+//                 sx={{
+//                   display: 'flex',
+//                   justifyContent: 'space-between',
+//                   alignItems: 'center',
+//                   mb: 3,
+//                 }}
+//               >
+//                 <Box>
+//                   <Typography variant="h6">NDS Event's</Typography>
+//                   <Typography variant="body2">8 Avenue Victor Hugo, 38130 Échirolles</Typography>
+//                   <Typography variant="body2">Tél : 04-80-80-98-51</Typography>
+//                   <Typography variant="body2">contact@nds-events.fr</Typography>
+//                 </Box>
+//                 <Box>
+//                   <img
+//                     src="../../img/divers/nds-events-logo.png"
+//                     alt="Logo"
+//                     style={{ height: 80 }}
+//                   />
+//                 </Box>
+//               </Box>
 
-//         {/* Informations client */}
-//         <Box sx={{ mb: 3 }}>
-//           <Typography variant="h6">À l'attention de :</Typography>
-//           <Typography variant="body2">
-//             {`${selectedOrder.billingInfo.firstName} ${selectedOrder.billingInfo.lastName}`}
-//           </Typography>
-//           <Typography variant="body2">
-//             {selectedOrder.billingInfo.address}
-//           </Typography>
-//           <Typography variant="body2">
-//             {`${selectedOrder.billingInfo.zipCode} ${selectedOrder.billingInfo.city}`}
-//           </Typography>
-//           <Typography variant="body2">
-//             Date de la facture : {format(new Date(selectedOrder.createdAt), 'PP')}
-//           </Typography>
-//         </Box>
+//               {/* Informations client */}
+//               <Box sx={{ mb: 3 }}>
+//                 <Typography variant="h6">À l'attention de :</Typography>
+//                 <Typography variant="body2">
+//                   {`${selectedOrder.billingInfo.firstName} ${selectedOrder.billingInfo.lastName}`}
+//                 </Typography>
+//                 <Typography variant="body2">{selectedOrder.billingInfo.address}</Typography>
+//                 <Typography variant="body2">
+//                   {`${selectedOrder.billingInfo.zipCode} ${selectedOrder.billingInfo.city}`}
+//                 </Typography>
+//                 <Typography variant="body2">
+//                   Date de la facture : {format(new Date(selectedOrder.createdAt), 'PP')}
+//                 </Typography>
+//               </Box>
 
-//         {/* Tableau des produits */}
-//         <Typography variant="h6" sx={{ mb: 2 }}>
-//           Détails des produits
-//         </Typography>
-//         <TableContainer>
-//           <Table>
-//             <TableHead>
-//               <TableRow>
-//                 <TableCell>Réf. article</TableCell>
-//                 <TableCell>Description</TableCell>
-//                 <TableCell>Qté</TableCell>
-//                 <TableCell>PU HT</TableCell>
-//                 <TableCell>Mtt HT</TableCell>
-//               </TableRow>
-//             </TableHead>
-//             <TableBody>
-//             {selectedOrder.products.map((item) => (
-//   <TableRow key={item._id || item.id}>
-//     <TableCell>{item.reference || 'N/A'}</TableCell>
-//     <TableCell>{item.title}</TableCell>
-//     <TableCell>{item.quantity}</TableCell>
-//     <TableCell>{formatPrice(item.price)}</TableCell>
-//     <TableCell>{formatPrice(item.price * item.quantity)}</TableCell>
-//   </TableRow>
-// ))}
+//               {/* Tableau des produits */}
+//               <Typography variant="h6" sx={{ mb: 2 }}>
+//                 Détails des produits
+//               </Typography>
+//               <TableContainer>
+//                 <Table>
+//                   <TableHead>
+//                     <TableRow>
+//                       <TableCell>Réf. article</TableCell>
+//                       <TableCell>Description</TableCell>
+//                       <TableCell>Qté</TableCell>
+//                       <TableCell>PU HT</TableCell>
+//                       <TableCell>Mtt HT</TableCell>
+//                     </TableRow>
+//                   </TableHead>
+//                   <TableBody>
+//                     {selectedOrder.products.map((item: Product) => (
+//                       <TableRow key={item._id || item.id}>
+//                         <TableCell>{item.reference || 'N/A'}</TableCell>
+//                         <TableCell>{item.title}</TableCell>
+//                         <TableCell>{item.quantity}</TableCell>
+//                         <TableCell>{formatPrice(item.price)}</TableCell>
+//                         <TableCell>{formatPrice(item.price * item.quantity)}</TableCell>
+//                       </TableRow>
+//                     ))}
+//                   </TableBody>
+//                 </Table>
+//               </TableContainer>
 
-//             </TableBody>
-//           </Table>
-//         </TableContainer>
+//               {/* Totaux */}
+//               <Box sx={{ mt: 3 }}>
+//                 <Typography variant="body1">
+//                   Sous-total HT : {formatPrice(selectedOrder.subTotal)}
+//                 </Typography>
+//                 <Typography variant="body1">
+//                   TVA ({selectedOrder.taxRate}%) : {formatPrice(selectedOrder.taxAmount)}
+//                 </Typography>
+//                 <Typography variant="body1" fontWeight="bold">
+//                   Total TTC : {formatPrice(selectedOrder.total)}
+//                 </Typography>
+//               </Box>
 
-//         {/* Totaux */}
-//         <Box sx={{ mt: 3 }}>
-//           <Typography variant="body1">
-//             Sous-total HT : {formatPrice(selectedOrder.subTotal)}
-//           </Typography>
-//           <Typography variant="body1">
-//             TVA ({selectedOrder.taxRate}%) :{' '}
-//             {formatPrice(selectedOrder.taxAmount)}
-//           </Typography>
-//           <Typography variant="body1" fontWeight="bold">
-//             Total TTC : {formatPrice(selectedOrder.total)}
-//           </Typography>
-//         </Box>
-
-//         {/* Note finale */}
-//         <Box sx={{ mt: 3, fontSize: '0.9rem', color: 'gray' }}>
-//           <Typography>
-//             Les ventes sont conclues avec réserve de propriété. Le transfert de
-//             propriété n'intervient qu'après paiement complet.
-//           </Typography>
-//           <Typography>
-//             En cas de retard de paiement, des pénalités de retard seront
-//             appliquées selon l'article L 441-6 du Code de commerce.
-//           </Typography>
-//         </Box>
-//       </Box>
-//     )}
-//   </DialogContent>
-// </Dialog>
-
+//               {/* Note finale */}
+//               <Box sx={{ mt: 3, fontSize: '0.9rem', color: 'gray' }}>
+//                 <Typography>
+//                   Les ventes sont conclues avec réserve de propriété. Le transfert de propriété n'intervient qu'après paiement complet.
+//                 </Typography>
+//                 <Typography>
+//                   En cas de retard de paiement, des pénalités de retard seront appliquées selon l'article L 441-6 du Code de commerce.
+//                 </Typography>
+//               </Box>
+//             </Box>
+//           )}
+//         </DialogContent>
+//       </Dialog>
 //     </Container>
 //   );
 // }
+
 "use client";
-import { useState, useEffect, useRef } from 'react';
-import { jsPDF } from 'jspdf';
+import { useState, useEffect } from 'react';
+// Suppression de l'import inutilisé jsPDF
+// import { jsPDF } from 'jspdf';
 import {
   Container,
   Paper,
@@ -303,8 +321,9 @@ import { fetchUserOrders } from '../../services/orders.service';
 import { formatPrice } from '../../utils/priceUtils';
 import DownloadIcon from '@mui/icons-material/Download';
 import { generateInvoicePDF } from '../../utils/invoiceGenerator';
+import Image from 'next/image';
 
-// Define interfaces for your data
+// Définition des interfaces
 interface Product {
   _id?: string;
   id?: string;
@@ -325,7 +344,7 @@ interface BillingInfo {
 interface Order {
   _id?: string;
   id?: string;
-  createdAt: string; // or Date if you prefer
+  createdAt: string;
   products: Product[];
   total: number;
   status: string;
@@ -336,7 +355,6 @@ interface Order {
 }
 
 export default function UserOrders() {
-  // Type your state hooks
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -344,35 +362,31 @@ export default function UserOrders() {
   const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // Provide an initial value for useRef
-  const invoiceRef = useRef<HTMLDivElement>(null);
+  // Suppression de invoiceRef puisqu'elle n'est pas utilisée
+  // const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const userOrders = await fetchUserOrders(currentUser.id || currentUser._id);
+        setOrders(
+          userOrders.sort((a: Order, b: Order) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          })
+        );
+      } catch (err) {
+        setError('Failed to load orders. Please try again.');
+        console.error('Error loading orders:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadOrders();
   }, [currentUser]);
 
-  const loadOrders = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // Assuming currentUser has either id or _id as a string
-      const userOrders = await fetchUserOrders(currentUser.id || currentUser._id);
-      // TypeScript now knows orders is an array of Order objects
-      setOrders(
-        userOrders.sort((a: Order, b: Order) => {
-          // If createdAt is a string, convert to Date first
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        })
-      );
-    } catch (err) {
-      setError('Failed to load orders. Please try again.');
-      console.error('Error loading orders:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Type the parameter as Order
   const handleDownloadInvoice = async (order: Order) => {
     if (!order) {
       console.error('No order provided for invoice generation.');
@@ -380,7 +394,7 @@ export default function UserOrders() {
     }
 
     try {
-      await generateInvoicePDF(order); // Call your invoiceGenerator
+      await generateInvoicePDF(order);
     } catch (err) {
       console.error('Failed to generate invoice:', err);
       setError('Impossible de générer la facture. Veuillez réessayer.');
@@ -421,7 +435,7 @@ export default function UserOrders() {
         </Typography>
 
         {orders.length === 0 ? (
-          <Alert severity="info">Vous n'avez pas encore de commande.</Alert>
+          <Alert severity="info">Vous n&apos;avez pas encore de commande.</Alert>
         ) : (
           <TableContainer>
             <Table>
@@ -465,7 +479,6 @@ export default function UserOrders() {
         )}
       </Paper>
 
-      {/* Modal pour afficher la facture */}
       <Dialog open={openInvoiceModal} onClose={handleCloseInvoiceModal} maxWidth="md" fullWidth>
         <DialogTitle>
           Facture pour la commande #{selectedOrder?.id || selectedOrder?._id}
@@ -483,23 +496,26 @@ export default function UserOrders() {
                 }}
               >
                 <Box>
-                  <Typography variant="h6">NDS Event's</Typography>
-                  <Typography variant="body2">8 Avenue Victor Hugo, 38130 Échirolles</Typography>
+                  <Typography variant="h6">NDS Event&apos;s</Typography>
+                  <Typography variant="body2">
+                    8 Avenue Victor Hugo, 38130 Échirolles
+                  </Typography>
                   <Typography variant="body2">Tél : 04-80-80-98-51</Typography>
                   <Typography variant="body2">contact@nds-events.fr</Typography>
                 </Box>
                 <Box>
-                  <img
-                    src="../../img/divers/nds-events-logo.png"
+                  <Image
+                    src="/img/divers/nds-events-logo.png"
                     alt="Logo"
-                    style={{ height: 80 }}
+                    width={160}
+                    height={80}
                   />
                 </Box>
               </Box>
 
               {/* Informations client */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6">À l'attention de :</Typography>
+                <Typography variant="h6">À l&apos;attention de :</Typography>
                 <Typography variant="body2">
                   {`${selectedOrder.billingInfo.firstName} ${selectedOrder.billingInfo.lastName}`}
                 </Typography>
@@ -557,10 +573,10 @@ export default function UserOrders() {
               {/* Note finale */}
               <Box sx={{ mt: 3, fontSize: '0.9rem', color: 'gray' }}>
                 <Typography>
-                  Les ventes sont conclues avec réserve de propriété. Le transfert de propriété n'intervient qu'après paiement complet.
+                  Les ventes sont conclues avec réserve de propriété. Le transfert de propriété n&apos;intervient qu&apos;après paiement complet.
                 </Typography>
                 <Typography>
-                  En cas de retard de paiement, des pénalités de retard seront appliquées selon l'article L 441-6 du Code de commerce.
+                  En cas de retard de paiement, des pénalités de retard seront appliquées selon l&apos;article L 441-6 du Code de commerce.
                 </Typography>
               </Box>
             </Box>

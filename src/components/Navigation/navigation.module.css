@@ -1,0 +1,15 @@
+.navigation__logo {
+  height: 40px;
+  margin-right: 1rem;
+}
+.navigation__link {
+  color: #ffffff;
+  text-decoration: none;
+  margin: 0 1rem;
+}
+.navigation__link:hover {
+  color: #ff6b00;
+}
+.navigation__link--active {
+  color: #ff6b00;
+}/*# sourceMappingURL=navigation.module.css.map */

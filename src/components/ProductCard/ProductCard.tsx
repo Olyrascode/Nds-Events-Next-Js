@@ -13,7 +13,7 @@ interface ProductCardProps {
   isPack?: boolean;
 }
 
-export default function ProductCard({ product, onRent, isPack = false }: ProductCardProps) {
+export default function ProductCard({ product, isPack = false }: ProductCardProps) {
   const router = useRouter();
 
   const handleViewDetails = () => {

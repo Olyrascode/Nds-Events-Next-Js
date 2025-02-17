@@ -1,3 +1,6 @@
+.partnersContainer {
+  margin-bottom: 100px;
+}
 .partnersContainer h2 {
   text-align: center;
   font-family: "Montserrat", Montserrat;
@@ -16,8 +19,8 @@
   list-style: none;
 }
 .partnersContainer .partnersLogoTop ul li img {
-  max-height: 100px;
-  max-width: 120px;
+  max-height: 120px;
+  max-width: 150px;
 }
 .partnersContainer .partnersLogoBottom ul {
   display: flex;
@@ -30,6 +33,6 @@
   list-style: none;
 }
 .partnersContainer .partnersLogoBottom ul li img {
-  max-height: 100px;
-  max-width: 120px;
+  max-height: 120px;
+  max-width: 150px;
 }/*# sourceMappingURL=partners.module.css.map */
