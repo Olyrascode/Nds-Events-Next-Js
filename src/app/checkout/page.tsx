@@ -286,10 +286,9 @@ interface PaymentIntent {
 }
 
 interface OrderTotals {
+  itemsTotal: number;
+  deliveryFee: number;
   total: number;
-  subTotal: number;
-  taxRate: number;
-  taxAmount: number;
 }
 
 const steps = ['Review Order', 'Billing & Shipping', 'Payment'];
@@ -317,7 +316,6 @@ export default function Checkout() {
   const { currentUser } = useAuth();
   const router = useRouter();
 
-  // On suppose que chaque item du cart a une propriété selectedOptions et quantity
   const cartRequiresDelivery = cart.some(item =>
     item.selectedOptions &&
     Object.values(item.selectedOptions).some(opt => opt.deliveryMandatory === true)
@@ -352,8 +350,7 @@ export default function Checkout() {
     setActiveStep(prev => prev - 1);
   };
 
-  // Ici, on suppose que calculateOrderTotal prend seulement le panier et retourne un OrderTotals
-  const orderTotals: OrderTotals = calculateOrderTotal(cart);
+  const orderTotals = calculateOrderTotal(cart, deliveryMethod) as OrderTotals;
 
   const handlePaymentSuccess = async (paymentIntent: PaymentIntent) => {
     if (!currentUser || !(currentUser._id || currentUser.id)) {
@@ -384,7 +381,6 @@ export default function Checkout() {
     }
   };
 
-  // On retire startDate et endDate des props passées à OrderSummary, supposant que son interface n'inclut que cart et deliveryMethod
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:

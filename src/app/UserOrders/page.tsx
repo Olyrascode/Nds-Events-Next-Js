@@ -364,12 +364,10 @@ export default function UserOrders() {
       try {
         setLoading(true);
         setError(null);
-        // Utilisez l'opérateur non-null car currentUser est vérifié dans l'affichage
+        // Utilisez non-null assertion pour currentUser
         const userOrders = await fetchUserOrders(currentUser!._id || currentUser!.id);
         setOrders(
-          userOrders.sort((a: Order, b: Order) => {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-          })
+          userOrders.sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         );
       } catch (err) {
         setError('Failed to load orders. Please try again.');

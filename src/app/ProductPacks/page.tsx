@@ -97,6 +97,7 @@ import RentalDialog from '../../components/RentalDialog';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import './_ProductPacks.scss';
+import { Product } from '@/types/Product';
 
 interface Pack {
   id: string;
@@ -107,15 +108,19 @@ interface Pack {
   discountPercentage?: number;
 }
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl?: string;
-  price: number;
-  minQuantity: number;
-  discountPercentage: number;
-}
+const convertPackToProduct = (pack: Pack): Product => ({
+  id: pack.id,
+  _id: pack.id,
+  title: pack.name,
+  name: pack.name,
+  description: pack.description,
+  imageUrl: pack.imageUrl || '',
+  price: pack.price,
+  minQuantity: 1,
+  discountPercentage: pack.discountPercentage || 0,
+  navCategory: 'pack',
+  category: 'pack',
+});
 
 export default function ProductPacks() {
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -146,16 +151,6 @@ export default function ProductPacks() {
     setSelectedPack(pack);
     setOpenRentalDialog(true);
   };
-
-  const convertPackToProduct = (pack: Pack): Product => ({
-    id: pack.id,
-    name: pack.name,
-    description: pack.description,
-    imageUrl: pack.imageUrl,
-    price: pack.price,
-    minQuantity: 1,
-    discountPercentage: pack.discountPercentage || 0,
-  });
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;

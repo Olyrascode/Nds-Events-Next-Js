@@ -99,9 +99,10 @@ import { useParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
 import RentalDialog from '@/components/RentalDialog';
-import "@/app/Products/_Products.scss"
+import "@/app/Products/_Products.scss";
+import { Product } from '@/types/Product'; // Importez l'interface Product
 
-// Interface pour le produit brut provenant de l'API
+// Interface pour les données brutes provenant de l'API
 interface RawProduct {
   _id: string;
   title: string;
@@ -114,27 +115,14 @@ interface RawProduct {
   category: string;
 }
 
-// Interface attendue par ProductCard
-interface ProductCardProduct {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl?: string;
-  price: number;
-  minQuantity: number;
-  discountPercentage: number;
-  navCategory: string;
-  category: string;
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
 
 export default function LaTableClient() {
   const { navCategory } = useParams();
-  const [products, setProducts] = useState<ProductCardProduct[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<ProductCardProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
   useEffect(() => {
@@ -145,17 +133,18 @@ export default function LaTableClient() {
     try {
       const response = await fetch(`${API_URL}/api/products`);
       if (!response.ok) throw new Error('Failed to fetch products');
-      // Typage de la réponse avec l'interface RawProduct[]
       const productsData: RawProduct[] = await response.json();
-      
-      // Filtrer pour ne conserver que les produits du groupe "la table"
-      const convertedProducts: ProductCardProduct[] = productsData
+
+      // Conversion vers l'interface Product attendue par ProductCard
+      const convertedProducts: Product[] = productsData
         .filter((product: RawProduct) => product.navCategory === 'la-table')
         .map((product: RawProduct) => ({
-          id: product._id,
-          name: product.title,
+          _id: product._id,
+          id: product._id,               // On assigne l'_id à id
+          title: product.title,
+          name: product.title,           // On utilise le titre pour name
           description: product.description || '',
-          imageUrl: product.imageUrl,
+          imageUrl: product.imageUrl || '',
           price: product.price || 0,
           minQuantity: product.minQuantity || 1,
           discountPercentage: product.discountPercentage || 0,
@@ -173,7 +162,7 @@ export default function LaTableClient() {
     }
   };
 
-  const handleRentClick = (product: ProductCardProduct) => {
+  const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
     setOpenRentalDialog(true);
   };
