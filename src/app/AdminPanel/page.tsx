@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
 import ProductsTab from '../../components/admin/ProductsTab';
 import ProductList from '../../components/admin/products/ProductList';
@@ -11,11 +11,11 @@ import './_AdminPanel.scss';
 export default function AdminPanel() {
   const [currentTab, setCurrentTab] = useState(0);
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
 
-  const TabPanel = ({ children, value, index }) => (
+  const TabPanel = ({ children, value, index }: { children: React.ReactNode; value: number; index: number; }) => (
     <div hidden={value !== index} className="admin-panel__content">
       {value === index && children}
     </div>
