@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import {
   Container,
   Paper,
@@ -181,10 +182,12 @@ export default function OrderConfirmation() {
           <Box key={item._id} sx={{ mb: 2 }}>
             <Grid container alignItems="center" spacing={2}>
               <Grid item>
-                <img
+              <Image
                   src={item.imageUrl}
                   alt={item.title}
-                  style={{ width: 60, height: 60, objectFit: 'cover' }}
+                  width={60}
+                  height={60}
+                  style={{ objectFit: 'cover' }}
                 />
               </Grid>
               <Grid item xs>

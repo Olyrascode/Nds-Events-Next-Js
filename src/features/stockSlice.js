@@ -112,7 +112,7 @@ export const fetchAvailableStock = createAsyncThunk(
 
       const data = await response.json();
       return { productId, availableStock: data.availableStock };
-    } catch (_error) {
+    } catch {
       return rejectWithValue('Erreur serveur');
     }
   }
@@ -134,7 +134,7 @@ export const fetchAvailablePackStock = createAsyncThunk(
 
       const data = await response.json();
       return { packId, availableStock: data.availableStock };
-    } catch (_error) {
+    } catch {
       return rejectWithValue('Erreur serveur');
     }
   }

@@ -130,11 +130,17 @@ interface User {
   // Ajoutez ici d'autres propriétés utilisateur si nécessaire
 }
 
+// Définir une interface pour la réponse d'authentification
+interface AuthResponse {
+  token: string;
+  user: User;
+}
+
 // Définir l'interface du contexte d'authentification
 interface AuthContextType {
   currentUser: User | null;
-  signup: (email: string, password: string) => Promise<any>;
-  login: (email: string, password: string) => Promise<any>;
+  signup: (email: string, password: string) => Promise<AuthResponse>;
+  login: (email: string, password: string) => Promise<AuthResponse>;
   logout: () => void;
 }
 
@@ -155,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://82.29.170.25";
 
   // Utiliser useCallback pour stabiliser la référence de fetchUserDetails
-  const fetchUserDetails = useCallback(async (token: string) => {
+  const fetchUserDetails = useCallback(async (token: string): Promise<User | null> => {
     try {
       const response = await fetch(`${API_URL}/api/auth/user`, {
         method: "GET",
@@ -177,7 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [API_URL]);
 
   // Inscription
-  const signup = async (email: string, password: string) => {
+  const signup = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
@@ -194,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("sessionExpiry", (Date.now() + 60 * 60 * 1000).toString()); // Expire après 1 heure
       // Ici, pour signup, on crée un utilisateur minimal avec l'email
       setCurrentUser({ email });
-      return data;
+      return data as AuthResponse;
     } catch (error) {
       console.error("Signup error:", error);
       throw error;
@@ -202,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Connexion
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -218,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("sessionExpiry", (Date.now() + 60 * 60 * 1000).toString()); // Expire après 1 heure
       setCurrentUser(data.user);
-      return data;
+      return data as AuthResponse;
     } catch (error) {
       console.error("Login error:", error);
       throw error;

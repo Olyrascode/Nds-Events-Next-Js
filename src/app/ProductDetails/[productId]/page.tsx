@@ -237,9 +237,18 @@ type SelectedOptions = {
   [key: string]: ProductOption;
 };
 
-interface RentalPeriodType {
-  startDate: Date | null;
-  endDate: Date | null;
+interface CartItem {
+  startDate?: Date | null;
+  endDate?: Date | null;
+  // d'autres propriétés peuvent être ajoutées si nécessaire
+}
+
+// Type pour l'état global (Redux) relatif au stock
+interface RootState {
+  stock: {
+    stockByProduct: { [key: string]: number };
+    loading: boolean;
+  };
 }
 
 // --- Composant ---
@@ -254,18 +263,17 @@ export default function ProductDetails() {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
-  const { rentalPeriod, setRentalPeriod } = useRentalPeriod(); // Assurez-vous que ce contexte est bien typé
+  const { rentalPeriod, setRentalPeriod } = useRentalPeriod();
   const { startDate, endDate } = rentalPeriod;
   const [finalPrice, setFinalPrice] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [quantityError, setQuantityError] = useState<string>("");
 
   // Vérifie si un produit dans le panier possède déjà des dates définies
-  const isCalendarDisabled = cart.some((item: any) => item.startDate && item.endDate);
+  const isCalendarDisabled = cart.some((item: CartItem) => item.startDate && item.endDate);
 
-  // Vous pouvez typer le state global si vous avez un type RootState, sinon utilisez any
-  const availableStock = useSelector((state: any) => state.stock.stockByProduct[productId]);
-  const stockLoading = useSelector((state: any) => state.stock.loading);
+  const availableStock = useSelector((state: RootState) => state.stock.stockByProduct[productId]);
+  const stockLoading = useSelector((state: RootState) => state.stock.loading);
 
   const handleStartDateChange = (date: Date | null) => {
     setRentalPeriod({ ...rentalPeriod, startDate: date });
@@ -380,8 +388,7 @@ export default function ProductDetails() {
       )}
 
       <Typography variant="h6">
-        €{(product.price * (product.lotSize || 1)).toFixed(2)} par lot de{" "}
-        {product.lotSize || 1} unités
+        €{(product.price * (product.lotSize || 1)).toFixed(2)} par lot de {product.lotSize || 1} unités
       </Typography>
 
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
@@ -416,8 +423,7 @@ export default function ProductDetails() {
 
       {product.lotSize && product.lotSize > 1 && (
         <Typography color="textSecondary" variant="body2" sx={{ mt: 1 }}>
-          Vous avez sélectionné{" "}
-          <strong>{quantity * product.lotSize}</strong> unités ({quantity} lots).
+          Vous avez sélectionné <strong>{quantity * product.lotSize}</strong> unités ({quantity} lots).
         </Typography>
       )}
 

@@ -172,11 +172,20 @@ import "./_Tentes.scss";
 import ProductCard from '../../components/ProductCard/ProductCard';
 import RentalDialog from '../../components/RentalDialog';
 
+// Définition de l'interface pour un produit
+interface Product {
+  _id: string;
+  navCategory: string;
+  category: string;
+  title: string;
+  imageUrl?: string;
+  // Ajoutez d'autres propriétés si nécessaire
+}
+
 function Tentes() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
-  const [categories, setCategories] = useState<any[]>([]);
   const router = useRouter();
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
@@ -188,18 +197,13 @@ function Tentes() {
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
-        const productsData = await response.json();
+        const productsData: Product[] = await response.json();
 
         // Filtrer pour ne conserver que les produits du groupe "tentes"
         const filteredProducts = productsData.filter(
-          (product: any) => product.navCategory === 'tentes'
+          (product: Product) => product.navCategory === 'tentes'
         );
         setProducts(filteredProducts);
-
-        const uniqueCategories = [
-          ...new Set(filteredProducts.map((product: any) => product.category))
-        ];
-        setCategories(uniqueCategories);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -208,7 +212,7 @@ function Tentes() {
     fetchProducts();
   }, [API_URL]);
 
-  const handleRentClick = (product: any) => {
+  const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
     setOpenRentalDialog(true);
   };
@@ -226,7 +230,6 @@ function Tentes() {
           content="Découvrez notre sélection exclusive de tentes de réception alliant style et fonctionnalité pour vos événements. Louez la tente idéale pour créer une ambiance inoubliable."
         />
         <meta name="robots" content="index, follow" />
-        {/* Vous pouvez ajouter d'autres balises meta SEO ici */}
       </Head>
       <div className="tentesContainer">
         <div className="tentesHeader">
@@ -268,13 +271,11 @@ function Tentes() {
           <div className="choiceContainer">
             <div className="choix1">
               <h3>Une question ?</h3>
-              {/* Remplacer <img> par <Image> avec dimensions */}
-           
+              {/* Vous pouvez ajouter ici une image via le composant <Image> si nécessaire */}
               <button>Contactez nous</button>
             </div>
             <div className="choix2">
               <h3>Vous voulez réserver ?</h3>
-             
               <button>Demander un devis</button>
             </div>
           </div>

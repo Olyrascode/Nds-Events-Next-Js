@@ -106,7 +106,7 @@ export function useAuth() {
       if (!response.ok) throw new Error('Failed to fetch user details');
       const userData = await response.json();
       dispatch(setUser(userData));
-    } catch (_err) {
+    } catch {
       dispatch(setError('Failed to fetch user details'));
       dispatch(clearAuth());
     } finally {

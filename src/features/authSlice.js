@@ -74,7 +74,7 @@ export const signup = createAsyncThunk('auth/signup', async (userData, { rejectW
 
     const data = await response.json();
     return data;
-  } catch (_error) {
+  } catch {
     return rejectWithValue('Erreur serveur');
   }
 });
