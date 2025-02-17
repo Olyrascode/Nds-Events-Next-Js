@@ -57,7 +57,7 @@
 // export default authSlice.reducer;
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
 
 export const signup = createAsyncThunk('auth/signup', async (userData, { rejectWithValue }) => {
   try {

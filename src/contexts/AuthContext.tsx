@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://82.29.170.25";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://82.29.170.25";
 
   const fetchUserDetails = useCallback(async (token: string): Promise<User | null> => {
     try {

@@ -66,7 +66,7 @@ export default function OrderConfirmation() {
   // Define order state with proper type and error state as string | null
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
 
   useEffect(() => {
     if (orderId) {

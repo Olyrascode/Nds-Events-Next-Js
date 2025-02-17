@@ -41,7 +41,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // 📌 Récupérer les produits depuis MongoDB
 export const fetchProducts = createAsyncThunk('products/fetchProducts', async () => {
-  const response = await fetch('http://82.29.170.25/api/products');
+  const response = await fetch('https://82.29.170.25/api/products');
   if (!response.ok) {
     throw new Error('Erreur lors de la récupération des produits');
   }

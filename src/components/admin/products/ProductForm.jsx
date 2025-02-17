@@ -51,7 +51,7 @@ export default function ProductForm({
 
   // Chargement des catégories existantes au montage du composant
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25'}/api/categories`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25'}/api/categories`)
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(err => console.error('Erreur lors du fetch des catégories:', err));
@@ -75,7 +75,7 @@ export default function ProductForm({
       await onSubmit(productToSubmit);
 // Optionnel : si on vient de créer une nouvelle catégorie, l'ajouter dans la liste (et l'envoyer au backend)
       if (creatingNewCategory && newCategory) {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25'}/api/categories`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25'}/api/categories`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: newCategory })

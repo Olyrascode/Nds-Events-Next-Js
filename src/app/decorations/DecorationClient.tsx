@@ -102,7 +102,7 @@ import RentalDialog from '@/components/RentalDialog';
 import "@/app/Products/_Products.scss";
 import { Product } from '@/type/Product';  // Assurez-vous que le chemin est correct
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
 
 export default function DecorationsClient() {
   const { navCategory } = useParams();
