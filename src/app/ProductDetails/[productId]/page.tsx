@@ -286,9 +286,10 @@ export default function ProductDetails() {
 
   useEffect(() => {
     if (productId && startDate && endDate) {
-      dispatch(fetchAvailableStock({ productId, startDate, endDate }));
+      (dispatch as any)(fetchAvailableStock({ productId, startDate, endDate }));
     }
   }, [productId, startDate, endDate, dispatch]);
+  
 
   useEffect(() => {
     if (!product) return;
