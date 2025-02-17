@@ -6,17 +6,31 @@ import { useParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
 import RentalDialog from '@/components/RentalDialog';
-import "@/app/Products/_Products.scss"
+import "@/app/Products/_Products.scss";
+import { Product } from '../../type/Product'; // Utilise l'interface Product définie dans vos types
+
+// Interface pour le produit brut provenant de l'API
+interface RawProduct {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  minQuantity?: number;
+  discountPercentage?: number;
+  navCategory: string;
+  category: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
 
-export default function LaTableClient() {
+export default function LeMobilierClient() {
   const { navCategory } = useParams();
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [openRentalDialog, setOpenRentalDialog] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
   useEffect(() => {
     fetchProducts();
@@ -28,16 +42,28 @@ export default function LaTableClient() {
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
-      const productsData = await response.json();
+      const productsData: RawProduct[] = await response.json();
 
-      // Filtrer pour ne conserver que les produits du groupe "le mobilier"
-      const filteredProducts = productsData.filter(
-        product => product.navCategory === 'le-mobilier'
-      );
-      setProducts(filteredProducts);
+      // Filtrer pour ne conserver que les produits du groupe "le-mobilier"
+      const convertedProducts: Product[] = productsData
+        .filter((product: RawProduct) => product.navCategory === 'le-mobilier')
+        .map((product: RawProduct) => ({
+          _id: product._id,
+          id: product._id,                // On assigne _id à id
+          title: product.title,
+          name: product.title,            // Utiliser title pour name
+          description: product.description || '',
+          imageUrl: product.imageUrl || '',
+          price: product.price || 0,
+          minQuantity: product.minQuantity || 1,
+          discountPercentage: product.discountPercentage || 0,
+          navCategory: product.navCategory,
+          category: product.category,
+        }));
+      setProducts(convertedProducts);
 
       const uniqueCategories = [
-        ...new Set(filteredProducts.map(product => product.category))
+        ...new Set(convertedProducts.map((product) => product.category))
       ];
       setCategories(uniqueCategories);
     } catch (error) {
@@ -45,7 +71,7 @@ export default function LaTableClient() {
     }
   };
 
-  const handleRentClick = (product) => {
+  const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
     setOpenRentalDialog(true);
   };
@@ -71,7 +97,7 @@ export default function LaTableClient() {
         )}
 
         <div className="products__grid">
-          {products.map((product) => (
+          {products.map((product: Product) => (
             <ProductCard
               key={product._id}
               product={product}
