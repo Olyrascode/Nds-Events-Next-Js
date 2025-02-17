@@ -164,7 +164,7 @@ export default function ProductPacks() {
     <div className="product-packs">
       <Container>
         <Typography variant="h4" component="h1" gutterBottom className="product-packs__title">
-          Packs d'équipements
+          Packs d&apos;équipements
         </Typography>
         <Typography variant="subtitle1" gutterBottom className="product-packs__subtitle">
           Simplifiez votre location avec nos packs

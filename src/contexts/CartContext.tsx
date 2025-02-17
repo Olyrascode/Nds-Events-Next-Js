@@ -68,7 +68,7 @@ export interface CartItem {
   type?: "pack" | "product";
   selectedOptions?: {
     deliveryMandatory?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

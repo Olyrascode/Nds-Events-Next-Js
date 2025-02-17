@@ -101,7 +101,20 @@ import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
 import RentalDialog from '@/components/RentalDialog';
 import "@/app/Products/_Products.scss"
 
-// L'interface attendue par ProductCard (basée sur ce que ProductCard utilise)
+// Interface pour le produit brut provenant de l'API
+interface RawProduct {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  minQuantity?: number;
+  discountPercentage?: number;
+  navCategory: string;
+  category: string;
+}
+
+// Interface attendue par ProductCard
 interface ProductCardProduct {
   id: string;
   name: string;
@@ -132,10 +145,13 @@ export default function LaTableClient() {
     try {
       const response = await fetch(`${API_URL}/api/products`);
       if (!response.ok) throw new Error('Failed to fetch products');
-      const productsData = await response.json();
+      // Typage de la réponse avec l'interface RawProduct[]
+      const productsData: RawProduct[] = await response.json();
+      
+      // Filtrer pour ne conserver que les produits du groupe "la table"
       const convertedProducts: ProductCardProduct[] = productsData
-        .filter((product: any) => product.navCategory === 'la-table')
-        .map((product: any) => ({
+        .filter((product: RawProduct) => product.navCategory === 'la-table')
+        .map((product: RawProduct) => ({
           id: product._id,
           name: product.title,
           description: product.description || '',
@@ -147,6 +163,7 @@ export default function LaTableClient() {
           category: product.category,
         }));
       setProducts(convertedProducts);
+
       const uniqueCategories = [
         ...new Set(convertedProducts.map((product) => product.category))
       ];
