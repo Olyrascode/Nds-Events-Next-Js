@@ -210,6 +210,7 @@ import RentalPeriod from '../components/RentalPeriod';
 import QuantitySelector from '../components/QuantitySelector';
 import PriceCalculation from '../components/PriceCalculation';
 import Image from 'next/image';
+import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import './ProductDetails.scss';
 
 interface ProductOption {
@@ -247,8 +248,8 @@ interface RootState {
 export default function ProductDetails() {
   const { productId } = useParams() as { productId: string };
   const { addToCart, setIsCartOpen, cart } = useCart();
-  const dispatch = useDispatch();
-
+  
+  const dispatch = useAppDispatch();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
