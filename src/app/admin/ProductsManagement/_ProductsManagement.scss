@@ -1,0 +1,17 @@
+.products-management {
+  padding: 2rem 0;
+  background-color: #ffffff;
+
+  &__header {
+    margin-bottom: 2rem;
+  }
+
+  &__title {
+    color: var(--secondary-color);
+  }
+
+  &__subtitle {
+    color: #666;
+    margin-bottom: 2rem;
+  }
+}

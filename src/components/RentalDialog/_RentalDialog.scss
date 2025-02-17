@@ -1,0 +1,34 @@
+.rental-dialog {
+  &__content {
+    padding: 2rem;
+  }
+
+  &__title {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  &__dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  &__error {
+    color: #f44336;
+    margin-bottom: 1rem;
+  }
+
+  &__actions {
+    padding: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+}

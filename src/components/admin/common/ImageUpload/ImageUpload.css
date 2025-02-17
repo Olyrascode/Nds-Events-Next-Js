@@ -1,0 +1,22 @@
+.image-upload {
+  margin-bottom: 2rem;
+}
+.image-upload__container {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+.image-upload__button {
+  min-width: 150px;
+}
+.image-upload__preview-container {
+  flex-grow: 1;
+}
+.image-upload__preview {
+  max-width: 200px;
+  max-height: 200px;
+  -o-object-fit: cover;
+     object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}/*# sourceMappingURL=ImageUpload.css.map */

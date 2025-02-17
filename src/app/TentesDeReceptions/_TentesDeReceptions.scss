@@ -1,0 +1,229 @@
+.sectionContainerTentesPliantes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding-bottom: 50px;
+    background-color: #FFF1EC;
+       .tentesHeader {
+           background-color: black;
+           color: white;
+           text-align: center;
+           padding: 10px;
+           margin-bottom: 50px;
+           width: 100%;
+       }
+       .carrouselContainer {
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           max-width: 90%;
+           position: relative;
+       
+           .carrousel {
+               position: relative;
+               width: 1400px;
+               height: 600px;
+       
+               img {
+                   display: block;
+                   width: 100%;
+                   height: 600px;
+                   object-fit: cover;
+               }
+       
+               .carrousel-button {
+                   position: absolute;
+                   top: 50%;
+                   transform: translateY(-50%);
+                   background-color: rgba(255, 255, 255, 0.7);
+                   border: none;
+                   color: orangered;
+                   font-size: 2rem;
+                   cursor: pointer;
+                   padding: 10px;
+                   z-index: 2;
+       
+                   &.left {
+                       left: 10px;
+                   }
+       
+                   &.right {
+                       right: 10px;
+                   }
+       
+                   &:hover {
+                       background-color: rgba(255, 255, 255, 0.9);
+                   }
+               }
+           }
+       
+           .asideContainer {
+            
+            
+               padding: 50px;
+               width: 50%;
+               height: 600px;
+               text-align: center;
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
+               font-size: 1.3rem;
+        
+               h3 {
+                   margin-bottom: 20px;
+                   color: #FF6226;
+               }
+       
+               ul {
+                 font-size: 18px;
+                list-style: disc;
+                text-align: left;
+                   padding: 0;
+       
+                   li {
+                    color: black;
+                       margin: 10px 0;
+                   }
+               }
+           }
+       }
+
+       // carrousel 2 // 
+       .carrouselContainer2 {
+    
+           width: 90%;
+ h2 {
+    font-size: 2rem;
+    color: #FF6226;
+ }
+       
+       .carrousel2 {
+        position: relative;
+        width: 1400px;
+        height: 600px;
+    
+        .carrousel-slides {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            height: auto;
+        
+            .slide {
+                text-align: center;
+                width: calc(50% - 10px); /* Chaque slide occupe la moitié de l'espace */
+                
+                img {
+                    width: 100%;
+                    height: auto;
+                    border-radius: 5px;
+                }
+        
+                .image-caption {
+                    margin-top: 10px;
+                    font-size: 1rem;
+                    color: #333;
+                    text-align: center;
+                }
+            }
+        }
+        
+    
+        .carrousel-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.7);
+            border: none;
+            color: orangered;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 10px;
+            z-index: 2;
+    
+            &.left {
+                left: 10px;
+            }
+    
+            &.right {
+                right: 10px;
+            }
+    
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.9);
+            }
+        }
+    }
+}
+    
+       .bottomContainer {
+           width: 80%;
+           h3 {
+               color: orangered;
+               font-size: 2rem;
+           }
+           ul {
+               color: black;
+             
+           }
+       }
+       .choiceContainer {
+      margin-top: 50px;
+           display: flex;
+           flex-direction: row;
+       
+         
+               width: 1000px;
+               text-align: center;
+               .choix1 {
+                   font-size: 1.5rem;
+                   display: flex;
+                   flex-direction: column;
+                   justify-content: space-around;
+                   align-items: center;
+                   width: 500px;
+                   height: 200px;
+                   background-color: rgb(233, 233, 233);
+                   padding-bottom: 20px;
+                   button {
+                       width: 200px;
+                       height: 50px;
+                       font-size: 1.2rem;
+                       background-color: #FF6226;
+                       color: white;
+                       border: none;
+                       &:hover {
+                           background-color: #FF6226;
+                           color: black;
+                          }
+                   }
+                  
+               }
+               .choix2 {
+                   font-size: 1.5rem;
+                   display: flex;
+                   flex-direction: column;
+                   justify-content: space-around;
+                   align-items: center;
+                   background-color: rgb(255, 228, 207);
+                   color: white;
+                   width: 500px;
+                   padding-bottom: 20px;
+                   button {
+                       width: 200px;
+                       height: 50px;
+                       font-size: 1.2rem;
+                       background-color: #FF6226;
+                       color: white;
+                       border: none;
+                       &:hover {
+                           background-color: #FF6226;
+                           color: black;
+                          }
+                   }
+               }
+       
+           
+           }
+   }
+   

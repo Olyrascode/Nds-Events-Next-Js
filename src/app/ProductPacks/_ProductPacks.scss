@@ -1,0 +1,31 @@
+.product-packs {
+  background-color: var(--background-color);
+  padding: 3rem 0;
+
+  &__title {
+    color: var(--secondary-color);
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  &__subtitle {
+    color: #666;
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  &__card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__discount {
+    color: var(--primary-color);
+    font-weight: bold;
+  }
+  .product-card__image {
+    object-fit: contain; /* L'image est redimensionnée pour couvrir le conteneur */
+    object-position: center; /* Centre l'image dans le conteneur */
+}
+}

@@ -1,0 +1,35 @@
+.partnersContainer h2 {
+  text-align: center;
+  font-family: "Montserrat", Montserrat;
+  font-size: 2.2rem;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.partnersContainer .partnersLogoTop ul {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+}
+.partnersContainer .partnersLogoTop ul li {
+  list-style: none;
+}
+.partnersContainer .partnersLogoTop ul li img {
+  max-height: 100px;
+  max-width: 120px;
+}
+.partnersContainer .partnersLogoBottom ul {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+}
+.partnersContainer .partnersLogoBottom ul li {
+  list-style: none;
+}
+.partnersContainer .partnersLogoBottom ul li img {
+  max-height: 100px;
+  max-width: 120px;
+}/*# sourceMappingURL=partners.module.css.map */
