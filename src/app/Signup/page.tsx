@@ -107,11 +107,9 @@ import {
   Alert,
 } from '@mui/material';
 
-// Exemple de typage pour l'état auth (adapter selon votre implémentation)
 interface AuthState {
   loading: boolean;
   error: string | null;
-  // user: any; // pas besoin si non utilisé
 }
 
 export default function Signup() {
@@ -123,24 +121,20 @@ export default function Signup() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // On extrait uniquement loading et error, puisque user n'est pas utilisé
   const { loading, error } = useSelector((state: { auth: AuthState }) => state.auth);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     if (password !== confirmPassword) {
       return setLocalError('Les mots de passe ne correspondent pas.');
     }
-
     setLocalError('');
-
     dispatch(signup({ email, password }))
-      .unwrap() // Pour capturer les erreurs éventuelles
+      .unwrap()
       .then(() => {
-        router.push('/'); // Redirige l'utilisateur après succès
+        router.push('/');
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error('Erreur lors de la création du compte :', err);
       });
   };
@@ -151,8 +145,6 @@ export default function Signup() {
         <Typography variant="h5" component="h1" gutterBottom>
           Créer un compte
         </Typography>
-
-        {/* Affichage des erreurs */}
         {localError && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {localError}
@@ -163,7 +155,6 @@ export default function Signup() {
             {error}
           </Alert>
         )}
-
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
@@ -192,8 +183,6 @@ export default function Signup() {
             margin="normal"
             required
           />
-
-          {/* Bouton avec indicateur de chargement */}
           <Button
             type="submit"
             variant="contained"

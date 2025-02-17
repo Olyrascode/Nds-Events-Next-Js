@@ -101,26 +101,28 @@ import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
 import RentalDialog from '@/components/RentalDialog';
 import "@/app/Products/_Products.scss"
 
-// Définition d'une interface pour décrire les propriétés d'un produit
-interface Product {
-  _id: string;
+// L'interface attendue par ProductCard (basée sur ce que ProductCard utilise)
+interface ProductCardProduct {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl?: string;
+  price: number;
+  minQuantity: number;
+  discountPercentage: number;
   navCategory: string;
   category: string;
-  title: string;
-  imageUrl?: string;
-  price?: number;
-  // Ajoutez d'autres propriétés si nécessaire
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
 
 export default function LaTableClient() {
   const { navCategory } = useParams();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductCardProduct[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [openRentalDialog, setOpenRentalDialog] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductCardProduct | null>(null);
+  const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
   useEffect(() => {
     fetchProducts();
@@ -129,21 +131,24 @@ export default function LaTableClient() {
   const fetchProducts = async () => {
     try {
       const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
+      if (!response.ok) throw new Error('Failed to fetch products');
       const productsData = await response.json();
-      // On suppose ici que productsData est un tableau d'objets respectant l'interface Product
-      const typedProductsData = productsData as Product[];
-
-      // Filtrer pour ne conserver que les produits du groupe "la table"
-      const filteredProducts = typedProductsData.filter(
-        (product: Product) => product.navCategory === 'la-table'
-      );
-      setProducts(filteredProducts);
-
+      const convertedProducts: ProductCardProduct[] = productsData
+        .filter((product: any) => product.navCategory === 'la-table')
+        .map((product: any) => ({
+          id: product._id,
+          name: product.title,
+          description: product.description || '',
+          imageUrl: product.imageUrl,
+          price: product.price || 0,
+          minQuantity: product.minQuantity || 1,
+          discountPercentage: product.discountPercentage || 0,
+          navCategory: product.navCategory,
+          category: product.category,
+        }));
+      setProducts(convertedProducts);
       const uniqueCategories = [
-        ...new Set(filteredProducts.map((product: Product) => product.category))
+        ...new Set(convertedProducts.map((product) => product.category))
       ];
       setCategories(uniqueCategories);
     } catch (error) {
@@ -151,7 +156,7 @@ export default function LaTableClient() {
     }
   };
 
-  const handleRentClick = (product: Product) => {
+  const handleRentClick = (product: ProductCardProduct) => {
     setSelectedProduct(product);
     setOpenRentalDialog(true);
   };
@@ -164,8 +169,6 @@ export default function LaTableClient() {
             Nos produits pour la table
           </Typography>
         </div>
-
-        {/* Afficher le filtre par catégorie seulement si aucun paramètre navCategory n'est présent */}
         {!navCategory && (
           <div className="products__filters">
             <CategoryFilter
@@ -175,17 +178,15 @@ export default function LaTableClient() {
             />
           </div>
         )}
-
         <div className="products__grid">
-          {products.map((product: Product) => (
+          {products.map((product) => (
             <ProductCard
-              key={product._id}
+              key={product.id}
               product={product}
               onRent={handleRentClick}
             />
           ))}
         </div>
-
         {selectedProduct && (
           <RentalDialog
             open={openRentalDialog}

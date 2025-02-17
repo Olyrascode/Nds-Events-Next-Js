@@ -169,46 +169,38 @@ import Head from 'next/head';
 import Image from 'next/image';
 import { Container, Typography } from '@mui/material';
 import "./_Tentes.scss";
-import ProductCard from '../../components/ProductCard/ProductCard';
-import RentalDialog from '../../components/RentalDialog';
+import ProductCard from '@/components/ProductCard/ProductCard';
+import RentalDialog from '@/components/RentalDialog';
 
-// Définition de l'interface pour un produit
 interface Product {
   _id: string;
   navCategory: string;
   category: string;
   title: string;
   imageUrl?: string;
-  // Ajoutez d'autres propriétés si nécessaire
 }
 
-function Tentes() {
+export default function Tentes() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
   const router = useRouter();
-
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://82.29.170.25';
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await fetch(`${API_URL}/api/products`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
+        if (!response.ok) throw new Error('Failed to fetch products');
         const productsData: Product[] = await response.json();
-
-        // Filtrer pour ne conserver que les produits du groupe "tentes"
         const filteredProducts = productsData.filter(
-          (product: Product) => product.navCategory === 'tentes'
+          (product) => product.navCategory === 'tentes'
         );
         setProducts(filteredProducts);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
-
     fetchProducts();
   }, [API_URL]);
 
@@ -238,7 +230,6 @@ function Tentes() {
             Découvrez notre sélection exclusive de tentes de réception, alliant style et fonctionnalité pour faire de votre événement un succès inoubliable.
           </h2>
         </div>
-
         <section>
           <Container>
             <div className="products__header">
@@ -246,7 +237,6 @@ function Tentes() {
                 Tentes en location
               </Typography>
             </div>
-
             <div className="products__grid">
               {products.map((product) => (
                 <ProductCard
@@ -256,7 +246,6 @@ function Tentes() {
                 />
               ))}
             </div>
-
             {selectedProduct && (
               <RentalDialog
                 open={openRentalDialog}
@@ -266,12 +255,10 @@ function Tentes() {
             )}
           </Container>
         </section>
-
         <section>
           <div className="choiceContainer">
             <div className="choix1">
               <h3>Une question ?</h3>
-              {/* Vous pouvez ajouter ici une image via le composant <Image> si nécessaire */}
               <button>Contactez nous</button>
             </div>
             <div className="choix2">
@@ -280,7 +267,6 @@ function Tentes() {
             </div>
           </div>
         </section>
-
         <section className="sectionCard">
           <h2>Nos produits sur devis</h2>
           <p>
@@ -327,4 +313,4 @@ function Tentes() {
   );
 }
 
-export default Tentes;
+

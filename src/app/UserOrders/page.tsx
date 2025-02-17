@@ -294,9 +294,7 @@
 // }
 
 "use client";
-import { useState, useEffect } from 'react';
-// Suppression de l'import inutilisé jsPDF
-// import { jsPDF } from 'jspdf';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -323,7 +321,6 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { generateInvoicePDF } from '../../utils/invoiceGenerator';
 import Image from 'next/image';
 
-// Définition des interfaces
 interface Product {
   _id?: string;
   id?: string;
@@ -362,15 +359,13 @@ export default function UserOrders() {
   const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // Suppression de invoiceRef puisqu'elle n'est pas utilisée
-  // const invoiceRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const loadOrders = async () => {
       try {
         setLoading(true);
         setError(null);
-        const userOrders = await fetchUserOrders(currentUser.id || currentUser._id);
+        // Utilisez l'opérateur non-null car currentUser est vérifié dans l'affichage
+        const userOrders = await fetchUserOrders(currentUser!._id || currentUser!.id);
         setOrders(
           userOrders.sort((a: Order, b: Order) => {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -383,7 +378,6 @@ export default function UserOrders() {
         setLoading(false);
       }
     };
-
     loadOrders();
   }, [currentUser]);
 
@@ -392,7 +386,6 @@ export default function UserOrders() {
       console.error('No order provided for invoice generation.');
       return;
     }
-
     try {
       await generateInvoicePDF(order);
     } catch (err) {
@@ -433,7 +426,6 @@ export default function UserOrders() {
         <Typography variant="h4" gutterBottom>
           Mes commandes
         </Typography>
-
         {orders.length === 0 ? (
           <Alert severity="info">Vous n&apos;avez pas encore de commande.</Alert>
         ) : (
@@ -478,7 +470,6 @@ export default function UserOrders() {
           </TableContainer>
         )}
       </Paper>
-
       <Dialog open={openInvoiceModal} onClose={handleCloseInvoiceModal} maxWidth="md" fullWidth>
         <DialogTitle>
           Facture pour la commande #{selectedOrder?.id || selectedOrder?._id}
@@ -486,7 +477,6 @@ export default function UserOrders() {
         <DialogContent dividers>
           {selectedOrder && (
             <Box sx={{ p: 3 }}>
-              {/* En-tête : logo et informations principales */}
               <Box
                 sx={{
                   display: 'flex',
@@ -512,8 +502,6 @@ export default function UserOrders() {
                   />
                 </Box>
               </Box>
-
-              {/* Informations client */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6">À l&apos;attention de :</Typography>
                 <Typography variant="body2">
@@ -527,8 +515,6 @@ export default function UserOrders() {
                   Date de la facture : {format(new Date(selectedOrder.createdAt), 'PP')}
                 </Typography>
               </Box>
-
-              {/* Tableau des produits */}
               <Typography variant="h6" sx={{ mb: 2 }}>
                 Détails des produits
               </Typography>
@@ -556,21 +542,17 @@ export default function UserOrders() {
                   </TableBody>
                 </Table>
               </TableContainer>
-
-              {/* Totaux */}
               <Box sx={{ mt: 3 }}>
                 <Typography variant="body1">
                   Sous-total HT : {formatPrice(selectedOrder.subTotal)}
                 </Typography>
                 <Typography variant="body1">
-                  TVA ({selectedOrder.taxRate}%) : {formatPrice(selectedOrder.taxAmount)}
+                  TVA ({selectedOrder.taxRate}%): {formatPrice(selectedOrder.taxAmount)}
                 </Typography>
                 <Typography variant="body1" fontWeight="bold">
                   Total TTC : {formatPrice(selectedOrder.total)}
                 </Typography>
               </Box>
-
-              {/* Note finale */}
               <Box sx={{ mt: 3, fontSize: '0.9rem', color: 'gray' }}>
                 <Typography>
                   Les ventes sont conclues avec réserve de propriété. Le transfert de propriété n&apos;intervient qu&apos;après paiement complet.

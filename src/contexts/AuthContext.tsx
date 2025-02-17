@@ -120,23 +120,21 @@
 //     </AuthContext.Provider>
 //   );
 // }
-"use client"; // Indique que ce fichier doit être exécuté côté client
+"use client";
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-// Définir une interface pour l'utilisateur
 interface User {
+  _id?: string;
+  id?: string;
   email: string;
-  // Ajoutez ici d'autres propriétés utilisateur si nécessaire
 }
 
-// Définir une interface pour la réponse d'authentification
 interface AuthResponse {
   token: string;
   user: User;
 }
 
-// Définir l'interface du contexte d'authentification
 interface AuthContextType {
   currentUser: User | null;
   signup: (email: string, password: string) => Promise<AuthResponse>;
@@ -160,7 +158,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://82.29.170.25";
 
-  // Utiliser useCallback pour stabiliser la référence de fetchUserDetails
   const fetchUserDetails = useCallback(async (token: string): Promise<User | null> => {
     try {
       const response = await fetch(`${API_URL}/api/auth/user`, {
@@ -169,11 +166,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           Authorization: `Bearer ${token}`,
         },
       });
-
       if (!response.ok) {
         throw new Error("Failed to fetch user details");
       }
-
       const userData = await response.json();
       return userData as User;
     } catch (error) {
@@ -182,7 +177,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [API_URL]);
 
-  // Inscription
   const signup = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const response = await fetch(`${API_URL}/api/auth/signup`, {
@@ -190,15 +184,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       if (!response.ok) {
         throw new Error("Failed to sign up");
       }
-
       const data = await response.json();
       localStorage.setItem("authToken", data.token);
-      localStorage.setItem("sessionExpiry", (Date.now() + 60 * 60 * 1000).toString()); // Expire après 1 heure
-      // Ici, pour signup, on crée un utilisateur minimal avec l'email
+      localStorage.setItem("sessionExpiry", (Date.now() + 60 * 60 * 1000).toString());
       setCurrentUser({ email });
       return data as AuthResponse;
     } catch (error) {
@@ -207,7 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Connexion
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -215,14 +205,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       if (!response.ok) {
         throw new Error("Failed to login");
       }
-
       const data = await response.json();
       localStorage.setItem("authToken", data.token);
-      localStorage.setItem("sessionExpiry", (Date.now() + 60 * 60 * 1000).toString()); // Expire après 1 heure
+      localStorage.setItem("sessionExpiry", (Date.now() + 60 * 60 * 1000).toString());
       setCurrentUser(data.user);
       return data as AuthResponse;
     } catch (error) {
@@ -231,19 +219,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Déconnexion
   const logout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("sessionExpiry");
     setCurrentUser(null);
   };
 
-  // Charger l'utilisateur connecté au démarrage
   useEffect(() => {
     const initializeUser = async () => {
       const token = localStorage.getItem("authToken");
       const sessionExpiry = localStorage.getItem("sessionExpiry");
-
       if (token && sessionExpiry && Date.now() < parseInt(sessionExpiry, 10)) {
         const userDetails = await fetchUserDetails(token);
         if (userDetails) {
@@ -254,10 +239,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         logout();
       }
-
       setLoading(false);
     };
-
     initializeUser();
   }, [fetchUserDetails]);
 
