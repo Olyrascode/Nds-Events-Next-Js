@@ -12,14 +12,16 @@ function Contact() {
     message: ''
   });
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     alert('Formulaire soumis !');
     console.log(formData);
@@ -34,8 +36,8 @@ function Contact() {
         <p>
           <strong>Pour une commande, veuillez la faire en ligne directement.</strong> <br/>
           Pour tout renseignement, n&apos;hésitez pas à nous contacter!<br/>
-          <strong>Nous ne pouvons pas faire de devis personnalisé pour des commandes inférieures à 200 € TTC. </strong><br/>
-          <strong>Horaires d&apos;ouverture (Visites sur rendez-vous) : </strong> <br/>
+          <strong>Nous ne pouvons pas faire de devis personnalisé pour des commandes inférieures à 200 € TTC.</strong><br/>
+          <strong>Horaires d&apos;ouverture (Visites sur rendez-vous) :</strong> <br/>
           Du lundi au vendredi de 9h00 à 12h30 et de 14h00 à 17h30 et le samedi de 9h00 à 12h00
         </p>
       </div>
