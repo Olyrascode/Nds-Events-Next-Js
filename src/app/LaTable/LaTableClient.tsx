@@ -100,7 +100,7 @@ import ProductCard from '@/components/ProductCard/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
 import RentalDialog from '@/components/RentalDialog';
 import "@/app/Products/_Products.scss";
-import { Product } from '@/types/Product'; // Importez l'interface Product
+import { Product } from "../../type/Product"
 
 // Interface pour les données brutes provenant de l'API
 interface RawProduct {
