@@ -18,14 +18,32 @@ footer {
                 font-size: 14px;
             }
     }
-    .container2 {
-        ul {
-            list-style: none;
+    .menuContainer {
+        display: flex;
+        flex-direction: row;
+        .container2 {
+            ul {
+                list-style: none;
+            }
+        }
+        .container3 {
+            ul {
+                list-style: none;
+            }
         }
     }
-    .container3 {
-        ul {
-            list-style: none;
-        }
     }
+
+@media screen and (max-width: 740px) {
+
+footer {
+    display: flex;
+    flex-direction: column;
+    
+}
+.menuContainer {
+    display: flex;
+    flex-direction: row;
+}
+  
 }

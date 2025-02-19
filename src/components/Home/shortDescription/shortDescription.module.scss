@@ -11,14 +11,14 @@
         margin: 0;
        
   font-family: "Montserrat", Montserrat;
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 5vw, 3rem);
   font-weight: 400;
   text-transform: uppercase;
     }
     p {
        max-width: 790px;
         text-align: center;
-       
+        font-size: clamp(1rem, 5vw, 1rem);
         font-family: "Montserrat", Montserrat;
         font-weight: 400;
         line-height: 1.6em;

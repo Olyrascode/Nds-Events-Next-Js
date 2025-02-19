@@ -134,6 +134,7 @@ export default function Navigation() {
           onClose={handleClose}
           currentUser={currentUser!}
           isActive={isActive}
+        
         />
         <CartDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)} />
       </Toolbar>

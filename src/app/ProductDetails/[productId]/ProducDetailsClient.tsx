@@ -31,6 +31,7 @@ interface Product {
   _id: string;
   title: string;
   imageUrl?: string;
+  description: string;
   price: number;
   minQuantity?: number;
   lotSize?: number;
@@ -166,17 +167,23 @@ export default function ProductDetails() {
 
   return (
     <Container className="product-details">
+        <div className='product-details__header'>
+        <div className='product-details__text'>
       <Typography variant="h1">{product.title}</Typography>
+      <Typography variant='h6'>{product.description}</Typography>
+        </div>
       {product.imageUrl && (
-        <Image
+          <Image
           src={product.imageUrl}
           alt={product.title}
           className="product-details__image"
           width={500}
-          height={300}
+          height={400}
+          style={{ objectFit: "contain" }} 
           unoptimized
-        />
-      )}
+          />
+        )}
+        </div>
       {product.options?.length ? (
         <ProductOptions
           options={product.options}

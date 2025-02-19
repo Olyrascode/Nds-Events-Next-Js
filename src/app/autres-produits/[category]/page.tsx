@@ -77,8 +77,11 @@ export default async function CategoryPage({ params }: { params: { category: str
 
   return (
     <div className="products">
+            <div className='products__header'>
+
       <h1>{decodedCategory}</h1>
       <p>Découvrez tous les produits dans la catégorie {decodedCategory}.</p>
+            </div>
       <div className="products__grid">
         {filteredProducts.map((product) => (
           <ProductCard key={product._id} product={product} />

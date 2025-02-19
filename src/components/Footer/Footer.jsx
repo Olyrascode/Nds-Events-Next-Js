@@ -1,3 +1,5 @@
+import "./_Footer.scss"
+
 function Footer() {
     return(
         <footer>
@@ -6,6 +8,8 @@ function Footer() {
                 <p>Isère Réception est une boutique officielle de location de matériel de l'agence NDS Event's.
                 Agence du groupe Star Control Europ SAS - 8 Avenue Victor Hugo, 38130 Echirolles - FRANCE</p>
             </div>
+            <div className="menuContainer">
+
             <div className="container2">
                 <ul>
                     <li>A propos</li>
@@ -23,6 +27,7 @@ function Footer() {
                     <li>Décoration</li>
                     <li>Autres produits</li>
                 </ul>
+            </div>
             </div>
         </footer>
     )
