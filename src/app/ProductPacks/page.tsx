@@ -161,7 +161,7 @@ export default function ProductPacks() {
         <Typography variant="h4" component="h1" gutterBottom className="product-packs__title">
           Packs d&apos;équipements
         </Typography>
-        <Typography variant="subtitle1" gutterBottom className="product-packs__subtitle">
+        <Typography variant="h5" gutterBottom className="product-packs__subtitle">
           Simplifiez votre location avec nos packs
         </Typography>
         <Grid container spacing={4}>

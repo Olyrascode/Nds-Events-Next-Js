@@ -1,8 +1,8 @@
 export const menuItems = [
   { label: 'Produits', path: '/Products' },
   { label: 'Packs de produits', path: '/ProductPacks' },
-  { label: 'La table', value: 'la-table', path: '/LaTable' },
-  { label: 'Le Mobilier', value: 'le-mobilier', path: '/LeMobilier' },
+  { label: 'La table', value: 'la-table', path: '/la-table' },
+  { label: 'Le Mobilier', value: 'le-mobilier', path: '/le-mobilier' },
   { label: 'Tentes', path: '/Tentes' },
   { label: 'Décorations', value: 'decorations', path: '/decorations' },
   { label: 'Autres produits', value: 'autres-produits', path: '/autresProduits' },

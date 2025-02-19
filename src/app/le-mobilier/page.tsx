@@ -1,5 +1,5 @@
 // app/Tentes/page.tsx (composant serveur)
-import LeMobilier from "@/app/LeMobilier/LeMobilierClient"
+import LeMobilier from "@/app/le-mobilier/LeMobilierClient"
 
 export const metadata = {
   title: "La Table - Tous nos produits pour la table| Votre Site",

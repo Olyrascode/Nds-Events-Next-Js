@@ -75,7 +75,10 @@ export default function Products() {
       <Container>
         <div className="products__header">
           <Typography variant="h4" component="h1" className="products__title">
-            Nos produits
+            Tous nos produits
+          </Typography>
+          <Typography variant='h5' gutterBottom className="product-packs__subtitle">
+          Découvrez tous les produits Nds disponnibles à la location
           </Typography>
         </div>
 
