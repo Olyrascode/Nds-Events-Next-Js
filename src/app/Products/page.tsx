@@ -9,7 +9,7 @@ import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
 import RentalDialog from '@/components/RentalDialog';
 import './_Products.scss';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 
 export default function Products() {
   // Récupération du paramètre de la route (exemple : /products/nav/la-table)

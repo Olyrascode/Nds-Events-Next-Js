@@ -3,7 +3,7 @@ import nodeFetch from 'node-fetch';
 import { Product } from '../../../type/Product';
 import ProductCard from '@/components/ProductCard/ProductCard';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 const agent = new https.Agent({ rejectUnauthorized: false });
 
 async function fetchProducts(): Promise<Product[]> {

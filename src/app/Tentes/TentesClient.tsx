@@ -185,7 +185,7 @@ export default function Tentes() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 
   useEffect(() => {
     const fetchProducts = async () => {

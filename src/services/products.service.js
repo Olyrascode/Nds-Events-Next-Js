@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 
 // Créer un produit
 export const createProduct = async (productData) => {

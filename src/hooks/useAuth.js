@@ -92,7 +92,7 @@ export function useAuth() {
   const dispatch = useDispatch();
   const { user, token, loading, error } = useSelector((state) => state.auth);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 
   const fetchUserDetails = useCallback(async (token) => {
     try {
