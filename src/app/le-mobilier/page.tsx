@@ -2,9 +2,9 @@
 import LeMobilier from "@/app/le-mobilier/LeMobilierClient"
 
 export const metadata = {
-  title: "La Table - Tous nos produits pour la table| Votre Site",
+  title: "Le Mobilier - Tous nos produits de Mobilier| NDS Events",
   description:
-    "Découvrez notre sélection exclusive de produits pour les tables de réception alliant style et fonctionnalité pour vos événements.",
+    "Découvrez notre sélection exclusive de produits de mobilier pour vos événements.",
 };
 
 export default function TentesPage() {

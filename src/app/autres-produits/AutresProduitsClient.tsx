@@ -7,14 +7,13 @@ import ProductCard from '@/components/ProductCard/ProductCard';
 import CategoryLinkFilter from '@/components/CategoryFilter/CategoryLinkFilter';
 import RentalDialog from '@/components/RentalDialog';
 import "@/app/Products/_Products.scss";
-import { Product } from '@/type/Product';  // Assurez-vous que le chemin est correct
+import { Product } from '@/type/Product';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 
-export default function DecorationsClient() {
+export default function AutresProduitsClient() {
   const { navCategory, category } = useParams();
 
-  // Typage explicite
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -32,28 +31,11 @@ export default function DecorationsClient() {
         throw new Error('Failed to fetch products');
       }
       const productsData: Product[] = await response.json();
-
-      // Filtrer pour ne conserver que les produits du groupe "decorations"
       const filteredProducts = productsData.filter(
-        (product: Product) => product.navCategory === 'decorations'
+        (product: Product) => product.navCategory === 'autres-produits'
       );
-
-      // Ajouter la propriété "id" si elle est manquante (par exemple, id = _id)
-      const mappedProducts = filteredProducts.map((product) => ({
-        ...product,
-        id: product.id || product._id,
-      }));
-
-      setProducts(mappedProducts);
-
-      // Créer un tableau de catégories uniques en filtrant les valeurs undefined
-      const uniqueCategories = [
-        ...new Set(
-          mappedProducts
-            .map((product: Product) => product.category)
-            .filter((cat): cat is string => !!cat)
-        ),
-      ];
+      setProducts(filteredProducts);
+      const uniqueCategories = [...new Set(filteredProducts.map((product: Product) => product.category || ''))];
       setCategories(uniqueCategories);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -70,20 +52,19 @@ export default function DecorationsClient() {
       <Container>
         <div className="products__header">
           <Typography variant="h4" component="h1" className="products__title">
-            Nos produits de décorations
+            Nos produits autres produits
           </Typography>
         </div>
 
-        {/* Afficher le filtre par catégorie seulement si aucun paramètre navCategory n'est présent */}
-          {!category && (
-               <div className="products__filters">
-                 <CategoryLinkFilter
-                   categories={categories}
-                   selectedCategory={selectedCategory}
-                   navCategory={navCategory ?? 'decorations'}
-                 />
-               </div>
-             )}
+        {!category && (
+                     <div className="products__filters">
+                       <CategoryLinkFilter
+                         categories={categories}
+                         selectedCategory={selectedCategory}
+                         navCategory={navCategory ?? 'autres-produits'}
+                       />
+                     </div>
+                   )}
 
         <div className="products__grid">
           {products.map((product: Product) => (

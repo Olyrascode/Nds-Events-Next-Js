@@ -47,7 +47,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: { category: string } }) {
   // Puisque le dossier parent est "le-mobilier", on le définit ici.
-  const navCategory = "le-mobilier";
+  const navCategory = "decorations";
   const category = params.category;
   const decodedNavCategory = decodeURIComponent(navCategory);
   const decodedCategory = decodeURIComponent(category);
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: { params: { category: string 
 
 export default async function CategoryPage({ params }: { params: { category: string } }) {
   // On définit navCategory manuellement car il n'est pas présent dans params.
-  const navCategory = "le-mobilier";
+  const navCategory = "decorations";
   const category = params.category;
   const decodedNavCategory = decodeURIComponent(navCategory);
   const decodedCategory = decodeURIComponent(category);

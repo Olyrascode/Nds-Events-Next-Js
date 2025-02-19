@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography } from '@mui/material';
 import { useParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard/ProductCard';
-import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
+import CategoryLinkFilter from '@/components/CategoryFilter/CategoryLinkFilter';
 import RentalDialog from '@/components/RentalDialog';
 import "@/app/Products/_Products.scss";
 import { Product } from "../../type/Product"
@@ -25,7 +25,7 @@ interface RawProduct {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 
 export default function LaTableClient() {
-  const { navCategory } = useParams();
+  const { navCategory, category } = useParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -91,15 +91,15 @@ const filteredProducts = selectedCategory
                     Découvrez tous les produits pour vos tables
                     </Typography>
         </div>
-        {!navCategory && (
-          <div className="products__filters">
-            <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
-          </div>
-        )}
+        {!category && (
+              <div className="products__filters">
+                <CategoryLinkFilter
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  navCategory={navCategory ?? 'la-table'}
+                />
+              </div>
+            )}
     <div className="products__grid">
   {filteredProducts.map((product) => (
     <ProductCard

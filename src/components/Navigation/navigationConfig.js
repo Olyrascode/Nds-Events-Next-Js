@@ -5,7 +5,7 @@ export const menuItems = [
   { label: 'Le Mobilier', value: 'le-mobilier', path: '/le-mobilier' },
   { label: 'Tentes', path: '/Tentes' },
   { label: 'Décorations', value: 'decorations', path: '/decorations' },
-  { label: 'Autres produits', value: 'autres-produits', path: '/autresProduits' },
+  { label: 'Autres produits', value: 'autres-produits', path: '/autres-produits' },
   { label: 'Contact', path: '/Contact' },
   { label: 'A propos', path: '/Apropos' },
 ];
