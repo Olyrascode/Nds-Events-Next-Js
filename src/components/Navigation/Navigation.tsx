@@ -52,12 +52,12 @@ export default function Navigation() {
 
   return (
     <AppBar position="static" className={styles.navigation}>
-      <Toolbar>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         <IconButton
           edge="start"
           color="inherit"
           aria-label="menu"
-          sx={{ mr: 2, display: { sm: "none" } }}
+          sx={{ mr: 2, display: { sm: "flex", lg: "none" } }}
           onClick={handleMobileMenu}
         >
           <MenuIcon />
@@ -71,7 +71,7 @@ export default function Navigation() {
             className={styles.navigation__logo}
           />
         </Link>
-        <Box sx={{ display: { xs: "none", sm: "flex" }, ml: 10, flexGrow: 1 }}>
+        <Box sx={{ display: { xs: "none",sm: "none", md: "none", lg: "flex", xl: "flex" }, ml: 10,  }}>
           {menuItems.map((item) => (
             <Link key={item.path} href={item.path} passHref>
               <Button
@@ -137,7 +137,11 @@ export default function Navigation() {
         
         />
         <CartDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)} />
+          
       </Toolbar>
+      <div className={styles.heroLocation}>
+        <p>Location de matériels de réception en Rhône-Alpes</p>
+      </div>
     </AppBar>
   );
 }

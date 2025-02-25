@@ -188,4 +188,46 @@
 .evenementsContainer .evenementsCardContainer .card3 .itemContainer .rightItem ul li {
   margin-bottom: 20px;
   text-shadow: #000000 0px 0px 5px 4px;
+}
+
+@media screen and (max-width: 550px) {
+  .evenementsContainer h2 {
+    font-size: 30px;
+  }
+  .evenementsContainer .evenementsCardContainer .card1 h3 {
+    font-size: 20px;
+    text-align: center;
+  }
+  .evenementsContainer .evenementsCardContainer .card1 .itemContainer .leftItem ul li {
+    font-size: 13px;
+    text-align: left;
+  }
+  .evenementsContainer .evenementsCardContainer .card1 .itemContainer .rightItem ul li {
+    font-size: 13px;
+    text-align: left;
+  }
+  .evenementsContainer .evenementsCardContainer .card2 h3 {
+    font-size: 20px;
+    text-align: center;
+  }
+  .evenementsContainer .evenementsCardContainer .card2 .itemContainer .leftItem ul li {
+    font-size: 13px;
+    text-align: left;
+  }
+  .evenementsContainer .evenementsCardContainer .card2 .itemContainer .rightItem ul li {
+    font-size: 13px;
+    text-align: left;
+  }
+  .evenementsContainer .evenementsCardContainer .card3 h3 {
+    font-size: 20px;
+    text-align: center;
+  }
+  .evenementsContainer .evenementsCardContainer .card3 .itemContainer .leftItem ul li {
+    font-size: 13px;
+    text-align: left;
+  }
+  .evenementsContainer .evenementsCardContainer .card3 .itemContainer .rightItem ul li {
+    font-size: 13px;
+    text-align: left;
+  }
 }/*# sourceMappingURL=evenements.module.css.map */

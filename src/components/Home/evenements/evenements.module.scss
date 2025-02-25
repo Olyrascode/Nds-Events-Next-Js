@@ -219,3 +219,133 @@
         }
     }
 }
+
+
+
+@media screen and (max-width: 550px) {
+
+    .evenementsContainer {
+
+    h2 {
+        font-size: 30px;
+      
+    }
+    .evenementsCardContainer {
+       
+        .card1 {
+          
+   .backgroundFilter {
+   
+   }
+   hr {
+                
+ 
+   }
+            h3 {
+                font-size: 20px;
+                text-align: center;
+            }
+        
+            .itemContainer {
+            
+           
+                .leftItem {
+                    ul {
+                     
+                        li {
+                        font-size: 13px;
+                        text-align: left;
+                        }
+                        
+                    }
+
+                }
+                .rightItem {
+                    ul {
+                    
+                        li {
+                            font-size: 13px;
+                            text-align: left;
+                        }
+                    }
+                }
+            }
+        }
+        .card2 {
+           
+            .backgroundFilter {
+              
+               }
+               hr {
+             
+               }
+            h3 {
+                font-size: 20px;
+                text-align: center;
+            }
+            .itemContainer {
+             
+                   
+                   .leftItem {
+                       ul {
+                    
+                           li {
+                            font-size: 13px;
+                            text-align: left;
+                        }
+                       }
+   
+                   }
+                   .rightItem {
+                       ul {
+                  
+                           li {
+                            font-size: 13px;
+                            text-align: left;
+                        }
+                       }
+                   }
+               }
+        }
+        .card3 {
+         
+        
+            .backgroundFilter {
+             
+               }
+               hr {
+                
+              
+               }
+            h3 {
+                font-size: 20px;
+                text-align: center;
+            }
+            .itemContainer {
+            
+                   
+                   .leftItem {
+                       ul {
+                   
+                           li {
+                            font-size: 13px;
+                            text-align: left;
+                        }
+                       }
+   
+                   }
+                   .rightItem {
+                       ul {
+                     
+                           li {
+                            font-size: 13px;
+                            text-align: left;
+                        }
+                       }
+                   }
+               }
+        }
+    }
+}
+
+}

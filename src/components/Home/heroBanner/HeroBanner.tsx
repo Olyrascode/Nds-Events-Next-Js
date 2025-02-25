@@ -8,9 +8,7 @@ import styles from './heroBanner.module.scss'; // Vérifie que ton fichier CSS e
 export default function HeroBanner() {
   return (
     <div className={styles.homeHero}>
-      <div className={styles.heroLocation}>
-        <p>Location de matériels de réception en Rhône-Alpes</p>
-      </div>
+      
 
       <div className={styles.heroBanner}>
       <h2 className={styles.homeTitle}>

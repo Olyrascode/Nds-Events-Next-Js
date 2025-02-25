@@ -1,15 +1,14 @@
-
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Container, Typography } from '@mui/material';
-import { useParams } from 'next/navigation';
-import ProductCard from '@/components/ProductCard/ProductCard';
-import CategoryFilter from '@/components/CategoryFilter/CategoryFilter';
-import RentalDialog from '@/components/RentalDialog';
-import './_Products.scss';
+import React, { useState, useEffect } from "react";
+import { Container, Typography } from "@mui/material";
+import { useParams } from "next/navigation";
+import ProductCard from "@/components/ProductCard/ProductCard";
+import CategoryFilter from "@/components/CategoryFilter/CategoryFilter";
+import RentalDialog from "@/components/RentalDialog";
+import "./_Products.scss";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 export default function Products() {
   // Récupération du paramètre de la route (exemple : /products/nav/la-table)
@@ -31,23 +30,23 @@ export default function Products() {
     try {
       const response = await fetch(`${API_URL}/api/products`);
       if (!response.ok) {
-        throw new Error('Failed to fetch products');
+        throw new Error("Failed to fetch products");
       }
       const productsData = await response.json();
 
       // Exclure les produits de la catégorie "Tentes" (selon votre besoin)
       const filteredProducts = productsData.filter(
-        product => product.category !== 'Tentes'
+        (product) => product.category !== "Tentes"
       );
       setProducts(filteredProducts);
 
       // Extraire les catégories uniques (sans "Tentes")
       const uniqueCategories = [
-        ...new Set(filteredProducts.map(product => product.category))
+        ...new Set(filteredProducts.map((product) => product.category)),
       ];
       setCategories(uniqueCategories);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -62,11 +61,11 @@ export default function Products() {
   let filteredProducts = products;
   if (navCategory) {
     filteredProducts = filteredProducts.filter(
-      product => product.navCategory === navCategory
+      (product) => product.navCategory === navCategory
     );
   } else if (selectedCategory) {
     filteredProducts = filteredProducts.filter(
-      product => product.category === selectedCategory
+      (product) => product.category === selectedCategory
     );
   }
 
@@ -77,8 +76,12 @@ export default function Products() {
           <Typography variant="h4" component="h1" className="products__title">
             Tous nos produits
           </Typography>
-          <Typography variant='h5' gutterBottom className="product-packs__subtitle">
-          Découvrez tous les produits Nds disponnibles à la location
+          <Typography
+            variant="h5"
+            gutterBottom
+            className="product-packs__subtitle"
+          >
+            Découvrez tous les produits Nds disponnibles à la location
           </Typography>
         </div>
 
@@ -110,6 +113,22 @@ export default function Products() {
             product={selectedProduct}
           />
         )}
+      </Container>
+
+      <Container className="bottom-info">
+        <button className="button-contacez-nous">Plus de produits - contactez nous</button>
+        <p>
+          <span>NDS Event&apos;s, spécialiste de la location de matériel d&apos;événement en
+          Rhône Alpes (Grenoble, Isère 38) depuis plus de 10 ans !</span>  <br/><br/>Dans cette
+          catégorie, vous trouverez à la location, de la vaisselle (verres,
+          couverts, assiettes, tasses, etc...), tout l&apos;art de la table avec
+          différentes gammes, du traditionnel "standard" aux produits hauts de
+          gamme pour un mariage par exemple, mais aussi des nappes et serviettes
+          en tissus blanc. <br/><br/>La vaisselle se loue propre et se rend sale, nous
+          nous occupons du lavage et il est inclus dans les prix ! Idem pour les
+          tissus, le service de blanchisserie est compris !<br/><br/> Une offre au
+          meilleur prix garanti dans la région !
+        </p>
       </Container>
     </div>
   );

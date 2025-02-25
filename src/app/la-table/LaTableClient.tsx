@@ -118,6 +118,21 @@ const filteredProducts = selectedCategory
           />
         )}
       </Container>
+       <Container className="bottom-info">
+              <button className="button-contacez-nous">Plus de produits - contactez nous</button>
+              <p>
+                <span>NDS Event&apos;s, spécialiste de la location de matériel d&apos;événement en
+                Rhône Alpes (Grenoble, Isère 38) depuis plus de 10 ans !</span>  <br/><br/>Dans cette
+                catégorie, vous trouverez à la location, de la vaisselle (verres,
+                couverts, assiettes, tasses, etc...), tout l&apos;art de la table avec
+                différentes gammes, du traditionnel "standard" aux produits hauts de
+                gamme pour un mariage par exemple, mais aussi des nappes et serviettes
+                en tissus blanc. <br/><br/>La vaisselle se loue propre et se rend sale, nous
+                nous occupons du lavage et il est inclus dans les prix ! Idem pour les
+                tissus, le service de blanchisserie est compris !<br/><br/> Une offre au
+                meilleur prix garanti dans la région !
+              </p>
+            </Container>
     </div>
   );
 }

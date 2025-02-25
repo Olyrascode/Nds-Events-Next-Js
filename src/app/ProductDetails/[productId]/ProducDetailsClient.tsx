@@ -166,6 +166,9 @@ export default function ProductDetails() {
   }
 
   return (
+    <div className='mainContainer'>
+
+   
     <Container className="product-details">
         <div className='product-details__header'>
         <div className='product-details__text'>
@@ -252,5 +255,37 @@ export default function ProductDetails() {
         Ajouter au panier
       </Button>
     </Container>
+      <div className='listIconContainer'>
+        <div className='listIcon'>
+        <ul>
+          <li>
+            <img src="../../img/divers/calendar-small.svg" alt="" />
+            <p>Les tarifs de base sur notre site sont donnés pour des locations de 1 à 4 jours.</p>
+          </li>
+          <li>
+            <img src="../../img/divers/double-arrow-up.svg" alt="" />
+            <p>Livraisons/Récupérations sur votre événement non disponible le Dimanche</p>
+          </li>
+          <li>
+           <img src="../../img/divers/double-arrow-down.svg" alt="" />
+            <p>Récupérations/Restitutions à nos locaux non disponible le Samedi et Dimanche</p>
+            </li>
+        </ul>
+        <div className='cardBottom'>
+          <div className='cardLeft'>
+            <img src="../../img/divers/visa.svg" alt="" />
+            <p>Choisissez vos produits directement en ligne et payez par Carte Bancaire ou directement au depot NDS par chèque, virement ou espèce</p>
+          </div>
+          <div className='cardRight'>
+            <img src="../../img/divers/truck.svg" alt="" />
+            <p>Divers modes de livraison à votre disposition : Retrait sur place, ou livraison et récupération par nos équipes!</p>
+          </div>
+        </div>
+        </div>
+        <div className='bottomLink'>
+        <p>Pour toutes autres questions, vous pouvez vous référer à nos Conditions Générales de Vente ou notre Foire Aux Questions.</p>
+        </div>
+      </div>
+    </div>
   );
 }
