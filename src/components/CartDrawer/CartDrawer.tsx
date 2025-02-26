@@ -61,7 +61,7 @@ export default function CartDrawer({ open, onClose }) {
                           Quantité: {item.quantity}
                         </Typography>
                         <Typography variant="body2" component="div">
-                          ${item.price}/jour
+                          {item.price}€
                         </Typography>
                         {item.selectedOptions &&
                           Object.entries(item.selectedOptions).map(([optionName, optionValue]) => (

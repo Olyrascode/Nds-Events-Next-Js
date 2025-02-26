@@ -6,7 +6,10 @@ import ProductList from '../../components/admin/products/ProductList';
 import PacksTab from '../../components/admin/PacksTab';
 import CalendarTab from '../../components/admin/CalendarTab';
 import OrdersTab from '../../components/admin/ordersTab/OrdersTab';
+import AdminRoute from '@/components/AdminRoute/AdminRoute';
 import './_AdminPanel.scss';
+
+
 
 export default function AdminPanel() {
   const [currentTab, setCurrentTab] = useState(0);
@@ -22,6 +25,7 @@ export default function AdminPanel() {
   );
 
   return (
+    <AdminRoute>
     <div className="admin-panel">
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={currentTab} onChange={handleTabChange}>
@@ -53,5 +57,6 @@ export default function AdminPanel() {
         <OrdersTab />
       </TabPanel>
     </div>
+    </AdminRoute>
   );
 }

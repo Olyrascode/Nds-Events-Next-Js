@@ -117,11 +117,18 @@ export default function ProductList() {
         </Table>
       </TableContainer>
 
-      <EditProductDialog
+      {/* <EditProductDialog
         open={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         item={selectedItem}
-      />
+      /> */}
+      <EditProductDialog
+  open={isEditDialogOpen}
+  onClose={() => setIsEditDialogOpen(false)}
+  item={selectedItem}
+  onSuccess={() => dispatch(fetchProducts())}
+/>
+
 
       <DeleteConfirmDialog
         open={isDeleteDialogOpen}

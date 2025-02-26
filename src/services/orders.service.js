@@ -48,6 +48,18 @@ export const createOrder = async (orderData) => {
   }
 };
 
+export const fetchCancelledOrders = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/cancelledOrders`);
+    if (!response.ok) throw new Error('Erreur lors de la récupération des commandes rejetées');
+    const data = await response.json();
+    return data.orders;
+  } catch (error) {
+    console.error('Erreur récupération commandes rejetées:', error);
+    throw error;
+  }
+};
+
 // Récupérer les commandes d'un utilisateur
 export const fetchUserOrders = async (userId) => {
   try {
@@ -104,6 +116,23 @@ export const deleteOrder = async (orderId) => {
     return true;
   } catch (error) {
     console.error('🔴 Erreur deleteOrder:', error);
+    throw error;
+  }
+};
+
+export const deleteCancelledOrder = async (orderId) => {
+  if (!orderId) {
+    console.error("🔴 Erreur: ID de commande non fourni !");
+    return;
+  }
+  try {
+    const response = await fetch(`${API_URL}/api/cancelledOrders/${orderId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error(`Erreur lors de la suppression de la commande rejetée (Statut: ${response.status})`);
+    return true;
+  } catch (error) {
+    console.error("🔴 Erreur deleteCancelledOrder:", error);
     throw error;
   }
 };

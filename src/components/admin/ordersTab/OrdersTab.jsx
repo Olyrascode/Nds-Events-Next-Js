@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from 'react';
 // import { generateInvoicePDF } from '../../../utils/invoiceGenerator';
 // import DownloadIcon from '@mui/icons-material/Download';
@@ -8,11 +7,26 @@
 
 // import {
 //   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-//   IconButton, Typography, Box, CircularProgress, Alert, TextField, Select, MenuItem,
-//   colors
+//   IconButton, Typography, Box, CircularProgress, Alert, TextField, Select, MenuItem
 // } from '@mui/material';
 // import DeleteIcon from '@mui/icons-material/Delete';
 // import OrderDetailsModal from '../calendar/OrderDetailsModal';
+
+// // ✅ Fonction utilitaire pour traduire le mode de paiement
+// const getPaymentMethodLabel = (method) => {
+//   switch(method) {
+//     case 'card':
+//       return "Carte bancaire";
+//     case 'virement':
+//       return "Virement";
+//     case 'cheques':
+//       return "Chèques";
+//     case 'especes':
+//       return "Espèces";
+//     default:
+//       return method;
+//   }
+// };
 
 // export default function OrdersList() {
 //   const [orders, setOrders] = useState([]);
@@ -81,11 +95,11 @@
 //   const getStatusStyle = (status) => {
 //     switch(status) {
 //       case 'Validated':
-//         return { backgroundColor: 'green' };
+//         return { backgroundColor: 'green', color: '#fff' };
 //       case 'Pending':
-//         return { backgroundColor: 'orange' };
+//         return { backgroundColor: 'orange', color: '#fff' };
 //       case 'Rejected':
-//         return { backgroundColor: 'red' };
+//         return { backgroundColor: 'red', color: '#fff' };
 //       default:
 //         return {};
 //     }
@@ -105,19 +119,33 @@
 //   };
 
 //   const handleStatusChange = async (orderId, newStatus) => {
+//     // Si le nouvel état est "Rejected" et que la commande n'est pas déjà rejetée, demander confirmation
+//     const order = orders.find(o => o._id === orderId);
+//     if (newStatus === 'Rejected' && order.orderStatus !== 'Rejected') {
+//       const confirmed = window.confirm(
+//         "Êtes-vous sûr de refuser la commande ? Une commande refusée sera déplacée et ne pourra plus être modifiée, et le stock sera réintégré."
+//       );
+//       if (!confirmed) return;
+//     }
 //     try {
 //       const updatedOrder = await updateOrderStatus(orderId, newStatus);
-//       setOrders((prevOrders) =>
-//         prevOrders.map((order) =>
-//           order._id === orderId ? { ...order, orderStatus: updatedOrder.orderStatus } : order
-//         )
-//       );
-//       setEditingOrderId(null); // ✅ Fermer le mode édition après mise à jour
+//       // Mettre à jour la liste : pour une commande rejetée, elle sera supprimée de la collection principale
+//       if (newStatus === 'Rejected') {
+//         setOrders((prevOrders) => prevOrders.filter((o) => o._id !== orderId));
+//       } else {
+//         setOrders((prevOrders) =>
+//           prevOrders.map((o) =>
+//             o._id === orderId ? { ...o, orderStatus: updatedOrder.orderStatus } : o
+//           )
+//         );
+//       }
+//       setEditingOrderId(null);
 //     } catch (error) {
 //       console.error('Erreur mise à jour statut:', error);
 //       alert("Échec de la mise à jour du statut.");
 //     }
 //   };
+  
 
 //   const handleRowClick = (order) => {
 //     // ✅ La modal s'ouvre uniquement si l'utilisateur clique en dehors de la cellule de statut
@@ -156,6 +184,8 @@
 //               <TableCell>Client</TableCell>
 //               <TableCell>Début</TableCell>
 //               <TableCell>Fin</TableCell>
+//               {/* ✅ Nouvelle colonne pour le mode de paiement */}
+//               <TableCell>Mode de paiement</TableCell>
 //               <TableCell>Statut</TableCell>
 //               <TableCell align="right">Actions</TableCell>
 //             </TableRow>
@@ -171,7 +201,7 @@
 //               const startString = startDate ? format(startDate, 'PP', { locale: fr }) : '';
 //               const endString = endDate ? format(endDate, 'PP', { locale: fr }) : '';
 
-//               // const isManualPayment = ['check', 'cash', 'bank_transfer'].includes(order.paymentMethod);
+//               // ✅ Les paiements manuels sont ceux qui ne sont pas "card"
 //               const isManualPayment = order.paymentMethod !== 'card';
 
 //               return (
@@ -185,42 +215,48 @@
 //                   <TableCell>{fullName || '—'}</TableCell>
 //                   <TableCell>{startString}</TableCell>
 //                   <TableCell>{endString}</TableCell>
-//                   {/* ✅ Ajout d'un onClick sur la cellule pour stopper la propagation et activer le dropdown */}
-//                   <TableCell 
-//                     style={getStatusStyle(order.orderStatus)} 
-//                     onClick={(e) => { 
-//                       e.stopPropagation(); 
-//                       if(isManualPayment && editingOrderId !== order._id) {
-//                         setEditingOrderId(order._id);
-//                       }
-//                     }}
-//                   >
-//                     {isManualPayment ? (
-//                       editingOrderId === order._id ? (
-//                         // ✅ Dropdown en mode édition avec stopPropagation
-//                         <Select
-//                           value={order.orderStatus}
-//                           onChange={(e) => handleStatusChange(order._id, e.target.value)}
-//                           onBlur={() => setEditingOrderId(null)}
-//                           autoFocus
-//                           size="small"
-//                           onClick={(e) => e.stopPropagation()}
-//                         >
-//                           <MenuItem value="Validated">Validée</MenuItem>
-//                           <MenuItem value="Pending">En attente</MenuItem>
-//                           <MenuItem value="Rejected">Rejetée</MenuItem>
-//                         </Select>
-//                       ) : (
-//                         // ✅ Texte cliquable pour lancer l'édition, la propagation est stoppée par la cellule
-//                         <span>{order.orderStatus === 'Validated' ? 'Validée' : 
-//                                order.orderStatus === 'Pending' ? 'En attente' : 'Rejetée'}</span>
-//                       )
-//                     ) : (
-//                       // Pour les paiements non manuels, affichage statique
-//                       order.orderStatus === 'Validated' ? 'Validée' : 
-//                       order.orderStatus === 'Pending' ? 'En attente' : 'Rejetée'
-//                     )}
+//                   {/* ✅ Affichage du mode de paiement */}
+//                   <TableCell onClick={(e) => e.stopPropagation()}>
+//                     {getPaymentMethodLabel(order.paymentMethod)}
 //                   </TableCell>
+//                   {/* ✅ Cellule pour le statut avec gestion du dropdown */}
+//                   <TableCell 
+//   style={getStatusStyle(order.orderStatus)} 
+//   onClick={(e) => { 
+//     e.stopPropagation(); 
+//     // Si la commande est déjà rejetée, ne rien faire
+//     if(order.orderStatus === 'Rejected') return;
+//     if(isManualPayment && editingOrderId !== order._id) {
+//       setEditingOrderId(order._id);
+//     }
+//   }}
+// >
+//   {isManualPayment ? (
+//     editingOrderId === order._id ? (
+//       <Select
+//         value={order.orderStatus}
+//         onChange={(e) => handleStatusChange(order._id, e.target.value)}
+//         onBlur={() => setEditingOrderId(null)}
+//         autoFocus
+//         size="small"
+//         onClick={(e) => e.stopPropagation()}
+//       >
+//         <MenuItem value="Validated">Validée</MenuItem>
+//         <MenuItem value="Pending">En attente</MenuItem>
+//         <MenuItem value="Rejected">Rejetée</MenuItem>
+//       </Select>
+//     ) : (
+//       <span>
+//         {order.orderStatus === 'Validated' ? 'Validée' : 
+//          order.orderStatus === 'Pending' ? 'En attente' : 'Rejetée'}
+//       </span>
+//     )
+//   ) : (
+//     order.orderStatus === 'Validated' ? 'Validée' : 
+//     order.orderStatus === 'Pending' ? 'En attente' : 'Rejetée'
+//   )}
+// </TableCell>
+
 //                   <TableCell align="right" onClick={(e) => e.stopPropagation()}>
 //                     <IconButton
 //                       color="primary"
@@ -240,7 +276,7 @@
 //             })}
 //             {filteredOrders.length === 0 && (
 //               <TableRow>
-//                 <TableCell colSpan={6}>
+//                 <TableCell colSpan={7}>
 //                   <Typography variant="body2" align="center">
 //                     Aucune commande trouvée.
 //                   </Typography>
@@ -259,16 +295,24 @@
 //     </Box>
 //   );
 // }
+
 import React, { useState, useEffect } from 'react';
 import { generateInvoicePDF } from '../../../utils/invoiceGenerator';
 import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { fetchAllOrders, deleteOrder, updateOrderStatus } from '../../../services/orders.service';
+import { 
+  fetchAllOrders, 
+  fetchCancelledOrders,  // ✅ Ajout de la fonction pour récupérer les commandes rejetées
+  deleteOrder, 
+  deleteCancelledOrder,
+  updateOrderStatus 
+} from '../../../services/orders.service';
 
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  IconButton, Typography, Box, CircularProgress, Alert, TextField, Select, MenuItem
+  IconButton, Typography, Box, CircularProgress, Alert, TextField, Select, MenuItem,
+  Tabs, Tab
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import OrderDetailsModal from '../calendar/OrderDetailsModal';
@@ -289,59 +333,76 @@ const getPaymentMethodLabel = (method) => {
   }
 };
 
-export default function OrdersList() {
-  const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
+export default function OrdersTab() {
+  // États pour commandes actives et rejetées
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [cancelledOrders, setCancelledOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingOrderId, setEditingOrderId] = useState(null); // ✅ State pour suivre l'édition du statut
+  const [editingOrderId, setEditingOrderId] = useState(null);
+  const [tabValue, setTabValue] = useState(0); // 0: actives, 1: rejetées
 
   useEffect(() => {
-    loadOrders();
+    loadActiveOrders();
+    loadCancelledOrders();
   }, []);
 
   useEffect(() => {
-    filterOrders();
-  }, [orders, searchTerm]);
+    // On peut également appliquer le filtrage local ici si souhaité
+  }, [activeOrders, cancelledOrders, searchTerm]);
 
-  const loadOrders = async () => {
+  const loadActiveOrders = async () => {
     setLoading(true);
     setError(null);
     try {
       const ordersData = await fetchAllOrders();
-      const formattedOrders = ordersData.map(order => ({
+      const formatted = ordersData.map(order => ({
         ...order,
         startDate: order.startDate ? new Date(order.startDate) : null,
         endDate: order.endDate ? new Date(order.endDate) : null,
-      }));
-      formattedOrders.sort((a, b) => (b.startDate || 0) - (a.startDate || 0));
-      setOrders(formattedOrders);
+      })).sort((a, b) => (b.startDate || 0) - (a.startDate || 0));
+      setActiveOrders(formatted);
     } catch (err) {
-      console.error('Erreur récupération commandes:', err);
-      setError("Impossible de charger les commandes.");
+      console.error('Erreur récupération commandes actives:', err);
+      setError("Impossible de charger les commandes actives.");
     } finally {
       setLoading(false);
     }
   };
 
-  const filterOrders = () => {
-    if (!searchTerm) {
-      setFilteredOrders(orders);
-      return;
+  const loadCancelledOrders = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const ordersData = await fetchCancelledOrders();
+      const formatted = ordersData.map(order => ({
+        ...order,
+        startDate: order.startDate ? new Date(order.startDate) : null,
+        endDate: order.endDate ? new Date(order.endDate) : null,
+      })).sort((a, b) => (b.cancelledAt || 0) - (a.cancelledAt || 0));
+      setCancelledOrders(formatted);
+    } catch (err) {
+      console.error('Erreur récupération commandes rejetées:', err);
+      setError("Impossible de charger les commandes rejetées.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Filtrage des commandes selon le champ de recherche
+  const filterOrders = (orders) => {
+    if (!searchTerm) return orders;
     const lowerSearch = searchTerm.toLowerCase();
-    const newFiltered = orders.filter((order) => {
+    return orders.filter((order) => {
       const matchesId = order._id.toLowerCase().includes(lowerSearch);
       const firstName = order?.billingInfo?.firstName || '';
       const lastName = order?.billingInfo?.lastName || '';
       const fullName = `${firstName} ${lastName}`.trim().toLowerCase();
-      const matchesName = fullName.includes(lowerSearch);
-      return matchesId || matchesName;
+      return matchesId || fullName.includes(lowerSearch);
     });
-    setFilteredOrders(newFiltered);
   };
 
   const handleDownloadInvoice = async (order) => {
@@ -366,13 +427,35 @@ export default function OrdersList() {
     }
   };
 
+  // const handleDelete = async (orderId) => {
+  //   if (!orderId) return;
+  //   const confirmed = window.confirm("Voulez-vous vraiment supprimer cette commande ?");
+  //   if (!confirmed) return;
+  //   try {
+  //     await deleteOrder(orderId);
+  //     // Supprimer la commande de la liste active et rejetée, le cas échéant
+  //     setActiveOrders(prev => prev.filter(order => order._id !== orderId));
+
+  //     setCancelledOrders(prev => prev.filter(order => order._id !== orderId));
+  //     console.log("🟢 Commande supprimée avec succès !");
+  //   } catch (error) {
+  //     console.error("🔴 Erreur suppression commande:", error);
+  //   }
+  // };
   const handleDelete = async (orderId) => {
     if (!orderId) return;
-    const confirm = window.confirm("Voulez-vous vraiment supprimer cette commande ?");
-    if (!confirm) return;
+    const confirmed = window.confirm("Voulez-vous vraiment supprimer cette commande ?");
+    if (!confirmed) return;
     try {
-      await deleteOrder(orderId);
-      setOrders((prevOrders) => prevOrders.filter((order) => order._id !== orderId));
+      if (tabValue === 0) {
+        // Suppression d'une commande active
+        await deleteOrder(orderId);
+        setActiveOrders(prev => prev.filter(order => order._id !== orderId));
+      } else {
+        // Suppression d'une commande rejetée
+        await deleteCancelledOrder(orderId);
+        setCancelledOrders(prev => prev.filter(order => order._id !== orderId));
+      }
       console.log("🟢 Commande supprimée avec succès !");
     } catch (error) {
       console.error("🔴 Erreur suppression commande:", error);
@@ -380,14 +463,30 @@ export default function OrdersList() {
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
+    // Pour les commandes actives, si "Rejected", demander confirmation
+    if (tabValue === 0) {
+      const order = activeOrders.find(o => o._id === orderId);
+      if (newStatus === 'Rejected' && order.orderStatus !== 'Rejected') {
+        const confirmed = window.confirm(
+          "Êtes-vous sûr de refuser la commande ? Une commande refusée sera déplacée et le stock sera réintégré."
+        );
+        if (!confirmed) return;
+      }
+    }
     try {
       const updatedOrder = await updateOrderStatus(orderId, newStatus);
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order._id === orderId ? { ...order, orderStatus: updatedOrder.orderStatus } : order
-        )
-      );
-      setEditingOrderId(null); // ✅ Fermer le mode édition après mise à jour
+      if (newStatus === 'Rejected') {
+        // Pour une commande active rejetée, retirer de la liste active et rafraîchir les commandes rejetées
+        setActiveOrders(prev => prev.filter(o => o._id !== orderId));
+        loadCancelledOrders();
+      } else {
+        setActiveOrders(prev =>
+          prev.map(o =>
+            o._id === orderId ? { ...o, orderStatus: updatedOrder.orderStatus } : o
+          )
+        );
+      }
+      setEditingOrderId(null);
     } catch (error) {
       console.error('Erreur mise à jour statut:', error);
       alert("Échec de la mise à jour du statut.");
@@ -395,7 +494,6 @@ export default function OrdersList() {
   };
 
   const handleRowClick = (order) => {
-    // ✅ La modal s'ouvre uniquement si l'utilisateur clique en dehors de la cellule de statut
     setSelectedOrder(order);
     setIsModalOpen(true);
   };
@@ -407,6 +505,9 @@ export default function OrdersList() {
 
   if (loading) return <CircularProgress />;
   if (error) return <Alert severity="error">{error}</Alert>;
+
+  // Sélectionner la liste à afficher en fonction de l'onglet actif
+  const ordersToDisplay = tabValue === 0 ? filterOrders(activeOrders) : filterOrders(cancelledOrders);
 
   return (
     <Box>
@@ -423,7 +524,13 @@ export default function OrdersList() {
         style={{ marginBottom: '16px' }}
       />
 
-      <TableContainer component={Paper}>
+      {/* Onglets pour basculer entre commandes actives et rejetées */}
+      <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+        <Tab label="Commandes actives" />
+        <Tab label="Commandes rejetées" />
+      </Tabs>
+
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -431,24 +538,21 @@ export default function OrdersList() {
               <TableCell>Client</TableCell>
               <TableCell>Début</TableCell>
               <TableCell>Fin</TableCell>
-              {/* ✅ Nouvelle colonne pour le mode de paiement */}
               <TableCell>Mode de paiement</TableCell>
               <TableCell>Statut</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredOrders.map((order) => {
+            {ordersToDisplay.map((order) => {
               const firstName = order?.billingInfo?.firstName || '';
               const lastName = order?.billingInfo?.lastName || '';
               const fullName = `${firstName} ${lastName}`.trim();
-
               const startDate = order.startDate ? new Date(order.startDate) : null;
               const endDate = order.endDate ? new Date(order.endDate) : null;
               const startString = startDate ? format(startDate, 'PP', { locale: fr }) : '';
               const endString = endDate ? format(endDate, 'PP', { locale: fr }) : '';
-
-              // ✅ Les paiements manuels sont ceux qui ne sont pas "card"
+              // Pour les commandes actives, considérer les paiements manuels
               const isManualPayment = order.paymentMethod !== 'card';
 
               return (
@@ -462,21 +566,20 @@ export default function OrdersList() {
                   <TableCell>{fullName || '—'}</TableCell>
                   <TableCell>{startString}</TableCell>
                   <TableCell>{endString}</TableCell>
-                  {/* ✅ Affichage du mode de paiement */}
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     {getPaymentMethodLabel(order.paymentMethod)}
                   </TableCell>
-                  {/* ✅ Cellule pour le statut avec gestion du dropdown */}
                   <TableCell 
                     style={getStatusStyle(order.orderStatus)} 
                     onClick={(e) => { 
-                      e.stopPropagation(); 
-                      if(isManualPayment && editingOrderId !== order._id) {
+                      e.stopPropagation();
+                      // Pour les commandes actives, activer l'édition si possible
+                      if(tabValue === 0 && order.orderStatus !== 'Rejected' && isManualPayment && editingOrderId !== order._id) {
                         setEditingOrderId(order._id);
                       }
                     }}
                   >
-                    {isManualPayment ? (
+                    {tabValue === 0 && isManualPayment ? (
                       editingOrderId === order._id ? (
                         <Select
                           value={order.orderStatus}
@@ -491,32 +594,27 @@ export default function OrdersList() {
                           <MenuItem value="Rejected">Rejetée</MenuItem>
                         </Select>
                       ) : (
-                        <span>{order.orderStatus === 'Validated' ? 'Validée' : 
-                               order.orderStatus === 'Pending' ? 'En attente' : 'Rejetée'}</span>
+                        <span>
+                          {order.orderStatus === 'Validated' ? 'Validée' : 
+                           order.orderStatus === 'Pending' ? 'En attente' : 'Rejetée'}
+                        </span>
                       )
                     ) : (
-                      order.orderStatus === 'Validated' ? 'Validée' : 
-                      order.orderStatus === 'Pending' ? 'En attente' : 'Rejetée'
+                      order.orderStatus
                     )}
                   </TableCell>
                   <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleDownloadInvoice(order)}
-                    >
+                    <IconButton color="primary" onClick={() => handleDownloadInvoice(order)}>
                       <DownloadIcon />
                     </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(order._id)}
-                    >
+                    <IconButton color="error" onClick={() => handleDelete(order._id)}>
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
               );
             })}
-            {filteredOrders.length === 0 && (
+            {ordersToDisplay.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7}>
                   <Typography variant="body2" align="center">

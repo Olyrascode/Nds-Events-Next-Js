@@ -59,6 +59,22 @@ export const fetchProductById = async (productId) => {
 };
 
 
+// Récupérer un produit par son ID
+export const getProductById = async (productId) => {
+  try {
+    const response = await fetch(`${API_URL}/api/products/${productId}`);
+    if (!response.ok) throw new Error('Erreur lors de la récupération du produit');
+    const data = await response.json();
+    console.log("getProductById data:", data); // <-- Debug
+    return data.product ? data.product : data;
+  } catch (error) {
+    console.error('Erreur getProductById:', error);
+    throw error;
+  }
+};
+
+
+
 // Mettre à jour un produit
 export const updateProduct = async (productId, productData) => {
   try {
@@ -87,6 +103,8 @@ export const updateProduct = async (productId, productData) => {
     });
 
     if (!response.ok) {
+      const errText = await response.text();
+      console.error('Erreur updateProduct:', response.status, errText);
       throw new Error('Failed to update product');
     }
 
