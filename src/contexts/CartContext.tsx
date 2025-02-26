@@ -1,63 +1,12 @@
-// "use client";
-
-// import { createContext, useContext, useState } from "react";
-// import { addToCart as addToCartUtil } from "@/utils/cartUtils";
-
-
-
-// type CartItem = {
-//   id: string;
-//   title: string;
-//   price: number;
-//   quantity: number;
-//   startDate: string | null;
-//   endDate: string | null;
-//   imageUrl?: string;
-// };
-
-// type CartContextType = {
-//   cart: CartItem[];
-//   addToCart: (product: CartItem, quantity: number, startDate: string, endDate: string) => void;
-//   removeFromCart: (productId: string) => void;
-//   clearCart: () => void;
-//   isCartOpen: boolean;
-//   setIsCartOpen: (isOpen: boolean) => void;
-// };
-
-// const CartContext = createContext<CartContextType | null>(null);
-
-// export function useCart() {
-//   return useContext(CartContext);
-// }
-
-// export function CartProvider({ children }: { children: React.ReactNode }) {
-//   const [cart, setCart] = useState<CartItem[]>([]);
-//   const [isCartOpen, setIsCartOpen] = useState(false);
-
-//   const addToCart = (product: CartItem, quantity: number, startDate: string, endDate: string) => {
-//     setCart((currentCart) => addToCartUtil(currentCart, product, quantity, startDate, endDate));
-//     setIsCartOpen(true);
-//   };
-
-//   const removeFromCart = (productId: string) => {
-//     setCart((currentCart) => currentCart.filter((item) => item.id !== productId));
-//   };
-
-//   const clearCart = () => {
-//     setCart([]);
-//   };
-
-//   return (
-//     <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, isCartOpen, setIsCartOpen }}>
-//       {children}
-//     </CartContext.Provider>
-//   );
-// }
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+// Fonction simple pour générer un identifiant unique
+const generateId = () => Date.now().toString() + Math.random().toString(36).substring(2, 9);
 
 export interface CartItem {
+  cartItemId?: string;  // identifiant unique pour chaque entrée dans le panier
   id: string;
   title: string;
   price: number;
@@ -75,7 +24,7 @@ export interface CartItem {
 export interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
-  removeFromCart: (productId: string) => void;
+  removeFromCart: (cartItemId: string) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
@@ -92,16 +41,45 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  // Initialiser le panier depuis localStorage s'il existe
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const storedCart = localStorage.getItem('cart');
+      return storedCart ? JSON.parse(storedCart) : [];
+    }
+    return [];
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Mettre à jour le localStorage chaque fois que le panier change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cart', JSON.stringify(cart));
+    }
+  }, [cart]);
+
   function addToCart(item: CartItem) {
-    setCart(prev => [...prev, item]);
+    setCart(prevCart => {
+      // On considère deux items identiques si leur id et leurs options (stringifiées) sont identiques
+      const existingItemIndex = prevCart.findIndex(cartItem =>
+        cartItem.id === item.id &&
+        JSON.stringify(cartItem.selectedOptions || {}) === JSON.stringify(item.selectedOptions || {})
+      );
+      if (existingItemIndex !== -1) {
+        // Si trouvé, on incrémente la quantité
+        const updatedCart = [...prevCart];
+        updatedCart[existingItemIndex].quantity += item.quantity;
+        return updatedCart;
+      } else {
+        // Sinon, on ajoute le produit avec un cartItemId généré
+        return [...prevCart, { ...item, cartItemId: generateId() }];
+      }
+    });
     setIsCartOpen(true);
   }
 
-  function removeFromCart(productId: string) {
-    setCart(prev => prev.filter(cartItem => cartItem.id !== productId));
+  function removeFromCart(cartItemId: string) {
+    setCart(prev => prev.filter(cartItem => cartItem.cartItemId !== cartItemId));
   }
 
   function clearCart() {

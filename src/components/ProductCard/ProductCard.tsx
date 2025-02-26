@@ -17,7 +17,8 @@ export default function ProductCard({ product, isPack = false }: ProductCardProp
   const router = useRouter();
 
   const handleViewDetails = () => {
-    const path = isPack ? `/PackDetails/${product._id}` : `/ProductDetails/${product._id}`;
+    const productId = product._id || product.id;
+    const path = isPack ? `/PackDetails/${productId}` : `/ProductDetails/${productId}`;
     router.push(path);
   };
 
@@ -43,22 +44,12 @@ export default function ProductCard({ product, isPack = false }: ProductCardProp
         {!isPack && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="h6" component="div" className="product-card__price">
-              €{product.price}/Jour
+              A partir de {product.price}€ /Jour
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Min. quantité: {product.minQuantity}
-            </Typography>
+          
           </Box>
         )}
-        {/* Show discount only for packs */}
-        {isPack && product.discountPercentage && product.discountPercentage > 0 && (
-          <Chip
-            label={`${product.discountPercentage}% off`}
-            color="primary"
-            size="small"
-            className="product-card__discount"
-          />
-        )}
+     
         <Button
           variant="contained"
           fullWidth

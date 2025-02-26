@@ -109,8 +109,8 @@ interface Pack {
 }
 
 const convertPackToProduct = (pack: Pack): Product => ({
-  id: pack.id,
-  _id: pack.id,
+  id: pack.id || pack._id,    // Utilise pack.id si présent, sinon pack._id
+  _id: pack.id || pack._id,    // Même logique ici
   title: pack.name,
   name: pack.name,
   description: pack.description,

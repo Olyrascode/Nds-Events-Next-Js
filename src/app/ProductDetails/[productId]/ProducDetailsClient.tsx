@@ -146,9 +146,11 @@ export default function ProductDetails() {
       id: product._id,
       title: product.title,
       price: finalPrice,
+      imageUrl: product.imageUrl,
       quantity,
       startDate,
       endDate,
+      selectedOptions,
     });
     setIsCartOpen(true);
   };
