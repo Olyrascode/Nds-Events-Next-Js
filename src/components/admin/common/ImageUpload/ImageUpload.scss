@@ -1,0 +1,25 @@
+.image-upload {
+  margin-bottom: 2rem;
+
+  &__container {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  &__button {
+    min-width: 150px;
+  }
+
+  &__preview-container {
+    flex-grow: 1;
+  }
+
+  &__preview {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}

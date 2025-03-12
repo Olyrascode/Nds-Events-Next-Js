@@ -1,0 +1,133 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+}
+.mainContainer .product-details {
+  margin-bottom: 80px;
+}
+.mainContainer .product-details .product-details__header {
+  margin-top: 80px;
+  display: flex;
+  justify-content: left;
+  flex-direction: row-reverse;
+  margin-bottom: 50px;
+}
+.mainContainer .product-details .product-details__header .product-details__image {
+  border-radius: 10px;
+}
+.mainContainer .product-details .product-details__header .product-details__text {
+  max-width: 50%;
+}
+.mainContainer .product-details .product-details__header .product-details__text h1 {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+.mainContainer .product-details .product-details__header .product-details__text p {
+  font-size: 1.5rem;
+}
+.mainContainer .listIconContainer .listIcon {
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  left: 0;
+}
+.mainContainer .listIconContainer .listIcon ul {
+  list-style: none;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: row;
+  gap: 50px;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+.mainContainer .listIconContainer .listIcon ul li {
+  padding: 20px;
+}
+.mainContainer .listIconContainer .listIcon ul li img {
+  height: 50px;
+}
+.mainContainer .listIconContainer .listIcon ul li p {
+  color: white;
+}
+.mainContainer .listIconContainer .listIcon .cardBottom {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  max-width: 1200px;
+  gap: 50px;
+}
+.mainContainer .listIconContainer .listIcon .cardBottom .cardLeft {
+  padding: 20px;
+  width: 50%;
+  border: 3px solid white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.mainContainer .listIconContainer .listIcon .cardBottom .cardLeft img {
+  height: 50px;
+}
+.mainContainer .listIconContainer .listIcon .cardBottom .cardLeft p {
+  text-align: center;
+  color: white;
+}
+.mainContainer .listIconContainer .listIcon .cardBottom .cardRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50%;
+  padding: 20px;
+  border: 3px solid white;
+}
+.mainContainer .listIconContainer .listIcon .cardBottom .cardRight img {
+  height: 50px;
+}
+.mainContainer .listIconContainer .listIcon .cardBottom .cardRight p {
+  text-align: center;
+  color: white;
+}
+.mainContainer .listIconContainer .bottomLink {
+  text-align: center;
+  font-weight: bold;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+@media screen and (max-width: 800px) {
+  .mainContainer .product-details .product-details__header {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  .mainContainer .product-details .product-details__header .product-details__image {
+    margin-top: 30px;
+    height: 200px;
+    width: 100%;
+  }
+  .mainContainer .product-details .product-details__header .product-details__text {
+    max-width: 100%;
+  }
+  .mainContainer .listIconContainer {
+    flex-direction: column;
+  }
+  .mainContainer .listIconContainer .listIcon ul {
+    padding: 0;
+    gap: 0;
+    flex-direction: column;
+  }
+  .mainContainer .listIconContainer .listIcon .cardBottom {
+    flex-direction: column;
+  }
+  .mainContainer .listIconContainer .listIcon .cardBottom .cardLeft, .mainContainer .listIconContainer .listIcon .cardBottom .cardRight {
+    width: 100%;
+  }
+}/*# sourceMappingURL=ProductDetails.css.map */

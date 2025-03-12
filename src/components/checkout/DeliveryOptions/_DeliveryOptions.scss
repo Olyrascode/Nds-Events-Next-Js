@@ -1,0 +1,22 @@
+.delivery-options {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  &__title {
+    margin-bottom: 1rem;
+  }
+
+  &__option {
+    margin-bottom: 0.5rem;
+  }
+
+  &__label {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__price {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+}

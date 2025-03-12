@@ -1,0 +1,37 @@
+.navigation {
+  &__logo {
+    height: 40px;
+    margin-right: 1rem;
+  }
+
+  &__link {
+    color: #ffffff;
+    text-decoration: none;
+    margin: 0 1rem;
+
+    &:hover {
+      color: #ff6b00;
+    }
+
+    &--active {
+      color: #ff6b00;
+    }
+  }
+  
+  
+  .heroLocation {
+    border-top: 2px solid white;
+    color: white;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    background-color: #000000;
+    
+    
+    p{
+      margin-bottom: 0;
+      margin-top: 5px;
+    }
+    
+  }
+}

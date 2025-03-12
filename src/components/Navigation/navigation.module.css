@@ -1,0 +1,27 @@
+.navigation__logo {
+  height: 40px;
+  margin-right: 1rem;
+}
+.navigation__link {
+  color: #ffffff;
+  text-decoration: none;
+  margin: 0 1rem;
+}
+.navigation__link:hover {
+  color: #ff6b00;
+}
+.navigation__link--active {
+  color: #ff6b00;
+}
+.navigation .heroLocation {
+  border-top: 2px solid white;
+  color: white;
+  top: 0;
+  width: 100%;
+  text-align: center;
+  background-color: #000000;
+}
+.navigation .heroLocation p {
+  margin-bottom: 0;
+  margin-top: 5px;
+}/*# sourceMappingURL=navigation.module.css.map */

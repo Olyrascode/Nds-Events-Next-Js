@@ -1,0 +1,68 @@
+.faqContainer {
+  width: 100%;
+  padding-left: 30px;
+  padding-right: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+.faqContainer h2 {
+  color: white;
+}
+
+.accordion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  width: 90%;
+  max-width: 790px;
+}
+
+.accordionItem {
+  border: 1px solid #e5f3fa;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.accordionHeader {
+  padding: 20px 25px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  color: white;
+}
+.accordionHeader::after {
+  content: "";
+  background: url(/img/home/arrow.png) no-repeat center;
+  width: 20px;
+  height: 20px;
+  transition: 0.4s;
+  display: inline-block;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  z-index: 1;
+}
+
+.active {
+  border-bottom: 1px solid white;
+}
+
+.active::after {
+  transform: rotateX(180deg);
+}
+
+.accordionContent {
+  padding: 0 25px;
+  max-height: 0;
+  transition: 0.5s;
+  overflow: hidden;
+  color: white;
+}/*# sourceMappingURL=faq.module.css.map */

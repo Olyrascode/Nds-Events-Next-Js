@@ -1,0 +1,168 @@
+.mainContainer { 
+  display: flex;
+  flex-direction: column;
+
+  .product-details {
+    
+    margin-bottom: 80px;
+    
+    .product-details__header {
+      margin-top: 80px;
+      display: flex;
+      justify-content: space-between;
+      flex-direction: row-reverse;
+      margin-bottom: 50px;
+      
+      .product-details__image {
+        border-radius: 10px;
+        
+      }
+      .product-details__text {
+        width: 40%;
+        h1 {
+          font-size: 2.2rem;
+          margin-bottom: 20px;
+          
+        }
+        p {
+          font-size: 1.5rem;
+        }
+      }
+    }
+    
+  }
+  .listIconContainer {
+    
+    
+    .listIcon {
+      padding-left: 30px;
+      padding-right: 30px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      background-color: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      left: 0; 
+      ul {
+        list-style: none;
+        max-width: 1200px;
+        display: flex;
+      flex-direction: row;
+      gap: 50px;
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+      li {
+      padding: 20px;
+
+     
+     
+        img {
+          height: 50px;
+        }
+        p {
+          color: white;
+
+        }
+      }
+     }
+     .cardBottom {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      max-width: 1200px;
+      gap: 50px;
+      .cardLeft {
+        padding: 20px;
+        width: 50%;
+        border: 3px solid white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        img {
+          height: 50px;
+
+        }
+        p {
+          text-align: center;
+          color: white;
+          
+        }
+      }
+      .cardRight {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 50%;
+        padding: 20px;
+ 
+        border: 3px solid white;
+        img {
+          height: 50px;
+        }
+        p {
+          text-align: center;
+          color: white;
+        }
+      }
+     }
+    }
+    .bottomLink {
+      text-align: center;
+      font-weight: bold;
+      padding-left: 30px;
+      padding-right: 30px;
+    }
+  }
+}
+  
+
+
+@media screen and (max-width: 800px) {
+.mainContainer {
+
+  .product-details {
+    
+    .product-details__header {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+     
+      
+      .product-details__image {
+        margin-top: 30px;
+        height: 200px;
+        width: 100%;
+    
+        
+      }
+      .product-details__text {
+        max-width: 100%;
+      }
+    }
+  }
+  .listIconContainer {
+    flex-direction: column;
+ 
+    .listIcon {
+      ul {
+        padding: 0;
+       gap: 0;
+        flex-direction: column;
+      }
+      .cardBottom {
+     
+        flex-direction: column;
+        .cardLeft, .cardRight {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+}
+}

@@ -1,0 +1,43 @@
+@use "sass:color";
+
+.cart-drawer {
+  &__title {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+  }
+
+  &__empty {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+  }
+
+  &__list {
+    margin-bottom: 2rem;
+  }
+
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  &__total {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 1rem 0;
+  }
+
+  &__checkout {
+    margin-top: 1rem;
+    background-color: var(--primary-color);
+    
+    &:hover {
+      background-color: color.scale(#ff6b00, $lightness: -10%);
+
+    }
+  }
+
+}

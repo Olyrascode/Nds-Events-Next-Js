@@ -1,0 +1,61 @@
+.partnersContainer {
+  margin-bottom: 100px;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+.partnersContainer h2 {
+  text-align: center;
+  font-family: "Montserrat", Montserrat;
+  font-size: 2.2rem;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.partnersContainer .partnersLogoTop ul {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+}
+.partnersContainer .partnersLogoTop ul li {
+  list-style: none;
+}
+.partnersContainer .partnersLogoTop ul li img {
+  max-height: 120px;
+  max-width: 150px;
+}
+.partnersContainer .partnersLogoBottom ul {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+}
+.partnersContainer .partnersLogoBottom ul li {
+  list-style: none;
+}
+.partnersContainer .partnersLogoBottom ul li img {
+  max-height: 120px;
+  max-width: 150px;
+}
+
+@media screen and (max-width: 550px) {
+  .partnersContainer h2 {
+    font-size: 30px;
+  }
+  .partnersContainer .partnersLogoTop {
+    flex-direction: row;
+  }
+  .partnersContainer .partnersLogoTop ul {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .partnersContainer .partnersLogoTop ul li img {
+    height: 50px;
+  }
+  .partnersContainer .partnersLogoBottom ul {
+    flex-direction: column;
+    width: 100%;
+  }
+}/*# sourceMappingURL=partners.module.css.map */

@@ -1,0 +1,28 @@
+.admin-panel {
+  padding: 2rem;
+  background-color: var(--background-color);
+  min-height: calc(100vh - 64px);
+
+  &__content {
+    margin-top: 2rem;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .MuiTabs-root {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .MuiTab-root {
+    text-transform: none;
+    font-weight: 500;
+    
+    &.Mui-selected {
+      color: var(--primary-color);
+    }
+  }
+}

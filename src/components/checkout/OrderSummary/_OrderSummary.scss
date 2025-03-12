@@ -1,0 +1,28 @@
+.order-summary {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  &__title {
+    margin-bottom: 1rem;
+  }
+
+  &__period {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  &__divider {
+    margin: 1rem 0;
+  }
+
+  &__total {
+    font-weight: bold;
+    color: var(--primary-color);
+  }
+}

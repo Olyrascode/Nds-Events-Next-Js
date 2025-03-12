@@ -1,0 +1,33 @@
+.payment-form {
+  &__container {
+    padding: 1.5rem;
+    border-radius: 8px;
+    background-color: #fff;
+  }
+
+  &__error {
+    margin-bottom: 1rem;
+  }
+
+  &__card-element {
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 1rem 0;
+    background-color: #fafafa;
+  }
+
+  &__submit {
+    width: 100%;
+    margin-top: 1rem;
+    background-color: var(--primary-color);
+    
+    &:hover {
+      background-color: darken(#ff6b00, 10%);
+    }
+
+    &:disabled {
+      background-color: #ccc;
+    }
+  }
+}

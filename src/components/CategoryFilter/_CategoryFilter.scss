@@ -1,0 +1,13 @@
+.category-filter {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+
+  &__chip {
+    &:hover {
+    background-color: red;
+      color: white;
+    }
+  }
+}
