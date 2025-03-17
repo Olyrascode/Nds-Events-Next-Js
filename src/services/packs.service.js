@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
 export const createPack = async (packData) => {
   try {
     const formData = new FormData();
-    formData.append('name', packData.name);
+    formData.append('title', packData.title);
     formData.append('description', packData.description);
 
     // On ne fait qu'une fois le mapping
@@ -17,7 +17,12 @@ export const createPack = async (packData) => {
 
     formData.append('discountPercentage', packData.discountPercentage);
     formData.append('minRentalDays', packData.minRentalDays);
-
+    formData.append('category', packData.category);
+    formData.append('navCategory', packData.navCategory);
+    if (packData.seo) {
+      formData.append('seoTitle', packData.seo.title);
+      formData.append('seoMetaDescription', packData.seo.metaDescription);
+    }
     if (packData.image) {
       formData.append('image', packData.image);
     }
@@ -47,12 +52,18 @@ export const fetchPacks = async () => {
       throw new Error('Failed to fetch packs');
     }
     const packs = await response.json();
-    return packs;
+    // Normalisation de _id en id
+    const normalized = packs.map(pack => ({
+      ...pack,
+      id: pack._id,
+    }));
+    return normalized;
   } catch (error) {
     console.error('Error fetching packs:', error);
     throw error;
   }
 };
+
 
 // Récupérer un pack par ID
 export const fetchPackById = async (packId) => {
@@ -68,12 +79,23 @@ export const fetchPackById = async (packId) => {
     throw error;
   }
 };
+// Récupérer un pack par slug
+export const fetchPackBySlug = async (slug) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/packs/`);
+  if (!response.ok) {
+    throw new Error('Pack not found');
+  }
+  const pack = await response.json();
+  return pack;
+};
+
+
 
 // Mettre à jour un pack
 export const updatePack = async (packId, packData) => {
   try {
     const formData = new FormData();
-    formData.append('name', packData.name);
+    formData.append('title', packData.title);
     formData.append('description', packData.description);
 
     // On convertit comme pour createPack
