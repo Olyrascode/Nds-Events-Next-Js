@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,45 +7,53 @@ import {
   Button,
   Typography,
   Alert,
-  CircularProgress
-} from '@mui/material';
-import { deleteProduct } from '../../../services/products.service';
-import { deletePack } from '../../../services/packs.service';
+  CircularProgress,
+} from "@mui/material";
+import { deleteProduct } from "../../../services/products.service";
+import { deletePack } from "../../../services/packs.service";
 
-export default function DeleteConfirmDialog({ open, onClose, item, onSuccess }) {
+export default function DeleteConfirmDialog({
+  open,
+  onClose,
+  item,
+  onSuccess,
+  isPack,
+}) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleDelete = async () => {
     try {
       setLoading(true);
-      setError('');
-  
-      // Vérifie si l'ID est défini avant de procéder à la suppression
+      setError("");
+
       if (!item || !item._id) {
-        setError('ID du produit manquant');
+        setError("ID du produit manquant");
         return;
       }
-  
-      if (item.type === 'pack') {
+
+      if (isPack) {
         await deletePack(item._id);
       } else {
         await deleteProduct(item._id);
       }
-  
+
       onSuccess();
-      onClose(); // Ferme la fenêtre après la suppression
+      onClose();
     } catch (error) {
-      setError(`Échec de la suppression du ${item.type}. Veuillez réessayer.`);
-      console.error(`Erreur lors de la suppression du ${item.type}:`, error);
+      const itemType = isPack ? "pack" : "produit";
+      setError(`Échec de la suppression du ${itemType}. Veuillez réessayer.`);
+      console.error(`Erreur lors de la suppression du ${itemType}:`, error);
       if (error.response && error.response.data) {
-        setError(error.response.data.message || `Erreur inconnue lors de la suppression du ${item.type}`);
+        setError(
+          error.response.data.message ||
+            `Erreur inconnue lors de la suppression du ${itemType}`
+        );
       }
     } finally {
-      setLoading(false); // Réinitialiser l'état de chargement après l'opération
+      setLoading(false);
     }
   };
-  
 
   if (!item) return null;
 
@@ -59,21 +67,22 @@ export default function DeleteConfirmDialog({ open, onClose, item, onSuccess }) 
           </Alert>
         )}
         <Typography>
-          Etes vous sur de vouloir supprimer "{item.title}"? Cette action est definitive.
+          Êtes-vous sûr de vouloir supprimer "{item.title}" ? Cette action est
+          définitive.
         </Typography>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
           Annuler
         </Button>
-        <Button 
-          onClick={handleDelete} 
-          color="error" 
+        <Button
+          onClick={handleDelete}
+          color="error"
           variant="contained"
           disabled={loading}
           startIcon={loading && <CircularProgress size={20} color="inherit" />}
         >
-          {loading ? 'Deleting...' : 'Supprimer'}
+          {loading ? "Suppression..." : "Supprimer"}
         </Button>
       </DialogActions>
     </Dialog>

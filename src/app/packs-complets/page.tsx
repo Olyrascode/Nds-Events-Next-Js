@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -12,17 +11,18 @@ import "./_ProductPacks.scss";
 import { Product } from "@/types/Product";
 
 interface Pack {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   imageUrl?: string;
   price: number;
   discountPercentage?: number;
+  slug: string;
 }
 
 const convertPackToProduct = (pack: Pack): Product => ({
-  id: pack.id || pack._id, // Utilise pack.id si présent, sinon pack._id
-  _id: pack.id || pack._id, // Même logique ici
+  id: pack._id,
+  _id: pack._id,
   title: pack.name,
   name: pack.name,
   description: pack.description,
@@ -32,6 +32,7 @@ const convertPackToProduct = (pack: Pack): Product => ({
   discountPercentage: pack.discountPercentage || 0,
   navCategory: "pack",
   category: "pack",
+  slug: pack.slug,
 });
 
 export default function ProductPacks() {
@@ -88,11 +89,12 @@ export default function ProductPacks() {
 
         <Grid container spacing={4}>
           {packs.map((pack, index) => (
-            <Grid item key={pack.id || index} xs={12} sm={6} md={4}>
+            <Grid item key={pack.slug || pack._id} xs={12} sm={6} md={4}>
               <ProductCard
                 product={convertPackToProduct(pack)}
                 onRent={handleRentClick}
                 isPack
+                href={`/packs-complets/${pack.slug}`}
               />
             </Grid>
           ))}
@@ -107,7 +109,9 @@ export default function ProductPacks() {
         )}
       </Container>
       <Container className="bottom-info">
-      <button className="button-contacez-nous"><a href="/contact">Plus de produits - contactez nous</a></button>
+        <button className="button-contacez-nous">
+          <a href="/contact">Plus de produits - contactez nous</a>
+        </button>
         <p>
           <span>
             NDS Event&apos;s, spécialiste de la location de matériel

@@ -1,24 +1,23 @@
-
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { useCart } from '../../../contexts/CartContext';
-import Image from 'next/image';
-import { fetchPackById } from '../../../services/packs.service';
-import { Container, Typography, Paper, Button, Alert } from '@mui/material';
-import RentalPeriod from '../../produits/components/RentalPeriod';
-import QuantitySelector from '../../produits/components/QuantitySelector';
-import PackProducts from '../../PackDetails/components/PackProducts';
-import PriceCalculation from '../../PackDetails/components/PriceCalculation';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { fr } from 'date-fns/locale';
-import { addDays } from 'date-fns';
-import { useRentalPeriod } from '../../../contexts/RentalperiodContext';
-import '../../PackDetails/PackDetails.scss';
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { useCart } from "../../../contexts/CartContext";
+import Image from "next/image";
+import { fetchPackById } from "../../../services/packs.service";
+import { Container, Typography, Paper, Button, Alert } from "@mui/material";
+import RentalPeriod from "../../produits/components/RentalPeriod";
+import QuantitySelector from "../../produits/components/QuantitySelector";
+import PackProducts from "../../PackDetails/components/PackProducts";
+import PriceCalculation from "../../PackDetails/components/PriceCalculation";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { fr } from "date-fns/locale";
+import { addDays } from "date-fns";
+import { useRentalPeriod } from "../../../contexts/RentalperiodContext";
+import "../../PackDetails/PackDetails.scss";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 // ─── INTERFACES ────────────────────────────────────────────────
 
@@ -33,8 +32,9 @@ interface PackProduct {
 }
 
 interface Pack {
-  _id?: string;
+  _id: string;
   title: string;
+  slug: string;
   imageUrl?: string;
   products: PackProduct[];
   discountPercentage?: number;
@@ -43,21 +43,17 @@ interface Pack {
 
 // ─── COMPONENT ────────────────────────────────────────────────
 
-export default function PackDetails() {
-  // Utilisez le paramètre "slug" car la route est définie comme /packs-complets/[slug]
-  const { slug } = useParams();
-
-  // Use non-null assertions if you're sure the context is provided
+export default function PackDetails({ pack }: { pack: Pack }) {
   const { addToCart, cart } = useCart()!;
-
   const { rentalPeriod, setRentalPeriod } = useRentalPeriod()!;
   const { startDate, endDate } = rentalPeriod;
 
-  const [pack, setPack] = useState<Pack | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [finalPrice, setFinalPrice] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
-  const [productStockAvailability, setProductStockAvailability] = useState<Record<string, number>>({});
+  const [productStockAvailability, setProductStockAvailability] = useState<
+    Record<string, number>
+  >({});
   const [maxPackQuantity, setMaxPackQuantity] = useState<number | null>(null);
 
   const handleStartDateChange = (date: Date | null) => {
@@ -68,73 +64,60 @@ export default function PackDetails() {
     setRentalPeriod({ ...rentalPeriod, endDate: date });
   };
 
-  // Charger les infos du pack par slug
-// Charger les infos du pack par slug
-useEffect(() => {
-  async function loadPack() {
-    try {
-      setError(null);
-      const packData = await fetchPackById(slug);
-      // Assurer qu'il y a toujours un tableau de produits
-      if (!packData.products) {
-        packData.products = [];
-      }
-      setPack(packData);
-      setQuantity(packData.minQuantity || 1);
-    } catch {
-      setError("Impossible de charger le pack.");
-    }
-  }
-  if (slug) {
-    loadPack();
-  }
-}, [slug]);
-
-
   // Récupérer le stock des produits inclus dans le pack
   useEffect(() => {
     async function fetchStockForPackProducts() {
       // Vérifie que pack, pack.products, startDate et endDate existent
       if (!pack || !pack.products || !startDate || !endDate) return;
-  
-      const productStockPromises = pack.products.map(async (packItem: PackProduct) => {
-        if (!packItem.product || !packItem.product._id) {
-          console.error(`Produit invalide dans le pack :`, packItem);
-          return { productId: null, availableStock: 0 };
-        }
-        try {
-          const productId = packItem.product._id;
-          const startDateStr = encodeURIComponent(startDate.toISOString());
-          const endDateStr = encodeURIComponent(endDate.toISOString());
-          const response = await fetch(
-            `${API_URL}/api/stock/${productId}?startDate=${startDateStr}&endDate=${endDateStr}`,
-            { cache: 'no-store' }
-          );
-  
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error(
-              `Erreur récupération stock pour ${packItem.product.title} (status: ${response.status}): ${errorText}`
-            );
-            throw new Error(`Erreur récupération stock pour ${packItem.product.title}`);
+
+      const productStockPromises = pack.products.map(
+        async (packItem: PackProduct) => {
+          if (!packItem.product || !packItem.product._id) {
+            console.error(`Produit invalide dans le pack :`, packItem);
+            return { productId: null, availableStock: 0 };
           }
-  
-          const data = await response.json();
-          return { productId, availableStock: data.availableStock };
-        } catch (error) {
-          console.error(`Erreur récupération stock produit ${packItem.product.title}:`, error);
-          return { productId: null, availableStock: 0 };
+          try {
+            const productId = packItem.product._id;
+            const startDateStr = encodeURIComponent(startDate.toISOString());
+            const endDateStr = encodeURIComponent(endDate.toISOString());
+            const response = await fetch(
+              `${API_URL}/api/stock/${productId}?startDate=${startDateStr}&endDate=${endDateStr}`,
+              { cache: "no-store" }
+            );
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(
+                `Erreur récupération stock pour ${packItem.product.title} (status: ${response.status}): ${errorText}`
+              );
+              throw new Error(
+                `Erreur récupération stock pour ${packItem.product.title}`
+              );
+            }
+
+            const data = await response.json();
+            return { productId, availableStock: data.availableStock };
+          } catch (error) {
+            console.error(
+              `Erreur récupération stock produit ${packItem.product.title}:`,
+              error
+            );
+            return { productId: null, availableStock: 0 };
+          }
         }
-      });
-  
+      );
+
       const stockResults = await Promise.all(productStockPromises);
-      const stockMap = stockResults.reduce((acc: Record<string, number>, item) => {
-        if (item.productId) acc[item.productId] = item.availableStock;
-        return acc;
-      }, {});
-  
+      const stockMap = stockResults.reduce(
+        (acc: Record<string, number>, item) => {
+          if (item.productId) acc[item.productId] = item.availableStock;
+          return acc;
+        },
+        {}
+      );
+
       setProductStockAvailability(stockMap);
-  
+
       if (pack.products.length > 0) {
         const maxPossiblePacks = pack.products.map((packItem: PackProduct) => {
           const availableStock = stockMap[packItem.product._id] || 0;
@@ -145,7 +128,6 @@ useEffect(() => {
     }
     fetchStockForPackProducts();
   }, [pack, startDate, endDate]);
-  
 
   const isFormValid =
     pack &&
@@ -159,21 +141,20 @@ useEffect(() => {
   return (
     <Container className="pack-details">
       <Paper className="pack-details__content">
-      <div className='product-details__header'>
-
-      <div className='product-details__text'>
-        <Typography variant="h4">{pack?.title}</Typography>
-        <Typography variant='h6'>{pack?.description}</Typography>
-      </div>
-        {pack?.imageUrl && (
-          <Image
-          src={pack.imageUrl}
-          alt={pack.title}
-          width={400}
-          height={300}
-          className="pack-details__image"
-          />
-        )}
+        <div className="product-details__header">
+          <div className="product-details__text">
+            <Typography variant="h4">{pack?.title}</Typography>
+            <Typography variant="h6">{pack?.description}</Typography>
+          </div>
+          {pack?.imageUrl && (
+            <Image
+              src={pack.imageUrl}
+              alt={pack.title}
+              width={400}
+              height={300}
+              className="pack-details__image"
+            />
+          )}
         </div>
         <PackProducts products={pack?.products || []} />
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
@@ -193,23 +174,22 @@ useEffect(() => {
         <Paper className="pack-details__product-stock">
           <Typography variant="h6">Stock des produits du pack</Typography>
           {(pack?.products || []).map((packItem: PackProduct) => {
-  const product = packItem.product;
-  const productId = product?._id;
-  const productName = product?.title || "Produit inconnu";
-  return productId ? (
-    <Typography key={productId} variant="body2" color="textSecondary">
-      {productName}:{" "}
-      {productStockAvailability[productId] !== undefined
-        ? `${productStockAvailability[productId]} disponibles`
-        : "Chargement..."}
-    </Typography>
-  ) : (
-    <Typography key={Math.random()} variant="body2" color="error">
-      Produit invalide : Données manquantes
-    </Typography>
-  );
-})}
-
+            const product = packItem.product;
+            const productId = product?._id;
+            const productName = product?.title || "Produit inconnu";
+            return productId ? (
+              <Typography key={productId} variant="body2" color="textSecondary">
+                {productName}:{" "}
+                {productStockAvailability[productId] !== undefined
+                  ? `${productStockAvailability[productId]} disponibles`
+                  : "Chargement..."}
+              </Typography>
+            ) : (
+              <Typography key={Math.random()} variant="body2" color="error">
+                Produit invalide : Données manquantes
+              </Typography>
+            );
+          })}
         </Paper>
         <QuantitySelector
           quantity={quantity}
@@ -236,7 +216,7 @@ useEffect(() => {
               ...pack!,
               id: pack!._id!,
               title: pack!.name,
-              type: 'pack',
+              type: "pack",
               quantity,
               startDate,
               endDate,

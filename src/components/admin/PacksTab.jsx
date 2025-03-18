@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   TextField,
   Button,
@@ -16,35 +15,40 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-  Avatar
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { fetchProducts } from '../../services/products.service';
-import { createPack } from '../../services/packs.service';
-import ImageUpload from './common/ImageUpload/ImageUpload';
+  Avatar,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { fetchProducts } from "../../services/products.service";
+import { createPack } from "../../services/packs.service";
+import ImageUpload from "./common/ImageUpload/ImageUpload";
 
 export default function PacksTab() {
   const [pack, setPack] = useState({
-    name: '',
-    description: '',
+    title: "",
+    description: "",
     products: [],
-    discountPercentage: '',
-    minRentalDays: '',
-    image: null
+    discountPercentage: "0",
+    minRentalDays: "1",
+    minQuantity: "1",
+    image: null,
+    seo: {
+      title: "",
+      metaDescription: "",
+    },
   });
   const [availableProducts, setAvailableProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [globalError, setGlobalError] = useState('');
+  const [globalError, setGlobalError] = useState("");
   const [success, setSuccess] = useState(false);
 
   // Objet d'erreurs champ par champ
   const [errors, setErrors] = useState({
-    name: '',
-    description: '',
-    products: '',
-    discountPercentage: '',
-    minRentalDays: '',
-    image: ''
+    title: "",
+    description: "",
+    products: "",
+    discountPercentage: "",
+    minRentalDays: "",
+    image: "",
   });
 
   useEffect(() => {
@@ -56,47 +60,47 @@ export default function PacksTab() {
       const products = await fetchProducts();
       setAvailableProducts(products);
     } catch (error) {
-      console.error('Error loading products:', error);
-      setGlobalError('Failed to load products');
+      console.error("Error loading products:", error);
+      setGlobalError("Failed to load products");
     }
   };
 
   const handleImageChange = (file) => {
     setPack({ ...pack, image: file });
     // On peut nettoyer l'erreur quand l'utilisateur ajoute une image
-    setErrors({ ...errors, image: '' });
+    setErrors({ ...errors, image: "" });
   };
 
   const handleProductSelect = (event, product) => {
     if (!product) return;
 
     // Vérification si le produit est déjà dans le pack
-    if (pack.products.some(p => p.id === product.id)) {
-      setGlobalError('This product is already in the pack');
+    if (pack.products.some((p) => p.id === product.id)) {
+      setGlobalError("This product is already in the pack");
       return;
     }
 
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      products: [...prev.products, { ...product, quantity: 1 }]
+      products: [...prev.products, { ...product, quantity: 1 }],
     }));
     // Nettoyage de l'erreur si l'utilisateur ajoute enfin un produit
-    setErrors((prev) => ({ ...prev, products: '' }));
+    setErrors((prev) => ({ ...prev, products: "" }));
   };
 
   const handleRemoveProduct = (productId) => {
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      products: prev.products.filter(p => p.id !== productId)
+      products: prev.products.filter((p) => p.id !== productId),
     }));
   };
 
   const handleQuantityChange = (productId, quantity) => {
-    setPack(prev => ({
+    setPack((prev) => ({
       ...prev,
-      products: prev.products.map(p => 
+      products: prev.products.map((p) =>
         p.id === productId ? { ...p, quantity: parseInt(quantity) || 1 } : p
-      )
+      ),
     }));
   };
 
@@ -105,57 +109,59 @@ export default function PacksTab() {
     const newErrors = { ...errors };
 
     // Nom
-    if (!pack.name.trim()) {
-      newErrors.name = 'Le nom du pack est obligatoire.';
+    if (!pack.title.trim()) {
+      newErrors.title = "Le nom du pack est obligatoire.";
     } else {
-      newErrors.name = '';
+      newErrors.title = "";
     }
 
     // Description
     if (!pack.description.trim()) {
-      newErrors.description = 'La description est obligatoire.';
+      newErrors.description = "La description est obligatoire.";
     } else {
-      newErrors.description = '';
+      newErrors.description = "";
     }
 
     // Produits
     if (pack.products.length === 0) {
-      newErrors.products = 'Ajoutez au moins un produit.';
+      newErrors.products = "Ajoutez au moins un produit.";
     } else {
-      newErrors.products = '';
+      newErrors.products = "";
     }
 
     // Discount
-    if (pack.discountPercentage === '') {
-      newErrors.discountPercentage = 'Le pourcentage de réduction est obligatoire.';
+    if (pack.discountPercentage === "") {
+      newErrors.discountPercentage =
+        "Le pourcentage de réduction est obligatoire.";
     } else {
-      newErrors.discountPercentage = '';
+      newErrors.discountPercentage = "";
     }
 
     // Min Rental Days
-    if (pack.minRentalDays === '') {
-      newErrors.minRentalDays = 'Le minimum de jours de location est obligatoire.';
+    if (pack.minRentalDays === "") {
+      newErrors.minRentalDays =
+        "Le minimum de jours de location est obligatoire.";
     } else {
-      newErrors.minRentalDays = '';
+      newErrors.minRentalDays = "";
     }
 
     // Image
     if (!pack.image) {
       newErrors.image = "L'image est obligatoire.";
     } else {
-      newErrors.image = '';
+      newErrors.image = "";
     }
 
     setErrors(newErrors);
 
     // Retourne "true" si AUCUNE erreur
-    return Object.values(newErrors).every((val) => val === '');
+    return Object.values(newErrors).every((val) => val === "");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setGlobalError('');
+    setGlobalError("");
 
     // Validation avant d'appeler createPack
     const isValid = validate();
@@ -170,23 +176,28 @@ export default function PacksTab() {
 
       // Réinitialiser le formulaire
       setPack({
-        name: '',
-        description: '',
+        title: "",
+        description: "",
         products: [],
-        discountPercentage: '',
-        minRentalDays: '',
-        image: null
+        discountPercentage: "0",
+        minRentalDays: "1",
+        minQuantity: "1",
+        image: null,
+        seo: {
+          title: "",
+          metaDescription: "",
+        },
       });
       setErrors({
-        name: '',
-        description: '',
-        products: '',
-        discountPercentage: '',
-        minRentalDays: '',
-        image: ''
+        title: "",
+        description: "",
+        products: "",
+        discountPercentage: "",
+        minRentalDays: "",
+        image: "",
       });
     } catch (error) {
-      setGlobalError(error.message || 'Failed to create pack');
+      setGlobalError(error.message || "Failed to create pack");
     } finally {
       setLoading(false);
     }
@@ -223,12 +234,12 @@ export default function PacksTab() {
       {/* Nom du pack */}
       <TextField
         fullWidth
-        label="Pack Name"
-        value={pack.name}
-        onChange={(e) => setPack({ ...pack, name: e.target.value })}
+        label="Nom du pack"
+        value={pack.title || ""}
+        onChange={(e) => setPack({ ...pack, title: e.target.value })}
         margin="normal"
-        error={Boolean(errors.name)}
-        helperText={errors.name}
+        error={Boolean(errors.title)}
+        helperText={errors.title}
       />
 
       {/* Description */}
@@ -248,19 +259,28 @@ export default function PacksTab() {
         <Typography variant="h6" gutterBottom>
           Add Products
         </Typography>
-        
+
         <Autocomplete
           options={availableProducts}
           getOptionLabel={(option) => option.title}
           onChange={handleProductSelect}
-          renderOption={(props, option) => (
-            <Box component="li" sx={{ display: 'flex', alignItems: 'center', gap: 2 }} {...props}>
-              {option.imageUrl && (
-                <Avatar src={option.imageUrl} alt={option.title} />
-              )}
-              <Typography>{option.title}</Typography>
-            </Box>
-          )}
+          renderOption={(props, option) => {
+            // Extraire la clé des props
+            const { key, ...otherProps } = props;
+            return (
+              <Box
+                key={key}
+                component="li"
+                sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                {...otherProps}
+              >
+                {option.imageUrl && (
+                  <Avatar src={option.imageUrl} alt={option.title} />
+                )}
+                <Typography>{option.title}</Typography>
+              </Box>
+            );
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -302,7 +322,9 @@ export default function PacksTab() {
                     <TextField
                       type="number"
                       value={product.quantity}
-                      onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                      onChange={(e) =>
+                        handleQuantityChange(product.id, e.target.value)
+                      }
                       inputProps={{ min: 1 }}
                       size="small"
                       sx={{ width: 80 }}
@@ -325,10 +347,12 @@ export default function PacksTab() {
 
       <TextField
         fullWidth
-        label="Discount Percentage"
+        label="Pourcentage de réduction"
         type="number"
-        value={pack.discountPercentage}
-        onChange={(e) => setPack({ ...pack, discountPercentage: e.target.value })}
+        value={pack.discountPercentage || "0"}
+        onChange={(e) =>
+          setPack({ ...pack, discountPercentage: e.target.value })
+        }
         margin="normal"
         error={Boolean(errors.discountPercentage)}
         helperText={errors.discountPercentage}
@@ -339,7 +363,7 @@ export default function PacksTab() {
         fullWidth
         label="Quantité minimum par location"
         type="number"
-        value={pack.minQuantity}
+        value={pack.minQuantity || "1"}
         onChange={(e) => setPack({ ...pack, minQuantity: e.target.value })}
         margin="normal"
         inputProps={{ min: 1 }}
@@ -348,14 +372,42 @@ export default function PacksTab() {
 
       <TextField
         fullWidth
-        label="Minimum Rental Days"
+        label="Nombre minimum de jours de location"
         type="number"
-        value={pack.minRentalDays}
+        value={pack.minRentalDays || "1"}
         onChange={(e) => setPack({ ...pack, minRentalDays: e.target.value })}
         margin="normal"
         error={Boolean(errors.minRentalDays)}
         helperText={errors.minRentalDays}
         inputProps={{ min: 1 }}
+      />
+
+      <TextField
+        fullWidth
+        label="SEO Title"
+        value={pack.seo?.title || ""}
+        onChange={(e) =>
+          setPack({
+            ...pack,
+            seo: { ...pack.seo, title: e.target.value },
+          })
+        }
+        margin="normal"
+      />
+
+      <TextField
+        fullWidth
+        label="SEO Meta Description"
+        value={pack.seo?.metaDescription || ""}
+        onChange={(e) =>
+          setPack({
+            ...pack,
+            seo: { ...pack.seo, metaDescription: e.target.value },
+          })
+        }
+        margin="normal"
+        multiline
+        rows={2}
       />
 
       <Button
@@ -365,7 +417,7 @@ export default function PacksTab() {
         sx={{ mt: 2 }}
         disabled={loading}
       >
-        {loading ? <CircularProgress size={24} /> : 'Create Pack'}
+        {loading ? <CircularProgress size={24} /> : "Create Pack"}
       </Button>
     </Box>
   );

@@ -1,12 +1,20 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardMedia, Typography, Button, Box, Chip } from '@mui/material';
-// Use a relative import if your tsconfig paths aren’t set up
-import { Product } from '../../type/Product';
-import './ProductCard.scss';
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  Box,
+  Chip,
+} from "@mui/material";
+// Use a relative import if your tsconfig paths aren't set up
+import { Product } from "../../type/Product";
+import "./ProductCard.scss";
 
 interface ProductCardProps {
   product: Product;
@@ -14,24 +22,26 @@ interface ProductCardProps {
   isPack?: boolean;
 }
 
-export default function ProductCard({ product, isPack = false }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  isPack = false,
+}: ProductCardProps) {
   const router = useRouter();
 
-  // const handleViewDetails = () => {
-  //   const productId = product._id || product.id;
-  //   const path = isPack ? `/PackDetails/${productId}` : `/ProductDetails/${productId}`;
-  //   router.push(path);
-  // };
-
   const handleViewDetails = () => {
-    // Utilise le slug si présent, sinon l'ID
-    const productIdentifier = product.slug || product._id || product.id;
-    const path = isPack ? `/packs-complets/${productIdentifier}` : `/produits/${productIdentifier}`;
-    router.push(path);
+    if (isPack) {
+      // Pour les packs, on utilise toujours le slug s'il existe
+      const identifier = product.slug || product._id;
+      router.push(`/packs-complets/${identifier}`);
+    } else {
+      // Pour les produits normaux
+      const identifier = product.slug || product._id;
+      router.push(`/produits/${identifier}`);
+    }
   };
-  
 
-  const imageUrl = product.imageUrl || '/default-placeholder.png';
+  const imageUrl = product.imageUrl || "/default-placeholder.png";
+  const title = product.title || product.name;
 
   return (
     <Card className="product-card">
@@ -39,26 +49,33 @@ export default function ProductCard({ product, isPack = false }: ProductCardProp
         component="img"
         height="200"
         image={imageUrl}
-        alt={product.title || product.name}
+        alt={title}
         className="product-card__image"
       />
       <CardContent className="product-card__content">
         <Typography gutterBottom variant="h5" component="h2">
-          {product.title || product.name}
+          {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary" className="product-card__description">
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          className="product-card__description"
+        >
           {product.description}
         </Typography>
         {/* Hide price and min quantity if it's a pack */}
         {!isPack && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="h6" component="div" className="product-card__price">
+            <Typography
+              variant="h6"
+              component="div"
+              className="product-card__price"
+            >
               A partir de {product.price}€ /Jour
             </Typography>
-          
           </Box>
         )}
-     
+
         <Button
           variant="contained"
           fullWidth
@@ -66,7 +83,7 @@ export default function ProductCard({ product, isPack = false }: ProductCardProp
           className="product-card__button"
           sx={{ mt: 2 }}
         >
-          Voir le {isPack ? 'Pack' : 'Produit'}
+          Voir le {isPack ? "Pack" : "Produit"}
         </Button>
       </CardContent>
     </Card>
