@@ -1,3 +1,428 @@
+// import { useState, useEffect } from "react";
+// import {
+//   TextField,
+//   Button,
+//   Box,
+//   Typography,
+//   Autocomplete,
+//   Paper,
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableContainer,
+//   TableHead,
+//   TableRow,
+//   IconButton,
+//   Alert,
+//   CircularProgress,
+//   Avatar,
+// } from "@mui/material";
+// import DeleteIcon from "@mui/icons-material/Delete";
+// import { fetchProducts } from "../../services/products.service";
+// import { createPack } from "../../services/packs.service";
+// import ImageUpload from "./common/ImageUpload/ImageUpload";
+
+// export default function PacksTab() {
+//   const [pack, setPack] = useState({
+//     title: "",
+//     description: "",
+//     products: [],
+//     discountPercentage: "0",
+//     minRentalDays: "1",
+//     minQuantity: "1",
+//     image: null,
+//     seo: {
+//       title: "",
+//       metaDescription: "",
+//     },
+//   });
+//   const [availableProducts, setAvailableProducts] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [globalError, setGlobalError] = useState("");
+//   const [success, setSuccess] = useState(false);
+
+//   // Objet d'erreurs champ par champ
+//   const [errors, setErrors] = useState({
+//     title: "",
+//     description: "",
+//     products: "",
+//     discountPercentage: "",
+//     minRentalDays: "",
+//     image: "",
+//   });
+
+//   useEffect(() => {
+//     loadProducts();
+//   }, []);
+
+//   const loadProducts = async () => {
+//     try {
+//       const products = await fetchProducts();
+//       setAvailableProducts(products);
+//     } catch (error) {
+//       console.error("Error loading products:", error);
+//       setGlobalError("Failed to load products");
+//     }
+//   };
+
+//   const handleImageChange = (file) => {
+//     setPack({ ...pack, image: file });
+//     // On peut nettoyer l'erreur quand l'utilisateur ajoute une image
+//     setErrors({ ...errors, image: "" });
+//   };
+
+//   const handleProductSelect = (event, product) => {
+//     if (!product) return;
+
+//     // Vérification si le produit est déjà dans le pack
+//     if (pack.products.some((p) => p.id === product.id)) {
+//       setGlobalError("This product is already in the pack");
+//       return;
+//     }
+
+//     setPack((prev) => ({
+//       ...prev,
+//       products: [...prev.products, { ...product, quantity: 1 }],
+//     }));
+//     // Nettoyage de l'erreur si l'utilisateur ajoute enfin un produit
+//     setErrors((prev) => ({ ...prev, products: "" }));
+//   };
+
+//   const handleRemoveProduct = (productId) => {
+//     setPack((prev) => ({
+//       ...prev,
+//       products: prev.products.filter((p) => p.id !== productId),
+//     }));
+//   };
+
+//   const handleQuantityChange = (productId, quantity) => {
+//     setPack((prev) => ({
+//       ...prev,
+//       products: prev.products.map((p) =>
+//         p.id === productId ? { ...p, quantity: parseInt(quantity) || 1 } : p
+//       ),
+//     }));
+//   };
+
+//   // --- FONCTION DE VALIDATION ---
+//   const validate = () => {
+//     const newErrors = { ...errors };
+
+//     // Nom
+//     if (!pack.title.trim()) {
+//       newErrors.title = "Le nom du pack est obligatoire.";
+//     } else {
+//       newErrors.title = "";
+//     }
+
+//     // Description
+//     if (!pack.description.trim()) {
+//       newErrors.description = "La description est obligatoire.";
+//     } else {
+//       newErrors.description = "";
+//     }
+
+//     // Produits
+//     if (pack.products.length === 0) {
+//       newErrors.products = "Ajoutez au moins un produit.";
+//     } else {
+//       newErrors.products = "";
+//     }
+
+//     // Discount
+//     if (pack.discountPercentage === "") {
+//       newErrors.discountPercentage =
+//         "Le pourcentage de réduction est obligatoire.";
+//     } else {
+//       newErrors.discountPercentage = "";
+//     }
+
+//     // Min Rental Days
+//     if (pack.minRentalDays === "") {
+//       newErrors.minRentalDays =
+//         "Le minimum de jours de location est obligatoire.";
+//     } else {
+//       newErrors.minRentalDays = "";
+//     }
+
+//     // Image
+//     if (!pack.image) {
+//       newErrors.image = "L'image est obligatoire.";
+//     } else {
+//       newErrors.image = "";
+//     }
+
+//     setErrors(newErrors);
+
+//     // Retourne "true" si AUCUNE erreur
+//     return Object.values(newErrors).every((val) => val === "");
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+//     setGlobalError("");
+
+//     // Validation avant d'appeler createPack
+//     const isValid = validate();
+//     if (!isValid) {
+//       setLoading(false);
+//       return;
+//     }
+
+//     try {
+//       await createPack(pack);
+//       setSuccess(true);
+
+//       // Réinitialiser le formulaire
+//       setPack({
+//         title: "",
+//         description: "",
+//         products: [],
+//         discountPercentage: "0",
+//         minRentalDays: "1",
+//         minQuantity: "1",
+//         image: null,
+//         seo: {
+//           title: "",
+//           metaDescription: "",
+//         },
+//       });
+//       setErrors({
+//         title: "",
+//         description: "",
+//         products: "",
+//         discountPercentage: "",
+//         minRentalDays: "",
+//         image: "",
+//       });
+//     } catch (error) {
+//       setGlobalError(error.message || "Failed to create pack");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 800 }}>
+//       <Typography variant="h5" gutterBottom>
+//         Créer un nouveau pack
+//       </Typography>
+
+//       {/* Erreur globale éventuelle */}
+//       {globalError && (
+//         <Alert severity="error" sx={{ mb: 2 }}>
+//           {globalError}
+//         </Alert>
+//       )}
+
+//       {/* Message de succès */}
+//       {success && (
+//         <Alert severity="success" sx={{ mb: 2 }}>
+//           Pack créé avec succès!
+//         </Alert>
+//       )}
+
+//       {/* Image */}
+//       <ImageUpload onChange={handleImageChange} />
+//       {errors.image && (
+//         <Alert severity="error" sx={{ mb: 2 }}>
+//           {errors.image}
+//         </Alert>
+//       )}
+
+//       {/* Nom du pack */}
+//       <TextField
+//         fullWidth
+//         label="Nom du pack"
+//         value={pack.title || ""}
+//         onChange={(e) => setPack({ ...pack, title: e.target.value })}
+//         margin="normal"
+//         error={Boolean(errors.title)}
+//         helperText={errors.title}
+//       />
+
+//       {/* Description */}
+//       <TextField
+//         fullWidth
+//         label="Description"
+//         value={pack.description}
+//         onChange={(e) => setPack({ ...pack, description: e.target.value })}
+//         margin="normal"
+//         multiline
+//         rows={4}
+//         error={Boolean(errors.description)}
+//         helperText={errors.description}
+//       />
+
+//       <Box sx={{ mt: 3, mb: 2 }}>
+//         <Typography variant="h6" gutterBottom>
+//           Ajouter des produits
+//         </Typography>
+
+//         <Autocomplete
+//           options={availableProducts}
+//           getOptionLabel={(option) => option.title}
+//           onChange={handleProductSelect}
+//           renderOption={(props, option) => {
+//             // Extraire la clé des props
+//             const { key, ...otherProps } = props;
+//             return (
+//               <Box
+//                 key={key}
+//                 component="li"
+//                 sx={{ display: "flex", alignItems: "center", gap: 2 }}
+//                 {...otherProps}
+//               >
+//                 {option.imageUrl && (
+//                   <Avatar src={option.imageUrl} alt={option.title} />
+//                 )}
+//                 <Typography>{option.title}</Typography>
+//               </Box>
+//             );
+//           }}
+//           renderInput={(params) => (
+//             <TextField
+//               {...params}
+//               label="Rechercher des produits"
+//               variant="outlined"
+//               fullWidth
+//               error={Boolean(errors.products)}
+//               helperText={errors.products}
+//             />
+//           )}
+//         />
+//       </Box>
+
+//       {pack.products.length > 0 && (
+//         <TableContainer component={Paper} sx={{ mt: 2, mb: 3 }}>
+//           <Table>
+//             <TableHead>
+//               <TableRow>
+//                 <TableCell>Image</TableCell>
+//                 <TableCell>Product</TableCell>
+//                 <TableCell>Category</TableCell>
+//                 <TableCell align="right">Price/Day</TableCell>
+//                 <TableCell align="right">Quantity</TableCell>
+//                 <TableCell align="right">Actions</TableCell>
+//               </TableRow>
+//             </TableHead>
+//             <TableBody>
+//               {pack.products.map((product) => (
+//                 <TableRow key={product.id}>
+//                   <TableCell>
+//                     {product.imageUrl && (
+//                       <Avatar src={product.imageUrl} alt={product.title} />
+//                     )}
+//                   </TableCell>
+//                   <TableCell>{product.title}</TableCell>
+//                   <TableCell>{product.category}</TableCell>
+//                   <TableCell align="right">${product.price}</TableCell>
+//                   <TableCell align="right">
+//                     <TextField
+//                       type="number"
+//                       value={product.quantity}
+//                       onChange={(e) =>
+//                         handleQuantityChange(product.id, e.target.value)
+//                       }
+//                       inputProps={{ min: 1 }}
+//                       size="small"
+//                       sx={{ width: 80 }}
+//                     />
+//                   </TableCell>
+//                   <TableCell align="right">
+//                     <IconButton
+//                       color="error"
+//                       onClick={() => handleRemoveProduct(product.id)}
+//                     >
+//                       <DeleteIcon />
+//                     </IconButton>
+//                   </TableCell>
+//                 </TableRow>
+//               ))}
+//             </TableBody>
+//           </Table>
+//         </TableContainer>
+//       )}
+
+//       <TextField
+//         fullWidth
+//         label="Pourcentage de réduction"
+//         type="number"
+//         value={pack.discountPercentage || "0"}
+//         onChange={(e) =>
+//           setPack({ ...pack, discountPercentage: e.target.value })
+//         }
+//         margin="normal"
+//         error={Boolean(errors.discountPercentage)}
+//         helperText={errors.discountPercentage}
+//         inputProps={{ min: 0, max: 100 }}
+//       />
+
+//       <TextField
+//         fullWidth
+//         label="Quantité minimum par location"
+//         type="number"
+//         value={pack.minQuantity || "1"}
+//         onChange={(e) => setPack({ ...pack, minQuantity: e.target.value })}
+//         margin="normal"
+//         inputProps={{ min: 1 }}
+//         disabled={loading}
+//       />
+
+//       <TextField
+//         fullWidth
+//         label="Nombre minimum de jours de location"
+//         type="number"
+//         value={pack.minRentalDays || "1"}
+//         onChange={(e) => setPack({ ...pack, minRentalDays: e.target.value })}
+//         margin="normal"
+//         error={Boolean(errors.minRentalDays)}
+//         helperText={errors.minRentalDays}
+//         inputProps={{ min: 1 }}
+//       />
+
+//       <TextField
+//         fullWidth
+//         label="Titre SEO"
+//         value={pack.seo?.title || ""}
+//         onChange={(e) =>
+//           setPack({
+//             ...pack,
+//             seo: { ...pack.seo, title: e.target.value },
+//           })
+//         }
+//         margin="normal"
+//       />
+
+//       <TextField
+//         fullWidth
+//         label="Meta Description SEO"
+//         value={pack.seo?.metaDescription || ""}
+//         onChange={(e) =>
+//           setPack({
+//             ...pack,
+//             seo: { ...pack.seo, metaDescription: e.target.value },
+//           })
+//         }
+//         margin="normal"
+//         multiline
+//         rows={2}
+//       />
+
+//       <Button
+//         type="submit"
+//         variant="contained"
+//         fullWidth
+//         sx={{ mt: 2 }}
+//         disabled={loading}
+//       >
+//         {loading ? <CircularProgress size={24} /> : "Create Pack"}
+//       </Button>
+//     </Box>
+//   );
+// }
+
 import { useState, useEffect } from "react";
 import {
   TextField,
@@ -16,6 +441,10 @@ import {
   Alert,
   CircularProgress,
   Avatar,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { fetchProducts } from "../../services/products.service";
@@ -35,8 +464,13 @@ export default function PacksTab() {
       title: "",
       metaDescription: "",
     },
+    category: "",
+    navCategory: "",
   });
   const [availableProducts, setAvailableProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [creatingNewCategory, setCreatingNewCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -49,10 +483,26 @@ export default function PacksTab() {
     discountPercentage: "",
     minRentalDays: "",
     image: "",
+    category: "",
+    navCategory: "",
   });
 
   useEffect(() => {
     loadProducts();
+  }, []);
+
+  useEffect(() => {
+    // Charger les catégories existantes depuis l'API
+    fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "http://api-nds-events.fr"
+      }/api/categories`
+    )
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch((err) =>
+        console.error("Erreur lors du chargement des catégories:", err)
+      );
   }, []);
 
   const loadProducts = async () => {
@@ -67,24 +517,19 @@ export default function PacksTab() {
 
   const handleImageChange = (file) => {
     setPack({ ...pack, image: file });
-    // On peut nettoyer l'erreur quand l'utilisateur ajoute une image
     setErrors({ ...errors, image: "" });
   };
 
   const handleProductSelect = (event, product) => {
     if (!product) return;
-
-    // Vérification si le produit est déjà dans le pack
     if (pack.products.some((p) => p.id === product.id)) {
       setGlobalError("This product is already in the pack");
       return;
     }
-
     setPack((prev) => ({
       ...prev,
       products: [...prev.products, { ...product, quantity: 1 }],
     }));
-    // Nettoyage de l'erreur si l'utilisateur ajoute enfin un produit
     setErrors((prev) => ({ ...prev, products: "" }));
   };
 
@@ -108,28 +553,24 @@ export default function PacksTab() {
   const validate = () => {
     const newErrors = { ...errors };
 
-    // Nom
     if (!pack.title.trim()) {
       newErrors.title = "Le nom du pack est obligatoire.";
     } else {
       newErrors.title = "";
     }
 
-    // Description
     if (!pack.description.trim()) {
       newErrors.description = "La description est obligatoire.";
     } else {
       newErrors.description = "";
     }
 
-    // Produits
     if (pack.products.length === 0) {
       newErrors.products = "Ajoutez au moins un produit.";
     } else {
       newErrors.products = "";
     }
 
-    // Discount
     if (pack.discountPercentage === "") {
       newErrors.discountPercentage =
         "Le pourcentage de réduction est obligatoire.";
@@ -137,7 +578,6 @@ export default function PacksTab() {
       newErrors.discountPercentage = "";
     }
 
-    // Min Rental Days
     if (pack.minRentalDays === "") {
       newErrors.minRentalDays =
         "Le minimum de jours de location est obligatoire.";
@@ -145,16 +585,25 @@ export default function PacksTab() {
       newErrors.minRentalDays = "";
     }
 
-    // Image
     if (!pack.image) {
       newErrors.image = "L'image est obligatoire.";
     } else {
       newErrors.image = "";
     }
 
-    setErrors(newErrors);
+    if (!pack.category.trim()) {
+      newErrors.category = "La catégorie du pack est obligatoire.";
+    } else {
+      newErrors.category = "";
+    }
 
-    // Retourne "true" si AUCUNE erreur
+    if (!pack.navCategory.trim()) {
+      newErrors.navCategory = "Le groupe de menu est obligatoire.";
+    } else {
+      newErrors.navCategory = "";
+    }
+
+    setErrors(newErrors);
     return Object.values(newErrors).every((val) => val === "");
   };
 
@@ -163,7 +612,10 @@ export default function PacksTab() {
     setLoading(true);
     setGlobalError("");
 
-    // Validation avant d'appeler createPack
+    // Déterminer la catégorie finale (existante ou nouvelle)
+    const finalCategory = creatingNewCategory ? newCategory : pack.category;
+    const packToSubmit = { ...pack, category: finalCategory };
+
     const isValid = validate();
     if (!isValid) {
       setLoading(false);
@@ -171,10 +623,8 @@ export default function PacksTab() {
     }
 
     try {
-      await createPack(pack);
+      await createPack(packToSubmit);
       setSuccess(true);
-
-      // Réinitialiser le formulaire
       setPack({
         title: "",
         description: "",
@@ -187,6 +637,8 @@ export default function PacksTab() {
           title: "",
           metaDescription: "",
         },
+        category: "",
+        navCategory: "",
       });
       setErrors({
         title: "",
@@ -195,7 +647,11 @@ export default function PacksTab() {
         discountPercentage: "",
         minRentalDays: "",
         image: "",
+        category: "",
+        navCategory: "",
       });
+      setCreatingNewCategory(false);
+      setNewCategory("");
     } catch (error) {
       setGlobalError(error.message || "Failed to create pack");
     } finally {
@@ -209,21 +665,18 @@ export default function PacksTab() {
         Créer un nouveau pack
       </Typography>
 
-      {/* Erreur globale éventuelle */}
       {globalError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {globalError}
         </Alert>
       )}
 
-      {/* Message de succès */}
       {success && (
         <Alert severity="success" sx={{ mb: 2 }}>
           Pack créé avec succès!
         </Alert>
       )}
 
-      {/* Image */}
       <ImageUpload onChange={handleImageChange} />
       {errors.image && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -231,7 +684,6 @@ export default function PacksTab() {
         </Alert>
       )}
 
-      {/* Nom du pack */}
       <TextField
         fullWidth
         label="Nom du pack"
@@ -242,7 +694,6 @@ export default function PacksTab() {
         helperText={errors.title}
       />
 
-      {/* Description */}
       <TextField
         fullWidth
         label="Description"
@@ -255,9 +706,60 @@ export default function PacksTab() {
         helperText={errors.description}
       />
 
+      {/* Sélection de la catégorie du pack */}
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel>Catégorie du pack</InputLabel>
+        <Select
+          value={creatingNewCategory ? "__new__" : pack.category || ""}
+          label="Catégorie du pack"
+          onChange={(e) => {
+            if (e.target.value === "__new__") {
+              setCreatingNewCategory(true);
+              setPack({ ...pack, category: "" });
+            } else {
+              setCreatingNewCategory(false);
+              setPack({ ...pack, category: e.target.value });
+            }
+          }}
+        >
+          {categories.map((cat) => (
+            <MenuItem key={cat._id || cat.name} value={cat.name}>
+              {cat.name}
+            </MenuItem>
+          ))}
+          <MenuItem value="__new__">Créer une nouvelle catégorie</MenuItem>
+        </Select>
+      </FormControl>
+      {creatingNewCategory && (
+        <TextField
+          fullWidth
+          label="Nouvelle catégorie"
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          margin="normal"
+          required
+        />
+      )}
+
+      {/* Sélection du groupe de menu pour le pack */}
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel>Groupe de menu</InputLabel>
+        <Select
+          value={pack.navCategory || ""}
+          label="Groupe de menu"
+          onChange={(e) => setPack({ ...pack, navCategory: e.target.value })}
+        >
+          <MenuItem value="la-table">La table</MenuItem>
+          <MenuItem value="le-mobilier">Le Mobilier</MenuItem>
+          <MenuItem value="tentes">Tentes</MenuItem>
+          <MenuItem value="decorations">Décorations</MenuItem>
+          <MenuItem value="autres-packs">Autres packs</MenuItem>
+        </Select>
+      </FormControl>
+
       <Box sx={{ mt: 3, mb: 2 }}>
         <Typography variant="h6" gutterBottom>
-          Add Products
+          Ajouter des produits
         </Typography>
 
         <Autocomplete
@@ -265,7 +767,6 @@ export default function PacksTab() {
           getOptionLabel={(option) => option.title}
           onChange={handleProductSelect}
           renderOption={(props, option) => {
-            // Extraire la clé des props
             const { key, ...otherProps } = props;
             return (
               <Box
@@ -284,7 +785,7 @@ export default function PacksTab() {
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Search Products"
+              label="Rechercher des produits"
               variant="outlined"
               fullWidth
               error={Boolean(errors.products)}
@@ -300,10 +801,10 @@ export default function PacksTab() {
             <TableHead>
               <TableRow>
                 <TableCell>Image</TableCell>
-                <TableCell>Product</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell align="right">Price/Day</TableCell>
-                <TableCell align="right">Quantity</TableCell>
+                <TableCell>Produit</TableCell>
+                <TableCell>Catégorie</TableCell>
+                <TableCell align="right">Prix/jour</TableCell>
+                <TableCell align="right">Quantité</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -384,7 +885,7 @@ export default function PacksTab() {
 
       <TextField
         fullWidth
-        label="SEO Title"
+        label="Titre SEO"
         value={pack.seo?.title || ""}
         onChange={(e) =>
           setPack({
@@ -397,7 +898,7 @@ export default function PacksTab() {
 
       <TextField
         fullWidth
-        label="SEO Meta Description"
+        label="Meta Description SEO"
         value={pack.seo?.metaDescription || ""}
         onChange={(e) =>
           setPack({

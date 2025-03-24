@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Container, Typography } from '@mui/material';
-import { useParams } from 'next/navigation';
-import ProductCard from '@/components/ProductCard/ProductCard';
-import CategoryLinkFilter from '@/components/CategoryFilter/CategoryLinkFilter';
-import RentalDialog from '@/components/RentalDialog';
+import React, { useState, useEffect } from "react";
+import { Container, Typography } from "@mui/material";
+import { useParams } from "next/navigation";
+import ProductCard from "@/components/ProductCard/ProductCard";
+import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
+import RentalDialog from "@/components/RentalDialog";
 import "@/app/tous-nos-produits/_Products.scss";
-import { Product } from '@/type/Product';
+import { Product } from "@/type/Product";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 export default function AutresProduitsClient() {
   const { navCategory, category } = useParams();
@@ -28,17 +28,21 @@ export default function AutresProduitsClient() {
     try {
       const response = await fetch(`${API_URL}/api/products`);
       if (!response.ok) {
-        throw new Error('Failed to fetch products');
+        throw new Error("Failed to fetch products");
       }
       const productsData: Product[] = await response.json();
       const filteredProducts = productsData.filter(
-        (product: Product) => product.navCategory === 'autres-produits'
+        (product: Product) => product.navCategory === "autres-produits"
       );
       setProducts(filteredProducts);
-      const uniqueCategories = [...new Set(filteredProducts.map((product: Product) => product.category || ''))];
+      const uniqueCategories = [
+        ...new Set(
+          filteredProducts.map((product: Product) => product.category || "")
+        ),
+      ];
       setCategories(uniqueCategories);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -57,14 +61,14 @@ export default function AutresProduitsClient() {
         </div>
 
         {!category && (
-                     <div className="products__filters">
-                       <CategoryLinkFilter
-                         categories={categories}
-                         selectedCategory={selectedCategory}
-                         navCategory={navCategory ?? 'autres-produits'}
-                       />
-                     </div>
-                   )}
+          <div className="products__filters">
+            <CategoryLinkFilter
+              categories={categories}
+              selectedCategory={selectedCategory}
+              navCategory={navCategory ?? "autres-produits"}
+            />
+          </div>
+        )}
 
         <div className="products__grid">
           {products.map((product: Product) => (
@@ -84,6 +88,33 @@ export default function AutresProduitsClient() {
           />
         )}
       </Container>
+      <div className="listIconContainer">
+        <div className="listIcon">
+          <div className="cardBottom">
+            <div className="cardLeft">
+              <img src="../../img/divers/visa.svg" alt="" />
+              <p>
+                Choisissez vos produits directement en ligne et payez par Carte
+                Bancaire ou directement au depot NDS par chèque, virement ou
+                espèce
+              </p>
+            </div>
+            <div className="cardRight">
+              <img src="../../img/divers/truck.svg" alt="" />
+              <p>
+                Divers modes de livraison à votre disposition : Retrait sur
+                place, ou livraison et récupération par nos équipes!
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bottomLink">
+          <p>
+            Pour toutes autres questions, vous pouvez vous référer à nos
+            Conditions Générales de Vente ou notre Foire Aux Questions.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

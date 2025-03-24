@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Container, Typography } from '@mui/material';
-import { useParams } from 'next/navigation';
-import ProductCard from '@/components/ProductCard/ProductCard';
-import CategoryLinkFilter from '@/components/CategoryFilter/CategoryLinkFilter';
-import RentalDialog from '@/components/RentalDialog';
+import React, { useState, useEffect } from "react";
+import { Container, Typography } from "@mui/material";
+import { useParams } from "next/navigation";
+import ProductCard from "@/components/ProductCard/ProductCard";
+import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
+import RentalDialog from "@/components/RentalDialog";
 import "@/app/tous-nos-produits/_Products.scss";
-import { Product } from "../../type/Product"
+import { Product } from "../../type/Product";
 
 // Interface pour les données brutes provenant de l'API
 interface RawProduct {
@@ -22,7 +22,7 @@ interface RawProduct {
   category: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 export default function LaTableClient() {
   const { navCategory, category } = useParams();
@@ -33,10 +33,9 @@ export default function LaTableClient() {
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
   // Si aucune catégorie n'est sélectionnée, affichez tous les produits déjà filtrés par navCategory 'la-table'
-const filteredProducts = selectedCategory
-? products.filter(product => product.category === selectedCategory)
-: products;
-
+  const filteredProducts = selectedCategory
+    ? products.filter((product) => product.category === selectedCategory)
+    : products;
 
   useEffect(() => {
     fetchProducts();
@@ -45,19 +44,19 @@ const filteredProducts = selectedCategory
   const fetchProducts = async () => {
     try {
       const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) throw new Error('Failed to fetch products');
+      if (!response.ok) throw new Error("Failed to fetch products");
       const productsData: RawProduct[] = await response.json();
 
       // Conversion vers l'interface Product attendue par ProductCard
       const convertedProducts: Product[] = productsData
-        .filter((product: RawProduct) => product.navCategory === 'la-table')
+        .filter((product: RawProduct) => product.navCategory === "la-table")
         .map((product: RawProduct) => ({
           _id: product._id,
-          id: product._id,               // On assigne l'_id à id
+          id: product._id, // On assigne l'_id à id
           title: product.title,
-          name: product.title,           // On utilise le titre pour name
-          description: product.description || '',
-          imageUrl: product.imageUrl || '',
+          name: product.title, // On utilise le titre pour name
+          description: product.description || "",
+          imageUrl: product.imageUrl || "",
           price: product.price || 0,
           minQuantity: product.minQuantity || 1,
           discountPercentage: product.discountPercentage || 0,
@@ -67,11 +66,11 @@ const filteredProducts = selectedCategory
       setProducts(convertedProducts);
 
       const uniqueCategories = [
-        ...new Set(convertedProducts.map((product) => product.category))
+        ...new Set(convertedProducts.map((product) => product.category)),
       ];
       setCategories(uniqueCategories);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -87,28 +86,32 @@ const filteredProducts = selectedCategory
           <Typography variant="h4" component="h1" className="products__title">
             Nos produits pour la table
           </Typography>
-             <Typography variant='h5' gutterBottom className="product-packs__subtitle">
-                    Découvrez tous les produits pour vos tables
-                    </Typography>
+          <Typography
+            variant="h5"
+            gutterBottom
+            className="product-packs__subtitle"
+          >
+            Découvrez tous les produits pour vos tables
+          </Typography>
         </div>
         {!category && (
-              <div className="products__filters">
-                <CategoryLinkFilter
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  navCategory={navCategory ?? 'la-table'}
-                />
-              </div>
-            )}
-    <div className="products__grid">
-  {filteredProducts.map((product) => (
-    <ProductCard
-      key={product.id}
-      product={product}
-      onRent={handleRentClick}
-    />
-  ))}
-</div>
+          <div className="products__filters">
+            <CategoryLinkFilter
+              categories={categories}
+              selectedCategory={selectedCategory}
+              navCategory={navCategory ?? "la-table"}
+            />
+          </div>
+        )}
+        <div className="products__grid">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onRent={handleRentClick}
+            />
+          ))}
+        </div>
 
         {selectedProduct && (
           <RentalDialog
@@ -118,21 +121,57 @@ const filteredProducts = selectedCategory
           />
         )}
       </Container>
-       <Container className="bottom-info">
-       <button className="button-contacez-nous"><a href="/contact">Plus de produits - contactez nous</a></button>
+      <Container className="bottom-info">
+        <p>
+          <span>
+            NDS Event&apos;s, spécialiste de la location de matériel
+            d&apos;événement en Rhône Alpes (Grenoble, Isère 38) depuis plus de
+            10 ans !
+          </span>{" "}
+          <br />
+          <br />
+          Dans cette catégorie, vous trouverez à la location, de la vaisselle
+          (verres, couverts, assiettes, tasses, etc...), tout l&apos;art de la
+          table avec différentes gammes, du traditionnel "standard" aux produits
+          hauts de gamme pour un mariage par exemple, mais aussi des nappes et
+          serviettes en tissus blanc. <br />
+          <br />
+          La vaisselle se loue propre et se rend sale, nous nous occupons du
+          lavage et il est inclus dans les prix ! Idem pour les tissus, le
+          service de blanchisserie est compris !<br />
+          <br /> Une offre au meilleur prix garanti dans la région !
+        </p>
+        <button className="button-contacez-nous">
+          <a href="/contact">Plus de produits - contactez nous</a>
+        </button>
+      </Container>
+      <div className="listIconContainer">
+        <div className="listIcon">
+          <div className="cardBottom">
+            <div className="cardLeft">
+              <img src="../../img/divers/visa.svg" alt="" />
               <p>
-                <span>NDS Event&apos;s, spécialiste de la location de matériel d&apos;événement en
-                Rhône Alpes (Grenoble, Isère 38) depuis plus de 10 ans !</span>  <br/><br/>Dans cette
-                catégorie, vous trouverez à la location, de la vaisselle (verres,
-                couverts, assiettes, tasses, etc...), tout l&apos;art de la table avec
-                différentes gammes, du traditionnel "standard" aux produits hauts de
-                gamme pour un mariage par exemple, mais aussi des nappes et serviettes
-                en tissus blanc. <br/><br/>La vaisselle se loue propre et se rend sale, nous
-                nous occupons du lavage et il est inclus dans les prix ! Idem pour les
-                tissus, le service de blanchisserie est compris !<br/><br/> Une offre au
-                meilleur prix garanti dans la région !
+                Choisissez vos produits directement en ligne et payez par Carte
+                Bancaire ou directement au depot NDS par chèque, virement ou
+                espèce
               </p>
-            </Container>
+            </div>
+            <div className="cardRight">
+              <img src="../../img/divers/truck.svg" alt="" />
+              <p>
+                Divers modes de livraison à votre disposition : Retrait sur
+                place, ou livraison et récupération par nos équipes!
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bottomLink">
+          <p>
+            Pour toutes autres questions, vous pouvez vous référer à nos
+            Conditions Générales de Vente ou notre Foire Aux Questions.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

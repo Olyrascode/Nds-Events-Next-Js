@@ -84,56 +84,68 @@ export default function Products() {
             Découvrez tous les produits Nds disponnibles à la location
           </Typography>
           <Typography mt={5}>
-            Choisissez vos produits directement en ligne et payez par Carte Bancaire, par chèque, par virement et par espèce.
-            </Typography>
-            <Typography>
-            Divers modes de livraison à votre disposition : Retrait sur place, ou livraison et récupération par nos équipes!
-            </Typography>
+            Choisissez vos produits directement en ligne et payez par Carte
+            Bancaire, par chèque, par virement et par espèce.
+          </Typography>
+          <Typography>
+            Divers modes de livraison à votre disposition : Retrait sur place,
+            ou livraison et récupération par nos équipes!
+          </Typography>
         </div>
+        <div className="products__section">
+          {/* Afficher le filtre par catégorie seulement si aucun navCategory n'est défini */}
+          {!navCategory && (
+            <div className="products__filters">
+              <CategoryFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
+            </div>
+          )}
 
-        {/* Afficher le filtre par catégorie seulement si aucun navCategory n'est défini */}
-        {!navCategory && (
-          <div className="products__filters">
-            <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
+          <div className="products__grid">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id || product._id}
+                product={product}
+                onRent={handleRentClick}
+              />
+            ))}
           </div>
-        )}
 
-        <div className="products__grid">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id || product._id}
-              product={product}
-              onRent={handleRentClick}
+          {selectedProduct && (
+            <RentalDialog
+              open={openRentalDialog}
+              onClose={() => setOpenRentalDialog(false)}
+              product={selectedProduct}
             />
-          ))}
+          )}
         </div>
-
-        {selectedProduct && (
-          <RentalDialog
-            open={openRentalDialog}
-            onClose={() => setOpenRentalDialog(false)}
-            product={selectedProduct}
-          />
-        )}
       </Container>
 
       <Container className="bottom-info">
-        <button className="button-contacez-nous"><a href="/contact">Plus de produits - contactez nous</a></button>
+        <button className="button-contacez-nous">
+          <a href="/contact">Plus de produits - contactez nous</a>
+        </button>
         <p>
-          <span>NDS Event&apos;s, spécialiste de la location de matériel d&apos;événement en
-          Rhône Alpes (Grenoble, Isère 38) depuis plus de 10 ans !</span>  <br/><br/>Dans cette
-          catégorie, vous trouverez à la location, de la vaisselle (verres,
-          couverts, assiettes, tasses, etc...), tout l&apos;art de la table avec
-          différentes gammes, du traditionnel "standard" aux produits hauts de
-          gamme pour un mariage par exemple, mais aussi des nappes et serviettes
-          en tissus blanc. <br/><br/>La vaisselle se loue propre et se rend sale, nous
-          nous occupons du lavage et il est inclus dans les prix ! Idem pour les
-          tissus, le service de blanchisserie est compris !<br/><br/> Une offre au
-          meilleur prix garanti dans la région !
+          <span>
+            NDS Event&apos;s, spécialiste de la location de matériel
+            d&apos;événement en Rhône Alpes (Grenoble, Isère 38) depuis plus de
+            10 ans !
+          </span>{" "}
+          <br />
+          <br />
+          Dans cette catégorie, vous trouverez à la location, de la vaisselle
+          (verres, couverts, assiettes, tasses, etc...), tout l&apos;art de la
+          table avec différentes gammes, du traditionnel "standard" aux produits
+          hauts de gamme pour un mariage par exemple, mais aussi des nappes et
+          serviettes en tissus blanc. <br />
+          <br />
+          La vaisselle se loue propre et se rend sale, nous nous occupons du
+          lavage et il est inclus dans les prix ! Idem pour les tissus, le
+          service de blanchisserie est compris !<br />
+          <br /> Une offre au meilleur prix garanti dans la région !
         </p>
       </Container>
     </div>

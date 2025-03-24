@@ -100,15 +100,17 @@ export default function LeMobilierClient({
             variant="h5"
             gutterBottom
             className="product-packs__subtitle"
-            >
+          >
             Découvrez tous les produits pour le mobilier
           </Typography>
-            <Typography mt={5}>
-            Choisissez vos produits directement en ligne et payez par Carte Bancaire, par chèque, par virement et par espèce.
-            </Typography>
-            <Typography>
-            Divers modes de livraison à votre disposition : Retrait sur place, ou livraison et récupération par nos équipes!
-            </Typography>
+          <Typography mt={5}>
+            Choisissez vos produits directement en ligne et payez par Carte
+            Bancaire, par chèque, par virement et par espèce.
+          </Typography>
+          <Typography>
+            Divers modes de livraison à votre disposition : Retrait sur place,
+            ou livraison et récupération par nos équipes!
+          </Typography>
         </div>
 
         {/* Affichage du filtre par catégorie uniquement sur la page principale
@@ -142,7 +144,9 @@ export default function LeMobilierClient({
         )}
       </Container>
       <Container className="bottom-info">
-      <button className="button-contacez-nous"><a href="/contact">Plus de produits - contactez nous</a></button>
+        <button className="button-contacez-nous">
+          <a href="/contact">Plus de produits - contactez nous</a>
+        </button>
         <p>
           <span>
             NDS Event&apos;s, spécialiste de la location de matériel
@@ -162,6 +166,33 @@ export default function LeMobilierClient({
           <br /> Une offre au meilleur prix garanti dans la région !
         </p>
       </Container>
+      <div className="listIconContainer">
+        <div className="listIcon">
+          <div className="cardBottom">
+            <div className="cardLeft">
+              <img src="../../img/divers/visa.svg" alt="" />
+              <p>
+                Choisissez vos produits directement en ligne et payez par Carte
+                Bancaire ou directement au depot NDS par chèque, virement ou
+                espèce
+              </p>
+            </div>
+            <div className="cardRight">
+              <img src="../../img/divers/truck.svg" alt="" />
+              <p>
+                Divers modes de livraison à votre disposition : Retrait sur
+                place, ou livraison et récupération par nos équipes!
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bottomLink">
+          <p>
+            Pour toutes autres questions, vous pouvez vous référer à nos
+            Conditions Générales de Vente ou notre Foire Aux Questions.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

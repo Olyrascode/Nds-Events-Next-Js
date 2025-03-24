@@ -1,12 +1,21 @@
 .category-filter {
   display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 5%;
   gap: 1rem;
   flex-wrap: wrap;
   margin-bottom: 2rem;
+  width: 250px;
 
   &__chip {
+    font-size: 1.2rem !important;
+    border: none !important;
+    display: flex !important;
+    justify-content: start !important;
+
     &:hover {
-    background-color: red;
+      background-color: orangered !important;
       color: white;
     }
   }
