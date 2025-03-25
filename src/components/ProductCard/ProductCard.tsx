@@ -10,7 +10,6 @@ import {
   Typography,
   Button,
   Box,
-  Chip,
 } from "@mui/material";
 // Use a relative import if your tsconfig paths aren't set up
 import { Product } from "../../type/Product";
@@ -51,6 +50,7 @@ export default function ProductCard({
         image={imageUrl}
         alt={title}
         className="product-card__image"
+        sx={{ objectFit: "contain", backgroundColor: "#ffff" }}
       />
       <CardContent className="product-card__content">
         <Typography gutterBottom variant="h5" component="h2">

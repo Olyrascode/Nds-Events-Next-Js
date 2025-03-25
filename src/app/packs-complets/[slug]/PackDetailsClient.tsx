@@ -141,93 +141,106 @@ export default function PackDetails({ pack }: { pack: Pack }) {
   return (
     <Container className="pack-details">
       <Paper className="pack-details__content">
-        <div className="product-details__header">
-          <div className="product-details__text">
-            <Typography variant="h4">{pack?.title}</Typography>
-            <Typography variant="h6">{pack?.description}</Typography>
+        <div className="pack__section">
+          <div className="pack-details__header">
+            <div className="product-details__text">
+              <Typography variant="h4">{pack?.title}</Typography>
+              <Typography variant="h6">{pack?.description}</Typography>
+            </div>
+            {pack?.imageUrl && (
+              <Image
+                src={pack.imageUrl}
+                alt={pack.title}
+                width={400}
+                height={300}
+                className="pack-details__image"
+              />
+            )}
           </div>
-          {pack?.imageUrl && (
-            <Image
-              src={pack.imageUrl}
-              alt={pack.title}
-              width={400}
-              height={300}
-              className="pack-details__image"
+          <PackProducts products={pack?.products || []} />
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
+            <RentalPeriod
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={handleStartDateChange}
+              onEndDateChange={handleEndDateChange}
+              disabled={cart.length > 0}
+              minStartDate={addDays(new Date(), 2)}
             />
-          )}
-        </div>
-        <PackProducts products={pack?.products || []} />
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
-          <RentalPeriod
+          </LocalizationProvider>
+
+          <Paper className="pack-details__product-stock">
+            <Typography variant="h6">Stock des produits du pack</Typography>
+            {(pack?.products || []).map((packItem: PackProduct) => {
+              const product = packItem.product;
+              const productId = product?._id;
+              const productName = product?.title || "Produit inconnu";
+              return productId ? (
+                <Typography
+                  key={productId}
+                  variant="body2"
+                  color="textSecondary"
+                >
+                  {productName}:{" "}
+                  {productStockAvailability[productId] !== undefined
+                    ? `${productStockAvailability[productId]} disponibles`
+                    : "Chargement..."}
+                </Typography>
+              ) : (
+                <Typography key={Math.random()} variant="body2" color="error">
+                  Produit invalide : Données manquantes
+                </Typography>
+              );
+            })}
+          </Paper>
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            mt={5}
+            fontSize={18}
+            fontWeight={600}
+          >
+            Nombre maximal de packs disponibles :{" "}
+            {maxPackQuantity !== null ? maxPackQuantity : "Chargement..."}
+          </Typography>
+          <QuantitySelector
+            quantity={quantity}
+            onChange={setQuantity}
+            minQuantity={pack?.minQuantity}
+            stock={maxPackQuantity}
+          />
+          {error && <Alert severity="error">{error}</Alert>}
+          <PriceCalculation
+            products={pack?.products || []}
+            quantity={quantity}
             startDate={startDate}
             endDate={endDate}
-            onStartDateChange={handleStartDateChange}
-            onEndDateChange={handleEndDateChange}
-            disabled={cart.length > 0}
-            minStartDate={addDays(new Date(), 2)}
+            discountPercentage={pack?.discountPercentage || 0}
+            setFinalPrice={setFinalPrice}
           />
-        </LocalizationProvider>
-        <Typography variant="body2" color="textSecondary">
-          Nombre maximal de packs disponibles :{" "}
-          {maxPackQuantity !== null ? maxPackQuantity : "Chargement..."}
-        </Typography>
-        <Paper className="pack-details__product-stock">
-          <Typography variant="h6">Stock des produits du pack</Typography>
-          {(pack?.products || []).map((packItem: PackProduct) => {
-            const product = packItem.product;
-            const productId = product?._id;
-            const productName = product?.title || "Produit inconnu";
-            return productId ? (
-              <Typography key={productId} variant="body2" color="textSecondary">
-                {productName}:{" "}
-                {productStockAvailability[productId] !== undefined
-                  ? `${productStockAvailability[productId]} disponibles`
-                  : "Chargement..."}
-              </Typography>
-            ) : (
-              <Typography key={Math.random()} variant="body2" color="error">
-                Produit invalide : Données manquantes
-              </Typography>
-            );
-          })}
-        </Paper>
-        <QuantitySelector
-          quantity={quantity}
-          onChange={setQuantity}
-          minQuantity={pack?.minQuantity}
-          stock={maxPackQuantity}
-        />
-        {error && <Alert severity="error">{error}</Alert>}
-        <PriceCalculation
-          products={pack?.products || []}
-          quantity={quantity}
-          startDate={startDate}
-          endDate={endDate}
-          discountPercentage={pack?.discountPercentage || 0}
-          setFinalPrice={setFinalPrice}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="large"
-          onClick={() =>
-            addToCart({
-              ...pack!,
-              id: pack!._id!,
-              title: pack!.name,
-              type: "pack",
-              quantity,
-              startDate,
-              endDate,
-              price: finalPrice,
-            })
-          }
-          className="pack-details__add-to-cart"
-          disabled={!isFormValid}
-        >
-          Ajouter le pack au panier
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            onClick={() =>
+              addToCart({
+                ...pack!,
+                id: pack!._id!,
+                title: pack!.name,
+                type: "pack",
+                quantity,
+                startDate,
+                endDate,
+                price: finalPrice,
+              })
+            }
+            className="pack-details__add-to-cart"
+            disabled={!isFormValid}
+          >
+            Ajouter le pack au panier
+          </Button>
+        </div>
       </Paper>
     </Container>
   );

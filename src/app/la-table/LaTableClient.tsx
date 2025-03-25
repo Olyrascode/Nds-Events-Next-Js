@@ -166,6 +166,9 @@ export default function LaTableClient() {
         </div>
       </Container>
       <Container className="bottom-info">
+        <button className="button-contacez-nous">
+          <a href="/contact">Plus de produits - contactez nous</a>
+        </button>
         <p>
           <span>
             NDS Event&apos;s, spécialiste de la location de matériel
@@ -185,9 +188,6 @@ export default function LaTableClient() {
           service de blanchisserie est compris !<br />
           <br /> Une offre au meilleur prix garanti dans la région !
         </p>
-        <button className="button-contacez-nous">
-          <a href="/contact">Plus de produits - contactez nous</a>
-        </button>
       </Container>
       <div className="listIconContainer">
         <div className="listIcon">
