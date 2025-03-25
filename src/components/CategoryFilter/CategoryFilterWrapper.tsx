@@ -3,6 +3,7 @@
 import React from "react";
 import CategoryFilter from "@/components/CategoryFilter/CategoryFilter";
 import { useRouter } from "next/navigation";
+import { slugify } from "@/utils/slugify";
 
 interface CategoryFilterWrapperProps {
   categories: string[];
@@ -22,7 +23,7 @@ export default function CategoryFilterWrapper({
       // "Tous" renvoie à la page principale de la navCategory
       router.push(`/${navCategory}`);
     } else {
-      router.push(`/${navCategory}/${encodeURIComponent(selected)}`);
+      router.push(`/${navCategory}/${slugify(selected)}`);
     }
   };
 

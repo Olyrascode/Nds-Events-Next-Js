@@ -112,6 +112,7 @@ import { Container, Typography } from "@mui/material";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryFilterWrapper from "@/components/CategoryFilter/CategoryFilterWrapper";
 import "@/app/tous-nos-produits/_Products.scss";
+import { slugify } from "@/utils/slugify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
@@ -193,17 +194,25 @@ export default async function CategoryPage({
     )
   );
 
+  // Trouver la catégorie originale correspondant au slug
+  const originalCategory = categories.find(
+    (cat) => slugify(cat) === decodedCategory
+  );
+
   const filteredProducts = products.filter(
     (product) =>
       product.navCategory.trim() === decodedNavCategory.trim() &&
-      product.category.trim() === decodedCategory.trim()
+      product.category.trim() === originalCategory?.trim()
   );
 
   return (
     <div className="products">
       <div className="products__header">
-        <h1>{decodedCategory}</h1>
-        <p>Découvrez tous les produits dans la catégorie {decodedCategory}.</p>
+        <h1>{originalCategory || decodedCategory}</h1>
+        <p>
+          Découvrez tous les produits dans la catégorie{" "}
+          {originalCategory || decodedCategory}.
+        </p>
         <Typography mt={5}>
           Choisissez vos produits directement en ligne et payez par Carte
           Bancaire, par chèque, par virement et par espèce.
@@ -218,7 +227,7 @@ export default async function CategoryPage({
           <div className="products__filters">
             <CategoryFilterWrapper
               categories={categories}
-              selectedCategory={decodedCategory}
+              selectedCategory={originalCategory || null}
               navCategory={decodedNavCategory}
             />
           </div>

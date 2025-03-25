@@ -92,6 +92,7 @@ import { Container, Typography } from "@mui/material";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryFilterWrapper from "@/components/CategoryFilter/CategoryFilterWrapper";
 import "@/app/tous-nos-produits/_Products.scss";
+import { slugify } from "@/utils/slugify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
@@ -173,17 +174,25 @@ export default async function CategoryPage({
     )
   );
 
+  // Trouver la catégorie originale correspondant au slug
+  const originalCategory = categories.find(
+    (cat) => slugify(cat) === decodedCategory
+  );
+
   const filteredProducts = products.filter(
     (product) =>
       product.navCategory.trim() === decodedNavCategory.trim() &&
-      product.category.trim() === decodedCategory.trim()
+      product.category.trim() === originalCategory?.trim()
   );
 
   return (
     <div className="products">
       <div className="products__header">
-        <h1>{decodedCategory}</h1>
-        <p>Découvrez tous les produits dans la catégorie {decodedCategory}.</p>
+        <h1>{originalCategory || decodedCategory}</h1>
+        <p>
+          Découvrez tous les produits dans la catégorie{" "}
+          {originalCategory || decodedCategory}.
+        </p>
         <Typography mt={5}>
           Choisissez vos produits directement en ligne et payez par Carte
           Bancaire, par chèque, par virement et par espèce.
@@ -198,7 +207,7 @@ export default async function CategoryPage({
           <div className="products__filters">
             <CategoryFilterWrapper
               categories={categories}
-              selectedCategory={decodedCategory}
+              selectedCategory={originalCategory || null}
               navCategory={decodedNavCategory}
             />
           </div>
@@ -216,14 +225,14 @@ export default async function CategoryPage({
         </button>
         <p>
           <span>
-            Ne perdez plus de temps ou d'argent pour votre décoration de
-            mariage! NDS Event's vous propose de louer votre décoration en kits
-            complets ou des produits à l'unité, le tout au meilleur prix
-            garanti!
+            Ne perdez plus de temps ou d&apos;argent pour votre décoration de
+            mariage! NDS Event&apos;s vous propose de louer votre décoration en
+            kits complets ou des produits à l&apos;unité, le tout au meilleur
+            prix garanti!
           </span>{" "}
           <br />
           <br />
-          Votre budget ne permet pas de faire appel aux services d'une
+          Votre budget ne permet pas de faire appel aux services d&apos;une
           décoratrice? Louez directement vos déco pour vos salles et tables de
           votre mariage.
           <br />

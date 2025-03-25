@@ -27,6 +27,7 @@ import { UserMenu } from "./UserMenu";
 import CartDrawer from "../CartDrawer/CartDrawer";
 import { MobileMenu } from "./MobileMenu";
 import styles from "./navigation.module.scss";
+import { slugify } from "@/utils/slugify";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -115,7 +116,7 @@ export default function Navigation() {
               autresProduitsCategories.map((category) => (
                 <Link
                   key={category}
-                  href={`/autres-produits/${encodeURIComponent(category)}`}
+                  href={`/autres-produits/${slugify(category)}`}
                   passHref
                 >
                   <MenuItem

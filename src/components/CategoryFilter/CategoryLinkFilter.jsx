@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { Box, Chip } from "@mui/material";
 import "./_CategoryFilter.scss";
+import { slugify } from "@/utils/slugify";
 
 export default function CategoryLinkFilter({
   categories,
@@ -24,7 +25,7 @@ export default function CategoryLinkFilter({
       {categories.map((category) => (
         <Link
           key={category}
-          href={`/${navCategory}/${encodeURIComponent(category)}`}
+          href={`/${navCategory}/${slugify(category)}`}
           passHref
         >
           <Chip
