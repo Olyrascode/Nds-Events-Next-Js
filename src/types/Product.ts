@@ -11,4 +11,14 @@ export interface Product {
   navCategory?: string;
   category?: string;
   slug?: string;
+  isPack?: boolean;
+  products?: {
+    product: {
+      _id: string;
+      title: string;
+      imageUrl?: string;
+      price: number;
+    };
+    quantity: number;
+  }[];
 }

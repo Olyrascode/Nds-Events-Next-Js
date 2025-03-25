@@ -100,12 +100,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 async function fetchProducts(): Promise<Product[]> {
   const res = await nodeFetch(`${API_URL}/api/products`);
-  if (!res.ok) {
+  const packsRes = await nodeFetch(`${API_URL}/api/packs`);
+
+  if (!res.ok || !packsRes.ok) {
     throw new Error(
       `Failed to fetch products: ${res.status} ${res.statusText}`
     );
   }
+
   const productsData = await res.json();
+  const packsData = await packsRes.json();
 
   const products: Product[] = productsData.map((product: any) => ({
     _id: product._id,
@@ -121,7 +125,23 @@ async function fetchProducts(): Promise<Product[]> {
     category: product.category,
   }));
 
-  return products;
+  const packs: Product[] = packsData.map((pack: any) => ({
+    _id: pack._id,
+    id: pack._id,
+    title: pack.title,
+    name: pack.title,
+    description: pack.description || "",
+    imageUrl: pack.imageUrl || "",
+    price: pack.price || 0,
+    minQuantity: pack.minQuantity || 1,
+    discountPercentage: pack.discountPercentage || 0,
+    navCategory: pack.navCategory,
+    category: pack.category,
+    isPack: true,
+    products: pack.products,
+  }));
+
+  return [...products, ...packs];
 }
 
 export async function generateStaticParams() {

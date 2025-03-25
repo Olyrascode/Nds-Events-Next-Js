@@ -22,6 +22,19 @@ interface RawProduct {
   category: string;
 }
 
+interface RawPack {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  minQuantity?: number;
+  discountPercentage?: number;
+  navCategory: string;
+  category: string;
+  slug: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 export default function LaTableClient() {
@@ -43,18 +56,24 @@ export default function LaTableClient() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) throw new Error("Failed to fetch products");
-      const productsData: RawProduct[] = await response.json();
+      const productsResponse = await fetch(`${API_URL}/api/products`);
+      const packsResponse = await fetch(`${API_URL}/api/packs`);
 
-      // Conversion vers l'interface Product attendue par ProductCard
-      const convertedProducts: Product[] = productsData
+      if (!productsResponse.ok || !packsResponse.ok) {
+        throw new Error("Erreur lors de la récupération des données");
+      }
+
+      const productsData: RawProduct[] = await productsResponse.json();
+      const packsData: RawPack[] = await packsResponse.json();
+
+      // Filtrer les produits pour ne garder que ceux de la catégorie "la-table"
+      const tableProducts = productsData
         .filter((product: RawProduct) => product.navCategory === "la-table")
         .map((product: RawProduct) => ({
           _id: product._id,
-          id: product._id, // On assigne l'_id à id
+          id: product._id,
           title: product.title,
-          name: product.title, // On utilise le titre pour name
+          name: product.title,
           description: product.description || "",
           imageUrl: product.imageUrl || "",
           price: product.price || 0,
@@ -63,14 +82,36 @@ export default function LaTableClient() {
           navCategory: product.navCategory,
           category: product.category,
         }));
-      setProducts(convertedProducts);
+
+      // Filtrer les packs pour ne garder que ceux de la catégorie "la-table"
+      const tablePacks = packsData
+        .filter((pack: RawPack) => pack.navCategory === "la-table")
+        .map((pack: RawPack) => ({
+          _id: pack._id,
+          id: pack._id,
+          title: pack.title,
+          name: pack.title,
+          description: pack.description || "",
+          imageUrl: pack.imageUrl || "",
+          price: pack.price || 0,
+          minQuantity: pack.minQuantity || 1,
+          discountPercentage: pack.discountPercentage || 0,
+          navCategory: pack.navCategory,
+          category: pack.category,
+          slug: pack.slug,
+          isPack: true,
+        }));
+
+      // Combiner les produits et les packs
+      const allProducts = [...tableProducts, ...tablePacks];
+      setProducts(allProducts);
 
       const uniqueCategories = [
-        ...new Set(convertedProducts.map((product) => product.category)),
+        ...new Set(allProducts.map((product) => product.category)),
       ];
       setCategories(uniqueCategories);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Erreur:", error);
     }
   };
 
@@ -107,8 +148,9 @@ export default function LaTableClient() {
           <div className="products__grid">
             {filteredProducts.map((product) => (
               <ProductCard
-                key={product.id}
+                key={product._id}
                 product={product}
+                isPack={product.isPack}
                 onRent={handleRentClick}
               />
             ))}

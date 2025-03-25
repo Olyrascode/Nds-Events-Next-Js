@@ -4,19 +4,49 @@ import { Container, Typography } from "@mui/material";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryFilterWrapper from "@/components/CategoryFilter/CategoryFilterWrapper";
 import "@/app/tous-nos-produits/_Products.scss";
+import { slugify } from "@/utils/slugify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
+interface RawProduct {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  minQuantity?: number;
+  discountPercentage?: number;
+  navCategory: string;
+  category: string;
+}
+
+interface RawPack extends RawProduct {
+  products: {
+    product: {
+      _id: string;
+      title: string;
+      imageUrl?: string;
+      price: number;
+    };
+    quantity: number;
+  }[];
+  slug: string;
+}
+
 async function fetchProducts(): Promise<Product[]> {
   const res = await nodeFetch(`${API_URL}/api/products`);
-  if (!res.ok) {
+  const packsRes = await nodeFetch(`${API_URL}/api/packs`);
+
+  if (!res.ok || !packsRes.ok) {
     throw new Error(
       `Failed to fetch products: ${res.status} ${res.statusText}`
     );
   }
-  const productsData = await res.json();
 
-  const products: Product[] = productsData.map((product: any) => ({
+  const productsData = (await res.json()) as RawProduct[];
+  const packsData = (await packsRes.json()) as RawPack[];
+
+  const products: Product[] = productsData.map((product: RawProduct) => ({
     _id: product._id,
     id: product._id,
     title: product.title,
@@ -30,7 +60,24 @@ async function fetchProducts(): Promise<Product[]> {
     category: product.category,
   }));
 
-  return products;
+  const packs: Product[] = packsData.map((pack: RawPack) => ({
+    _id: pack._id,
+    id: pack._id,
+    title: pack.title,
+    name: pack.title,
+    description: pack.description || "",
+    imageUrl: pack.imageUrl || "",
+    price: pack.price || 0,
+    minQuantity: pack.minQuantity || 1,
+    discountPercentage: pack.discountPercentage || 0,
+    navCategory: pack.navCategory,
+    category: pack.category,
+    isPack: true,
+    products: pack.products,
+    slug: pack.slug,
+  }));
+
+  return [...products, ...packs];
 }
 
 export async function generateStaticParams() {
@@ -67,9 +114,7 @@ export default async function CategoryPage({
 }) {
   const navCategory = "la-table";
   const category = params.category;
-  const decodedNavCategory = decodeURIComponent(navCategory);
   const decodedCategory = decodeURIComponent(category);
-  const { slugify } = require("@/utils/slugify");
 
   const products: Product[] = await fetchProducts();
 
@@ -79,7 +124,7 @@ export default async function CategoryPage({
       products
         .filter(
           (product) =>
-            product.navCategory.trim() === decodedNavCategory.trim() &&
+            product.navCategory.trim() === navCategory.trim() &&
             product.category !== "Tentes"
         )
         .map((product) => product.category)
@@ -91,9 +136,10 @@ export default async function CategoryPage({
     (cat) => slugify(cat) === decodedCategory
   );
 
+  // Filtrer les produits pour la catégorie sélectionnée
   const filteredProducts = products.filter(
     (product) =>
-      product.navCategory.trim() === decodedNavCategory.trim() &&
+      product.navCategory.trim() === navCategory.trim() &&
       product.category.trim() === originalCategory?.trim()
   );
 
@@ -120,13 +166,17 @@ export default async function CategoryPage({
             <CategoryFilterWrapper
               categories={categories}
               selectedCategory={originalCategory || null}
-              navCategory={decodedNavCategory}
+              navCategory={navCategory}
             />
           </div>
 
           <div className="products__grid">
             {filteredProducts.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard
+                key={product._id}
+                product={product}
+                isPack={product.isPack}
+              />
             ))}
           </div>
         </div>

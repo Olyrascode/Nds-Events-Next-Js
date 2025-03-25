@@ -27,17 +27,30 @@ export default function AutresProduitsClient() {
   const fetchProducts = async () => {
     try {
       const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) {
+      const packsResponse = await fetch(`${API_URL}/api/packs`);
+
+      if (!response.ok || !packsResponse.ok) {
         throw new Error("Failed to fetch products");
       }
+
       const productsData: Product[] = await response.json();
+      const packsData: Product[] = await packsResponse.json();
+
       const filteredProducts = productsData.filter(
         (product: Product) => product.navCategory === "autres-produits"
       );
-      setProducts(filteredProducts);
+
+      const filteredPacks = packsData.filter(
+        (pack: Product) => pack.navCategory === "autres-produits"
+      );
+
+      setProducts([...filteredProducts, ...filteredPacks]);
+
       const uniqueCategories = [
         ...new Set(
-          filteredProducts.map((product: Product) => product.category || "")
+          [...filteredProducts, ...filteredPacks].map(
+            (product: Product) => product.category || ""
+          )
         ),
       ];
       setCategories(uniqueCategories);

@@ -14,15 +14,23 @@ import {
   IconButton,
   Avatar,
   Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ImageUpload from "../common/ImageUpload/ImageUpload";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../../features/productSlice";
+import { slugify } from "@/utils/slugify";
 
 const PackForm = ({ initialData, onSubmit, submitLabel }) => {
   const dispatch = useDispatch();
   const products = useSelector((state) => state.products.products);
+  const [categories, setCategories] = useState([]);
+  const [creatingNewCategory, setCreatingNewCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
 
   const [pack, setPack] = useState({
     title: initialData?.title || "",
@@ -36,12 +44,26 @@ const PackForm = ({ initialData, onSubmit, submitLabel }) => {
       title: "",
       metaDescription: "",
     },
+    category: initialData?.category || "",
+    navCategory: initialData?.navCategory || "",
   });
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchProducts());
+    // Charger les catégories existantes
+    fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "http://api-nds-events.fr"
+      }/api/categories`
+    )
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch((err) =>
+        console.error("Erreur lors du chargement des catégories:", err)
+      );
   }, [dispatch]);
 
   useEffect(() => {
@@ -100,9 +122,38 @@ const PackForm = ({ initialData, onSubmit, submitLabel }) => {
     }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(pack);
+    setLoading(true);
+
+    try {
+      // Si on crée une nouvelle catégorie, l'envoyer d'abord au backend
+      if (creatingNewCategory && newCategory) {
+        await fetch(
+          `${
+            process.env.NEXT_PUBLIC_API_URL || "http://api-nds-events.fr"
+          }/api/categories`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: newCategory,
+              slug: slugify(newCategory),
+            }),
+          }
+        );
+      }
+
+      // Déterminer la catégorie finale (existante ou nouvelle)
+      const finalCategory = creatingNewCategory ? newCategory : pack.category;
+      const packToSubmit = { ...pack, category: finalCategory };
+
+      onSubmit(packToSubmit);
+    } catch (error) {
+      console.error("Error submitting pack:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -133,6 +184,57 @@ const PackForm = ({ initialData, onSubmit, submitLabel }) => {
         error={Boolean(errors.description)}
         helperText={errors.description}
       />
+
+      {/* Sélection de la catégorie du pack */}
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel>Catégorie du pack</InputLabel>
+        <Select
+          value={creatingNewCategory ? "__new__" : pack.category || ""}
+          label="Catégorie du pack"
+          onChange={(e) => {
+            if (e.target.value === "__new__") {
+              setCreatingNewCategory(true);
+              setPack({ ...pack, category: "" });
+            } else {
+              setCreatingNewCategory(false);
+              setPack({ ...pack, category: e.target.value });
+            }
+          }}
+        >
+          {categories.map((cat) => (
+            <MenuItem key={cat._id || cat.name} value={cat.name}>
+              {cat.name}
+            </MenuItem>
+          ))}
+          <MenuItem value="__new__">Créer une nouvelle catégorie</MenuItem>
+        </Select>
+      </FormControl>
+      {creatingNewCategory && (
+        <TextField
+          fullWidth
+          label="Nouvelle catégorie"
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          margin="normal"
+          required
+        />
+      )}
+
+      {/* Sélection du groupe de menu pour le pack */}
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel>Groupe de menu</InputLabel>
+        <Select
+          value={pack.navCategory || ""}
+          label="Groupe de menu"
+          onChange={(e) => setPack({ ...pack, navCategory: e.target.value })}
+        >
+          <MenuItem value="la-table">La table</MenuItem>
+          <MenuItem value="le-mobilier">Le Mobilier</MenuItem>
+          <MenuItem value="tentes">Tentes</MenuItem>
+          <MenuItem value="decorations">Décorations</MenuItem>
+          <MenuItem value="autres-packs">Autres packs</MenuItem>
+        </Select>
+      </FormControl>
 
       <Box sx={{ mt: 3, mb: 2 }}>
         <Typography variant="h6" gutterBottom>

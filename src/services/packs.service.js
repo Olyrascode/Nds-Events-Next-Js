@@ -327,9 +327,7 @@ export const fetchPackById = async (packId) => {
 // Récupérer un pack par slug
 export const fetchPackBySlug = async (slug) => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/packs/slug/${slug}`
-    );
+    const response = await fetch(`${API_URL}/api/packs/slug/${slug}`);
     if (!response.ok) {
       throw new Error("Pack not found");
     }

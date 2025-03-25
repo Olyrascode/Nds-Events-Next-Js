@@ -1,4 +1,3 @@
-
 // "use client";
 
 // import { useState } from 'react';
@@ -47,7 +46,7 @@
 //   const [error, setError] = useState<string>('');
 
 //   const handleSubmit = () => {
-    
+
 //     if (!startDate || !endDate) {
 //       setError('Please select both start and end dates');
 //       return;
@@ -70,7 +69,6 @@
 //       setError('Product is not available for the selected dates and quantity');
 //       return;
 //     }
-    
 
 //     addToCart(product, quantity, startDate, endDate);
 //     onClose();
@@ -103,7 +101,7 @@
 //       <DialogContent>
 //         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 //           {error && <Alert severity="error">{error}</Alert>}
-          
+
 //           <LocalizationProvider dateAdapter={AdapterDateFns}>
 //             <DatePicker
 //               label="Start Date"
@@ -131,7 +129,7 @@
 //             label="Quantity"
 //             value={quantity}
 //             onChange={handleQuantityChange}
-//             inputProps={{ 
+//             inputProps={{
 //               min: product.minQuantity,
 //               step: 1
 //             }}
@@ -160,7 +158,7 @@ import {
   Button,
   TextField,
   Box,
-  Alert
+  Alert,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -183,7 +181,11 @@ interface RentalDialogProps {
   product: Product;
 }
 
-export default function RentalDialog({ open, onClose, product }: RentalDialogProps) {
+export default function RentalDialog({
+  open,
+  onClose,
+  product,
+}: RentalDialogProps) {
   // Récupération du contexte
   const cartContext = useCart();
   if (!cartContext) {
@@ -233,7 +235,7 @@ export default function RentalDialog({ open, onClose, product }: RentalDialogPro
       quantity: quantity,
       startDate: startDate,
       endDate: endDate,
-      type: product.type
+      type: product.type,
       // Ajoutez d'autres champs si nécessaire
     };
 
@@ -283,7 +285,7 @@ export default function RentalDialog({ open, onClose, product }: RentalDialogPro
               onChange={handleStartDateChange}
               minDate={new Date()}
               slotProps={{
-                textField: { fullWidth: true }
+                textField: { fullWidth: true },
               }}
             />
             <DatePicker
@@ -292,7 +294,7 @@ export default function RentalDialog({ open, onClose, product }: RentalDialogPro
               onChange={handleEndDateChange}
               minDate={startDate ? addDays(startDate, 1) : new Date()}
               slotProps={{
-                textField: { fullWidth: true }
+                textField: { fullWidth: true },
               }}
             />
           </LocalizationProvider>
@@ -305,7 +307,7 @@ export default function RentalDialog({ open, onClose, product }: RentalDialogPro
             onChange={handleQuantityChange}
             inputProps={{
               min: product.minQuantity,
-              step: 1
+              step: 1,
             }}
             helperText={`Minimum quantity: ${product.minQuantity}`}
           />
