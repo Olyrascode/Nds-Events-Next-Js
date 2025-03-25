@@ -1,10 +1,14 @@
 // app/components/CategoryLinkFilter.jsx
-import React from 'react';
-import Link from 'next/link';
-import { Box, Chip } from '@mui/material';
-import './_CategoryFilter.scss';
+import React from "react";
+import Link from "next/link";
+import { Box, Chip } from "@mui/material";
+import "./_CategoryFilter.scss";
 
-export default function CategoryLinkFilter({ categories, selectedCategory, navCategory }) {
+export default function CategoryLinkFilter({
+  categories,
+  selectedCategory,
+  navCategory,
+}) {
   return (
     <Box className="category-filter">
       {/* "Tous" renvoie à la page principale de la navCategory */}
@@ -12,8 +16,8 @@ export default function CategoryLinkFilter({ categories, selectedCategory, navCa
         <Chip
           label="Tous"
           clickable
-          color={selectedCategory === null ? 'primary' : 'default'}
-          variant={selectedCategory === null ? 'filled' : 'outlined'}
+          color={selectedCategory === null ? "primary" : "default"}
+          variant={selectedCategory === null ? "filled" : "outlined"}
           className="category-filter__chip"
         />
       </Link>
@@ -26,8 +30,8 @@ export default function CategoryLinkFilter({ categories, selectedCategory, navCa
           <Chip
             label={category}
             clickable
-            color={selectedCategory === category ? 'primary' : 'default'}
-            variant={selectedCategory === category ? 'filled' : 'outlined'}
+            color={selectedCategory === category ? "primary" : "default"}
+            variant={selectedCategory === category ? "filled" : "outlined"}
             className="category-filter__chip"
           />
         </Link>

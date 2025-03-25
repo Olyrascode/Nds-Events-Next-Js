@@ -1,28 +1,46 @@
 "use client";
-
-import React, { useState } from "react";
+import { useState } from "react";
+import { useCategories } from "@/hooks/useCategories";
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Button,
+  Menu,
+  MenuItem,
+  IconButton,
+  Badge,
+} from "@mui/material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import MenuIcon from "@mui/icons-material/Menu";
+import LoginIcon from "@mui/icons-material/Login";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { useCart } from "@/contexts/CartContext";
-import { AppBar, Toolbar, Button, IconButton, Box, Badge } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { usePathname } from "next/navigation";
 import { menuItems } from "./navigationConfig";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { UserMenu } from "./UserMenu";
-import { MobileMenu } from "./MobileMenu";
 import CartDrawer from "../CartDrawer/CartDrawer";
+import { MobileMenu } from "./MobileMenu";
 import styles from "./navigation.module.scss";
 
 export default function Navigation() {
-  const { currentUser, logout } = useAuth();
-  const { cart, isCartOpen, setIsCartOpen } = useCart();
-  const router = useRouter();
   const pathname = usePathname();
+  const { cart, setIsCartOpen, isCartOpen } = useCart();
+  const { currentUser, logout } = useAuth();
+  const isActive = (path: string) => pathname === path;
+  const { categories: autresProduitsCategories, loading: categoriesLoading } =
+    useCategories("autres-produits");
+  const [autresProduitsAnchor, setAutresProduitsAnchor] =
+    useState<null | HTMLElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [mobileAnchorEl, setMobileAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileAnchorEl, setMobileAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
 
   const handleMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -41,14 +59,101 @@ export default function Navigation() {
     try {
       await logout();
       handleClose();
-      router.push("/login");
     } catch (error) {
       console.error("Failed to log out:", error);
     }
   };
 
-  const isActive = (path: string) => pathname === path;
-  const cartItemCount = cart.reduce((total: number, item) => total + item.quantity, 0);
+  const cartItemCount = cart.reduce(
+    (total: number, item) => total + item.quantity,
+    0
+  );
+
+  const handleAutresProduitsClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    setAutresProduitsAnchor(event.currentTarget);
+  };
+
+  const handleAutresProduitsClose = () => {
+    setAutresProduitsAnchor(null);
+  };
+
+  const renderMenuItem = (item: {
+    label: string;
+    path: string;
+    value?: string;
+  }) => {
+    if (item.value === "autres-produits") {
+      return (
+        <div key={item.path}>
+          <Button
+            endIcon={<ArrowDropDownIcon />}
+            onClick={handleAutresProduitsClick}
+            sx={{
+              color: "#ffffff",
+              "&:hover": { color: "#ff6b00" },
+            }}
+            className={styles.navigation__link}
+          >
+            {item.label}
+          </Button>
+          <Menu
+            anchorEl={autresProduitsAnchor}
+            open={Boolean(autresProduitsAnchor)}
+            onClose={handleAutresProduitsClose}
+            sx={{
+              "& .MuiPaper-root": {
+                backgroundColor: "#000",
+                color: "#fff",
+              },
+            }}
+          >
+            {categoriesLoading ? (
+              <MenuItem disabled>Chargement...</MenuItem>
+            ) : (
+              autresProduitsCategories.map((category) => (
+                <Link
+                  key={category}
+                  href={`/autres-produits/${encodeURIComponent(category)}`}
+                  passHref
+                >
+                  <MenuItem
+                    onClick={handleAutresProduitsClose}
+                    sx={{
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "#ff6b00",
+                        color: "#fff",
+                      },
+                    }}
+                  >
+                    {category}
+                  </MenuItem>
+                </Link>
+              ))
+            )}
+          </Menu>
+        </div>
+      );
+    }
+
+    return (
+      <Link key={item.path} href={item.path} passHref>
+        <Button
+          sx={{
+            color: "#ffffff",
+            "&:hover": { color: "#ff6b00" },
+          }}
+          className={`${styles.navigation__link} ${
+            isActive(item.path) ? styles["navigation__link--active"] : ""
+          }`}
+        >
+          {item.label}
+        </Button>
+      </Link>
+    );
+  };
 
   return (
     <AppBar position="static" className={styles.navigation}>
@@ -71,22 +176,19 @@ export default function Navigation() {
             className={styles.navigation__logo}
           />
         </Link>
-        <Box sx={{ display: { xs: "none",sm: "none", md: "none", lg: "flex", xl: "flex" }, ml: 10,  }}>
-          {menuItems.map((item) => (
-            <Link key={item.path} href={item.path} passHref>
-              <Button
-                sx={{
-                  color: "#ffffff",
-                  "&:hover": { color: "#ff6b00" },
-                }}
-                className={`${styles.navigation__link} ${
-                  isActive(item.path) ? styles["navigation__link--active"] : ""
-                }`}
-              >
-                {item.label}
-              </Button>
-            </Link>
-          ))}
+        <Box
+          sx={{
+            display: {
+              xs: "none",
+              sm: "none",
+              md: "none",
+              lg: "flex",
+              xl: "flex",
+            },
+            ml: 10,
+          }}
+        >
+          {menuItems.map(renderMenuItem)}
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton color="inherit" onClick={() => setIsCartOpen(true)}>
@@ -99,28 +201,18 @@ export default function Navigation() {
               <AccountCircleIcon />
             </IconButton>
           ) : (
-            [
+            <>
               <Link key="login" href="/Login" passHref>
-                <Button
-                  sx={{
-                    color: "#ffffff",
-                    "&:hover": { color: "#ff6b00" },
-                  }}
-                >
-                  Connexion
-                </Button>
-              </Link>,
-              <Link key="signup" href="/Signup" passHref>
-                <Button
-                  sx={{
-                    color: "#ffffff",
-                    "&:hover": { color: "#ff6b00" },
-                  }}
-                >
-                  Créer un compte
-                </Button>
+                <IconButton sx={{ color: "#ffffff" }}>
+                  <LoginIcon />
+                </IconButton>
               </Link>
-            ]
+              <Link key="signup" href="/Signup" passHref>
+                <IconButton sx={{ color: "#ffffff" }}>
+                  <PersonAddIcon />
+                </IconButton>
+              </Link>
+            </>
           )}
         </Box>
         <UserMenu
@@ -134,14 +226,9 @@ export default function Navigation() {
           onClose={handleClose}
           currentUser={currentUser!}
           isActive={isActive}
-        
         />
         <CartDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)} />
-          
       </Toolbar>
-      <div className={styles.heroLocation}>
-        <p>Location de matériels de réception en Rhône-Alpes</p>
-      </div>
     </AppBar>
   );
 }

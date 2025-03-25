@@ -1,12 +1,16 @@
 .category-filter {
   display: flex;
   flex-direction: column;
-  position: absolute;
+  position: relative;
   left: 5%;
   gap: 1rem;
   flex-wrap: wrap;
   margin-bottom: 2rem;
   width: 250px;
+
+  a {
+    text-decoration: none;
+  }
 
   &__chip {
     font-size: 1.2rem !important;

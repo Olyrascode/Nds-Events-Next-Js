@@ -73,35 +73,36 @@ export default function DecorationsClient() {
             Nos produits de décorations
           </Typography>
         </div>
+        <div className="products__section">
+          {/* Afficher le filtre par catégorie seulement si aucun paramètre navCategory n'est présent */}
+          {!category && (
+            <div className="products__filters">
+              <CategoryLinkFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                navCategory={navCategory ?? "decorations"}
+              />
+            </div>
+          )}
 
-        {/* Afficher le filtre par catégorie seulement si aucun paramètre navCategory n'est présent */}
-        {!category && (
-          <div className="products__filters">
-            <CategoryLinkFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              navCategory={navCategory ?? "decorations"}
-            />
+          <div className="products__grid">
+            {products.map((product: Product) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+                onRent={handleRentClick}
+              />
+            ))}
           </div>
-        )}
 
-        <div className="products__grid">
-          {products.map((product: Product) => (
-            <ProductCard
-              key={product._id}
-              product={product}
-              onRent={handleRentClick}
+          {selectedProduct && (
+            <RentalDialog
+              open={openRentalDialog}
+              onClose={() => setOpenRentalDialog(false)}
+              product={selectedProduct}
             />
-          ))}
+          )}
         </div>
-
-        {selectedProduct && (
-          <RentalDialog
-            open={openRentalDialog}
-            onClose={() => setOpenRentalDialog(false)}
-            product={selectedProduct}
-          />
-        )}
       </Container>
       <Container className="bottom-info">
         <button className="button-contacez-nous">

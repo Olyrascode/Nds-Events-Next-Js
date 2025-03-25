@@ -94,32 +94,34 @@ export default function LaTableClient() {
             Découvrez tous les produits pour vos tables
           </Typography>
         </div>
-        {!category && (
-          <div className="products__filters">
-            <CategoryLinkFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              navCategory={navCategory ?? "la-table"}
-            />
+        <div className="products__section">
+          {!category && (
+            <div className="products__filters">
+              <CategoryLinkFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                navCategory={navCategory ?? "la-table"}
+              />
+            </div>
+          )}
+          <div className="products__grid">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onRent={handleRentClick}
+              />
+            ))}
           </div>
-        )}
-        <div className="products__grid">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onRent={handleRentClick}
-            />
-          ))}
-        </div>
 
-        {selectedProduct && (
-          <RentalDialog
-            open={openRentalDialog}
-            onClose={() => setOpenRentalDialog(false)}
-            product={selectedProduct}
-          />
-        )}
+          {selectedProduct && (
+            <RentalDialog
+              open={openRentalDialog}
+              onClose={() => setOpenRentalDialog(false)}
+              product={selectedProduct}
+            />
+          )}
+        </div>
       </Container>
       <Container className="bottom-info">
         <p>

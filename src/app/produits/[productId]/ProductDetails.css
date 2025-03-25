@@ -12,17 +12,31 @@
   flex-direction: row-reverse;
   margin-bottom: 50px;
 }
-.mainContainer .product-details .product-details__header .product-details__image {
+.mainContainer
+  .product-details
+  .product-details__header
+  .product-details__image {
   border-radius: 10px;
 }
-.mainContainer .product-details .product-details__header .product-details__text {
+.mainContainer
+  .product-details
+  .product-details__header
+  .product-details__text {
   max-width: 50%;
 }
-.mainContainer .product-details .product-details__header .product-details__text h1 {
+.mainContainer
+  .product-details
+  .product-details__header
+  .product-details__text
+  h1 {
   font-size: 2.2rem;
   margin-bottom: 20px;
 }
-.mainContainer .product-details .product-details__header .product-details__text p {
+.mainContainer
+  .product-details
+  .product-details__header
+  .product-details__text
+  p {
   font-size: 1.5rem;
 }
 .mainContainer .listIconContainer .listIcon {
@@ -39,7 +53,7 @@
 }
 .mainContainer .listIconContainer .listIcon ul {
   list-style: none;
-  max-width: 1200px;
+
   display: flex;
   flex-direction: row;
   gap: 50px;
@@ -108,12 +122,18 @@
     align-items: center;
     margin-bottom: 30px;
   }
-  .mainContainer .product-details .product-details__header .product-details__image {
+  .mainContainer
+    .product-details
+    .product-details__header
+    .product-details__image {
     margin-top: 30px;
     height: 200px;
     width: 100%;
   }
-  .mainContainer .product-details .product-details__header .product-details__text {
+  .mainContainer
+    .product-details
+    .product-details__header
+    .product-details__text {
     max-width: 100%;
   }
   .mainContainer .listIconContainer {
@@ -127,7 +147,8 @@
   .mainContainer .listIconContainer .listIcon .cardBottom {
     flex-direction: column;
   }
-  .mainContainer .listIconContainer .listIcon .cardBottom .cardLeft, .mainContainer .listIconContainer .listIcon .cardBottom .cardRight {
+  .mainContainer .listIconContainer .listIcon .cardBottom .cardLeft,
+  .mainContainer .listIconContainer .listIcon .cardBottom .cardRight {
     width: 100%;
   }
-}/*# sourceMappingURL=ProductDetails.css.map */
+} /*# sourceMappingURL=ProductDetails.css.map */

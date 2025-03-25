@@ -106,20 +106,73 @@ export default async function CategoryPage({
         </Typography>
       </div>
       <Container>
-        <div className="products__filters">
-          <CategoryFilterWrapper
-            categories={categories}
-            selectedCategory={decodedCategory}
-            navCategory={decodedNavCategory}
-          />
-        </div>
+        <div className="products__section">
+          <div className="products__filters">
+            <CategoryFilterWrapper
+              categories={categories}
+              selectedCategory={decodedCategory}
+              navCategory={decodedNavCategory}
+            />
+          </div>
 
-        <div className="products__grid">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
+          <div className="products__grid">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
         </div>
       </Container>
+      <Container className="bottom-info">
+        <p>
+          <span>
+            NDS Event&apos;s, spécialiste de la location de matériel
+            d&apos;événement en Rhône Alpes (Grenoble, Isère 38) depuis plus de
+            10 ans !
+          </span>{" "}
+          <br />
+          <br />
+          Dans cette catégorie, vous trouverez à la location, de la vaisselle
+          (verres, couverts, assiettes, tasses, etc...), tout l&apos;art de la
+          table avec différentes gammes, du traditionnel "standard" aux produits
+          hauts de gamme pour un mariage par exemple, mais aussi des nappes et
+          serviettes en tissus blanc. <br />
+          <br />
+          La vaisselle se loue propre et se rend sale, nous nous occupons du
+          lavage et il est inclus dans les prix ! Idem pour les tissus, le
+          service de blanchisserie est compris !<br />
+          <br /> Une offre au meilleur prix garanti dans la région !
+        </p>
+        <button className="button-contacez-nous">
+          <a href="/contact">Plus de produits - contactez nous</a>
+        </button>
+      </Container>
+      <div className="listIconContainer">
+        <div className="listIcon">
+          <div className="cardBottom">
+            <div className="cardLeft">
+              <img src="../../img/divers/visa.svg" alt="" />
+              <p>
+                Choisissez vos produits directement en ligne et payez par Carte
+                Bancaire ou directement au depot NDS par chèque, virement ou
+                espèce
+              </p>
+            </div>
+            <div className="cardRight">
+              <img src="../../img/divers/truck.svg" alt="" />
+              <p>
+                Divers modes de livraison à votre disposition : Retrait sur
+                place, ou livraison et récupération par nos équipes!
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bottomLink">
+          <p>
+            Pour toutes autres questions, vous pouvez vous référer à nos
+            Conditions Générales de Vente ou notre Foire Aux Questions.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

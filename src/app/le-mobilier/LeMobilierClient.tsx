@@ -112,36 +112,37 @@ export default function LeMobilierClient({
             ou livraison et récupération par nos équipes!
           </Typography>
         </div>
-
-        {/* Affichage du filtre par catégorie uniquement sur la page principale
+        <div className="products__section">
+          {/* Affichage du filtre par catégorie uniquement sur la page principale
             de la navCategory (si aucun sous-paramètre "category" n'est présent) */}
-        {!category && (
-          <div className="products__filters">
-            <CategoryLinkFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              navCategory={navCategory ?? "le-mobilier"}
-            />
+          {!category && (
+            <div className="products__filters">
+              <CategoryLinkFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                navCategory={navCategory ?? "le-mobilier"}
+              />
+            </div>
+          )}
+
+          <div className="products__grid">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onRent={handleRentClick}
+              />
+            ))}
           </div>
-        )}
 
-        <div className="products__grid">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onRent={handleRentClick}
+          {selectedProduct && (
+            <RentalDialog
+              open={openRentalDialog}
+              onClose={() => setOpenRentalDialog(false)}
+              product={selectedProduct}
             />
-          ))}
+          )}
         </div>
-
-        {selectedProduct && (
-          <RentalDialog
-            open={openRentalDialog}
-            onClose={() => setOpenRentalDialog(false)}
-            product={selectedProduct}
-          />
-        )}
       </Container>
       <Container className="bottom-info">
         <button className="button-contacez-nous">
