@@ -4,13 +4,11 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import "./ImageUpload.scss";
 
-export default function ImageUpload({
+export default function CarouselImageUpload({
   onChange,
   currentImage,
-  label = "Image principale",
-  onDelete,
-  isCarousel = false,
   index = 0,
+  onDelete,
 }) {
   const [preview, setPreview] = useState(currentImage);
 
@@ -37,9 +35,7 @@ export default function ImageUpload({
   };
 
   return (
-    <Box
-      className={`image-upload ${isCarousel ? "image-upload--carousel" : ""}`}
-    >
+    <Box className="image-upload image-upload--carousel">
       <Box className="image-upload__container">
         {!preview && (
           <Button
@@ -47,10 +43,9 @@ export default function ImageUpload({
             component="label"
             startIcon={<CloudUploadIcon />}
             className="image-upload__button"
+            fullWidth
           >
-            {isCarousel
-              ? `Ajouter une image ${index + 1}`
-              : "Ajouter une image"}
+            Ajouter l'image {index + 1}
             <input
               type="file"
               hidden
@@ -63,12 +58,12 @@ export default function ImageUpload({
         {preview && (
           <Box className="image-upload__preview-container">
             <Typography variant="subtitle2" gutterBottom>
-              {isCarousel ? `Image ${index + 1}` : label}
+              Image {index + 1}
             </Typography>
             <Box className="image-upload__preview-wrapper">
               <img
                 src={preview}
-                alt="Preview"
+                alt={`Image ${index + 1}`}
                 className="image-upload__preview"
               />
               <IconButton

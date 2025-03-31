@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import OptionsManager from './OptionsManager';
-import ImageUpload from '../common/ImageUpload/ImageUpload';
+import { useState, useEffect } from "react";
+import OptionsManager from "./OptionsManager";
+import ImageUpload from "../common/ImageUpload/ImageUpload";
 import {
   TextField,
   Button,
@@ -12,54 +12,62 @@ import {
   InputLabel,
   Checkbox,
   Select,
-  MenuItem
-} from '@mui/material';
+  MenuItem,
+} from "@mui/material";
 
 export default function ProductForm({
   initialData = {},
   onSubmit,
-  submitLabel = 'Créer le produit',
-  loading = false
+  submitLabel = "Créer le produit",
+  loading = false,
 }) {
   const [product, setProduct] = useState({
-    title: initialData.title || '',
-    description: initialData.description || '',
-    price: initialData.price || '',
-    minQuantity: initialData.minQuantity || '',
-    stock: initialData.stock || '',
+    title: initialData.title || "",
+    description: initialData.description || "",
+    price: initialData.price || "",
+    minQuantity: initialData.minQuantity || "",
+    stock: initialData.stock || "",
     // Pour la catégorie détaillée (ex. "Tables", "Chaises", etc.)
-    category: initialData.category || '',
+    category: initialData.category || "",
     // Pour le groupe de menu (ex. "la-table", "mobilier", etc.)
-    navCategory: initialData.navCategory || '',
-    lotSize: initialData.lotSize || '',
+    navCategory: initialData.navCategory || "",
+    lotSize: initialData.lotSize || "",
     image: null,
+    carouselImages: initialData.carouselImages || Array(3).fill(null),
     options: initialData.options || [],
     deliveryMandatory: initialData.deliveryMandatory || false,
     seo: {
-      title: (initialData.seo && initialData.seo.title) || '',
-      metaDescription: (initialData.seo && initialData.seo.metaDescription) || ''
-    }
+      title: (initialData.seo && initialData.seo.title) || "",
+      metaDescription:
+        (initialData.seo && initialData.seo.metaDescription) || "",
+    },
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Liste des catégories existantes récupérées depuis l'API
   const [categories, setCategories] = useState([]);
   // État pour savoir si on crée une nouvelle catégorie
   const [creatingNewCategory, setCreatingNewCategory] = useState(false);
   // Valeur saisie pour la nouvelle catégorie
-  const [newCategory, setNewCategory] = useState('');
+  const [newCategory, setNewCategory] = useState("");
 
   // Chargement des catégories existantes au montage du composant
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25'}/api/categories`)
-      .then(res => res.json())
-      .then(data => setCategories(data))
-      .catch(err => console.error('Erreur lors du fetch des catégories:', err));
+    fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://82.29.170.25"
+      }/api/categories`
+    )
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch((err) =>
+        console.error("Erreur lors du fetch des catégories:", err)
+      );
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // Détermine la catégorie à enregistrer :
     // Si l'utilisateur a choisi de créer une nouvelle catégorie,
@@ -68,53 +76,72 @@ export default function ProductForm({
 
     const productToSubmit = {
       ...product,
-      category: finalCategory
+      category: finalCategory,
     };
 
     try {
       await onSubmit(productToSubmit);
-// Optionnel : si on vient de créer une nouvelle catégorie, l'ajouter dans la liste (et l'envoyer au backend)
+      // Optionnel : si on vient de créer une nouvelle catégorie, l'ajouter dans la liste (et l'envoyer au backend)
       if (creatingNewCategory && newCategory) {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://82.29.170.25'}/api/categories`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: newCategory })
-        })
-          .then(res => res.json())
-          .then(cat => {
-            setCategories(prev => [...prev, cat]);
+        fetch(
+          `${
+            process.env.NEXT_PUBLIC_API_URL || "https://82.29.170.25"
+          }/api/categories`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: newCategory }),
+          }
+        )
+          .then((res) => res.json())
+          .then((cat) => {
+            setCategories((prev) => [...prev, cat]);
           })
-          .catch(err => console.error(err));
+          .catch((err) => console.error(err));
       }
 
-      // Réinitialisation du formulaire (optionnelle)
+      // Réinitialisation du formulaire avec carouselImages
       setProduct({
-        title: '',
-        description: '',
-        price: '',
-        minQuantity: '',
-        stock: '',
-        category: '',
-        navCategory: '',
-        lotSize: '',
+        title: "",
+        description: "",
+        price: "",
+        minQuantity: "",
+        stock: "",
+        category: "",
+        navCategory: "",
+        lotSize: "",
         image: null,
+        carouselImages: Array(3).fill(null), // Réinitialisation explicite
         options: [],
         deliveryMandatory: false,
         seo: {
-          title: '',
-          metaDescription: ''
-        }
-        
+          title: "",
+          metaDescription: "",
+        },
       });
-      setNewCategory('');
+      setNewCategory("");
       setCreatingNewCategory(false);
     } catch (error) {
-      setError(error.message || 'Erreur lors de la création du produit');
+      setError(error.message || "Erreur lors de la création du produit");
     }
   };
 
   const handleImageChange = (file) => {
     setProduct({ ...product, image: file });
+  };
+  // Ajouter cette fonction pour gérer les images du carrousel
+  const handleCarouselImageChange = (file, index) => {
+    setProduct((prev) => {
+      const newCarouselImages = [...prev.carouselImages];
+      if (file === null) {
+        // Si file est null, on supprime l'image à cet index
+        newCarouselImages[index] = null;
+      } else {
+        // Sinon, on met à jour l'image à cet index
+        newCarouselImages[index] = file;
+      }
+      return { ...prev, carouselImages: newCarouselImages };
+    });
   };
 
   const handleOptionsChange = (newOptions) => {
@@ -130,10 +157,36 @@ export default function ProductForm({
       )}
 
       {/* Exemple de champs pour le titre et la description */}
-      <ImageUpload 
+      <ImageUpload
         onChange={handleImageChange}
         currentImage={initialData.imageUrl}
       />
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mt: 2,
+          flexDirection: { xs: "column", sm: "row" }, // En colonne sur mobile, en ligne sur desktop
+        }}
+      >
+        {[0, 1, 2].map((index) => (
+          <Box
+            key={index}
+            sx={{
+              flex: 1,
+              width: { xs: "100%", sm: "auto" }, // Pleine largeur sur mobile
+            }}
+          >
+            <ImageUpload
+              onChange={(file) => handleCarouselImageChange(file, index)}
+              currentImage={product.carouselImages?.[index]?.url || null}
+              label={`Image ${index + 1} du carrousel`}
+              onDelete={() => handleCarouselImageChange(null, index)}
+              isCarousel={true}
+            />
+          </Box>
+        ))}
+      </Box>
       <TextField
         fullWidth
         label="Titre"
@@ -148,7 +201,9 @@ export default function ProductForm({
         fullWidth
         label="Description"
         value={product.description}
-        onChange={(e) => setProduct({ ...product, description: e.target.value })}
+        onChange={(e) =>
+          setProduct({ ...product, description: e.target.value })
+        }
         margin="normal"
         multiline
         rows={4}
@@ -174,7 +229,9 @@ export default function ProductForm({
         label="Quantité minimum par location"
         type="number"
         value={product.minQuantity}
-        onChange={(e) => setProduct({ ...product, minQuantity: e.target.value })}
+        onChange={(e) =>
+          setProduct({ ...product, minQuantity: e.target.value })
+        }
         margin="normal"
         required
         inputProps={{ min: 1 }}
@@ -185,7 +242,7 @@ export default function ProductForm({
         fullWidth
         label="Quantité par lot (optionnel)"
         type="number"
-        value={product.lotSize || ''}
+        value={product.lotSize || ""}
         onChange={(e) => setProduct({ ...product, lotSize: e.target.value })}
         margin="normal"
         inputProps={{ min: 1 }}
@@ -208,13 +265,13 @@ export default function ProductForm({
       <FormControl fullWidth margin="normal" required disabled={loading}>
         <InputLabel>Catégorie du produit</InputLabel>
         <Select
-          value={creatingNewCategory ? '__new__' : product.category}
+          value={creatingNewCategory ? "__new__" : product.category}
           label="Catégorie du produit"
           onChange={(e) => {
-            if (e.target.value === '__new__') {
+            if (e.target.value === "__new__") {
               // On passe en mode création d'une nouvelle catégorie
               setCreatingNewCategory(true);
-              setProduct({ ...product, category: '' });
+              setProduct({ ...product, category: "" });
             } else {
               setCreatingNewCategory(false);
               setProduct({ ...product, category: e.target.value });
@@ -249,7 +306,9 @@ export default function ProductForm({
         <Select
           value={product.navCategory}
           label="Groupe de menu"
-          onChange={(e) => setProduct({ ...product, navCategory: e.target.value })}
+          onChange={(e) =>
+            setProduct({ ...product, navCategory: e.target.value })
+          }
         >
           <MenuItem value="la-table">La table</MenuItem>
           <MenuItem value="le-mobilier">Le Mobilier</MenuItem>
@@ -270,7 +329,9 @@ export default function ProductForm({
         control={
           <Checkbox
             checked={product.deliveryMandatory}
-            onChange={(e) => setProduct({ ...product, deliveryMandatory: e.target.checked })}
+            onChange={(e) =>
+              setProduct({ ...product, deliveryMandatory: e.target.checked })
+            }
             disabled={loading}
           />
         }
@@ -285,7 +346,10 @@ export default function ProductForm({
           label="SEO Title"
           value={product.seo.title}
           onChange={(e) =>
-            setProduct({ ...product, seo: { ...product.seo, title: e.target.value } })
+            setProduct({
+              ...product,
+              seo: { ...product.seo, title: e.target.value },
+            })
           }
           margin="normal"
           disabled={loading}
@@ -295,7 +359,10 @@ export default function ProductForm({
           label="Meta Description"
           value={product.seo.metaDescription}
           onChange={(e) =>
-            setProduct({ ...product, seo: { ...product.seo, metaDescription: e.target.value } })
+            setProduct({
+              ...product,
+              seo: { ...product.seo, metaDescription: e.target.value },
+            })
           }
           margin="normal"
           multiline

@@ -20,11 +20,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Grid,
+  Divider,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { fetchProducts } from "../../services/products.service";
 import { createPack } from "../../services/packs.service";
 import ImageUpload from "./common/ImageUpload/ImageUpload";
+import CarouselImageUpload from "./common/ImageUpload/CarouselImageUpload";
 import { slugify } from "@/utils/slugify";
 
 export default function PacksTab() {
@@ -36,6 +39,7 @@ export default function PacksTab() {
     minRentalDays: "1",
     minQuantity: "1",
     image: null,
+    carouselImages: Array(10).fill(null),
     seo: {
       title: "",
       metaDescription: "",
@@ -94,6 +98,18 @@ export default function PacksTab() {
   const handleImageChange = (file) => {
     setPack({ ...pack, image: file });
     setErrors({ ...errors, image: "" });
+  };
+
+  const handleCarouselImageChange = (file, index) => {
+    const newCarouselImages = [...pack.carouselImages];
+    newCarouselImages[index] = file;
+    setPack({ ...pack, carouselImages: newCarouselImages });
+  };
+
+  const handleCarouselImageDelete = (index) => {
+    const newCarouselImages = [...pack.carouselImages];
+    newCarouselImages[index] = null;
+    setPack({ ...pack, carouselImages: newCarouselImages });
   };
 
   const handleProductSelect = (event, product) => {
@@ -193,7 +209,17 @@ export default function PacksTab() {
     const slugifiedCategory = creatingNewCategory
       ? slugify(newCategory)
       : pack.category;
-    const packToSubmit = { ...pack, category: finalCategory };
+
+    // Filtrer les images null du carrousel et s'assurer qu'il n'y en a pas plus de 10
+    const filteredCarouselImages = pack.carouselImages
+      .filter(Boolean)
+      .slice(0, 10);
+
+    const packToSubmit = {
+      ...pack,
+      category: finalCategory,
+      carouselImages: filteredCarouselImages,
+    };
 
     const isValid = validate();
     if (!isValid) {
@@ -229,6 +255,7 @@ export default function PacksTab() {
         minRentalDays: "1",
         minQuantity: "1",
         image: null,
+        carouselImages: Array(10).fill(null),
         seo: {
           title: "",
           metaDescription: "",
@@ -273,12 +300,47 @@ export default function PacksTab() {
         </Alert>
       )}
 
-      <ImageUpload onChange={handleImageChange} />
-      {errors.image && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errors.image}
-        </Alert>
-      )}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Image principale
+        </Typography>
+        <ImageUpload onChange={handleImageChange} label="Image principale" />
+        {errors.image && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errors.image}
+          </Alert>
+        )}
+      </Box>
+
+      <Divider sx={{ mb: 3 }} />
+
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Images du carrousel (jusqu'à 10)
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Ajoutez des images supplémentaires pour présenter votre pack sous
+          différents angles
+        </Typography>
+        <Grid container spacing={2}>
+          {Array.from({ length: 10 }).map((_, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <CarouselImageUpload
+                onChange={(file) => handleCarouselImageChange(file, index)}
+                currentImage={pack.carouselImages[index]}
+                index={index}
+                onDelete={() => handleCarouselImageDelete(index)}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      <Divider sx={{ mb: 3 }} />
+
+      <Typography variant="h6" gutterBottom>
+        Informations du pack
+      </Typography>
 
       <TextField
         fullWidth
@@ -353,9 +415,11 @@ export default function PacksTab() {
         </Select>
       </FormControl>
 
+      <Divider sx={{ my: 3 }} />
+
       <Box sx={{ mt: 3, mb: 2 }}>
         <Typography variant="h6" gutterBottom>
-          Ajouter des produits
+          Produits inclus dans le pack
         </Typography>
 
         <Autocomplete
@@ -442,6 +506,12 @@ export default function PacksTab() {
         </TableContainer>
       )}
 
+      <Divider sx={{ my: 3 }} />
+
+      <Typography variant="h6" gutterBottom>
+        Paramètres du pack
+      </Typography>
+
       <TextField
         fullWidth
         label="Pourcentage de réduction"
@@ -479,6 +549,12 @@ export default function PacksTab() {
         inputProps={{ min: 1 }}
       />
 
+      <Divider sx={{ my: 3 }} />
+
+      <Typography variant="h6" gutterBottom>
+        Référencement SEO
+      </Typography>
+
       <TextField
         fullWidth
         label="Titre SEO"
@@ -511,10 +587,10 @@ export default function PacksTab() {
         type="submit"
         variant="contained"
         fullWidth
-        sx={{ mt: 2 }}
+        sx={{ mt: 4, py: 1.5 }}
         disabled={loading}
       >
-        {loading ? <CircularProgress size={24} /> : "Create Pack"}
+        {loading ? <CircularProgress size={24} /> : "Créer le pack"}
       </Button>
     </Box>
   );

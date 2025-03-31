@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import { useCart } from "../../../contexts/CartContext";
 import Image from "next/image";
-import { fetchPackById } from "../../../services/packs.service";
 import { Container, Typography, Paper, Button, Alert } from "@mui/material";
 import RentalPeriod from "../../produits/components/RentalPeriod";
 import QuantitySelector from "../../produits/components/QuantitySelector";
@@ -36,9 +34,14 @@ interface Pack {
   title: string;
   slug: string;
   imageUrl?: string;
+  description?: string;
   products: PackProduct[];
   discountPercentage?: number;
   minQuantity?: number;
+  carouselImages?: Array<{
+    url: string;
+    fileName: string;
+  }>;
 }
 
 // ─── COMPONENT ────────────────────────────────────────────────
@@ -50,11 +53,20 @@ export default function PackDetails({ pack }: { pack: Pack }) {
 
   const [quantity, setQuantity] = useState<number>(1);
   const [finalPrice, setFinalPrice] = useState<number>(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   const [productStockAvailability, setProductStockAvailability] = useState<
     Record<string, number>
   >({});
   const [maxPackQuantity, setMaxPackQuantity] = useState<number | null>(null);
+  const [currentDisplayImage, setCurrentDisplayImage] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (pack && pack.imageUrl) {
+      setCurrentDisplayImage(pack.imageUrl);
+    }
+  }, [pack]);
 
   const handleStartDateChange = (date: Date | null) => {
     setRentalPeriod({ ...rentalPeriod, startDate: date });
@@ -64,10 +76,12 @@ export default function PackDetails({ pack }: { pack: Pack }) {
     setRentalPeriod({ ...rentalPeriod, endDate: date });
   };
 
-  // Récupérer le stock des produits inclus dans le pack
+  const handleImageClick = (imageUrl: string) => {
+    setCurrentDisplayImage(imageUrl);
+  };
+
   useEffect(() => {
     async function fetchStockForPackProducts() {
-      // Vérifie que pack, pack.products, startDate et endDate existent
       if (!pack || !pack.products || !startDate || !endDate) return;
 
       const productStockPromises = pack.products.map(
@@ -129,6 +143,13 @@ export default function PackDetails({ pack }: { pack: Pack }) {
     fetchStockForPackProducts();
   }, [pack, startDate, endDate]);
 
+  const allImages = pack
+    ? [
+        { url: pack.imageUrl || "", fileName: "main-image" },
+        ...(pack.carouselImages || []),
+      ].filter((img) => img.url)
+    : [];
+
   const isFormValid =
     pack &&
     startDate &&
@@ -143,21 +164,53 @@ export default function PackDetails({ pack }: { pack: Pack }) {
       <Paper className="pack-details__content">
         <div className="pack__section">
           <div className="pack-details__header">
-            <div className="product-details__text">
-              <Typography variant="h4">{pack?.title}</Typography>
-              <Typography variant="h6">{pack?.description}</Typography>
+            <div className="pack-details__left-column">
+              {currentDisplayImage && (
+                <Image
+                  src={currentDisplayImage}
+                  alt={pack.title}
+                  width={400}
+                  height={300}
+                  className="pack-details__image"
+                />
+              )}
+
+              {allImages.length > 1 && (
+                <div className="product-details__carousel">
+                  <div className="product-details__carousel-container">
+                    {allImages.map((img, index) => (
+                      <div
+                        key={index}
+                        className={`product-details__carousel-item ${
+                          currentDisplayImage === img.url ? "active" : ""
+                        }`}
+                        onClick={() => handleImageClick(img.url)}
+                      >
+                        <Image
+                          src={img.url}
+                          alt={`${pack.title} - Image ${index + 1}`}
+                          width={120}
+                          height={90}
+                          style={{ objectFit: "contain" }}
+                          unoptimized
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            {pack?.imageUrl && (
-              <Image
-                src={pack.imageUrl}
-                alt={pack.title}
-                width={400}
-                height={300}
-                className="pack-details__image"
-              />
-            )}
+
+            <div className="pack-details__right-column">
+              <div className="product-details__text">
+                <Typography variant="h4">{pack?.title}</Typography>
+                <Typography variant="h6">{pack?.description}</Typography>
+              </div>
+
+              <PackProducts products={pack?.products || []} />
+            </div>
           </div>
-          <PackProducts products={pack?.products || []} />
+
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
             <RentalPeriod
               startDate={startDate}
@@ -213,8 +266,8 @@ export default function PackDetails({ pack }: { pack: Pack }) {
           <PriceCalculation
             products={pack?.products || []}
             quantity={quantity}
-            startDate={startDate}
-            endDate={endDate}
+            startDate={startDate || new Date()}
+            endDate={endDate || new Date()}
             discountPercentage={pack?.discountPercentage || 0}
             setFinalPrice={setFinalPrice}
           />
@@ -227,7 +280,7 @@ export default function PackDetails({ pack }: { pack: Pack }) {
               addToCart({
                 ...pack!,
                 id: pack!._id!,
-                title: pack!.name,
+                title: pack!.title,
                 type: "pack",
                 quantity,
                 startDate,

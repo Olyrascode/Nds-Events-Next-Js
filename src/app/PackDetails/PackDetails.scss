@@ -15,22 +15,95 @@
   }
   &__header {
     margin-bottom: 2rem;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
   }
   .pack-details__title {
     font-size: 2.5rem;
   }
-  .pack-details__header {
+
+  &__left-column {
+    flex: 0 0 50%;
     display: flex;
-    flex-direction: row-reverse;
-    justify-content: space-around;
+    flex-direction: column;
+    img {
+      height: 400px;
+    }
+  }
+
+  &__right-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
   &__image {
-    width: 400px;
+    width: 100%;
+    max-width: 500px;
     max-height: 400px;
     object-fit: contain;
     border-radius: 8px;
-    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+  }
+
+  .product-details__carousel {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .product-details__carousel-container {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
+
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+
+      &:hover {
+        background: #555;
+      }
+    }
+  }
+
+  .product-details__carousel-item {
+    flex: 0 0 120px;
+    height: 90px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, border 0.2s;
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    &.active {
+      border: 3px solid #ff9101;
+      transform: scale(1.05);
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
   }
 
   &__description {
@@ -50,5 +123,36 @@
   &__loading {
     text-align: center;
     padding: 2rem;
+  }
+
+  &__product-stock {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+
+  @media (max-width: 768px) {
+    &__header {
+      flex-direction: column-reverse;
+    }
+
+    &__left-column,
+    &__right-column {
+      flex: 1 0 100%;
+      width: 100%;
+    }
+
+    .product-details__carousel-container {
+      flex-direction: row;
+      overflow-x: auto;
+    }
+
+    .product-details__carousel-item {
+      flex: 0 0 100px;
+      height: 75px;
+    }
+
+    &__image {
+      margin: 0 auto;
+    }
   }
 }

@@ -245,29 +245,43 @@ export const createPack = async (packData) => {
     formData.append("category", packData.category);
     formData.append("navCategory", packData.navCategory);
 
+    if (packData.minQuantity) {
+      formData.append("minQuantity", packData.minQuantity);
+    }
+
     // Ajouter les champs SEO
     if (packData.seo) {
+      formData.append("seoTitle", packData.seo.title || packData.title);
       formData.append(
-        "seo",
-        JSON.stringify({
-          title: packData.seo.title || packData.title,
-          metaDescription: packData.seo.metaDescription || packData.description,
-        })
-      );
-    } else {
-      // Valeurs SEO par défaut si non fournies
-      formData.append(
-        "seo",
-        JSON.stringify({
-          title: packData.title,
-          metaDescription: packData.description,
-        })
+        "seoMetaDescription",
+        packData.seo.metaDescription || packData.description
       );
     }
 
-    // Ajouter l'image si elle existe
+    // Ajouter l'image principale si elle existe
     if (packData.image) {
       formData.append("image", packData.image);
+    }
+
+    // Ajouter les images du carrousel directement comme fichiers
+    if (packData.carouselImages && packData.carouselImages.length > 0) {
+      // Limiter à 10 images maximum pour le carrousel
+      const maxImages = Math.min(packData.carouselImages.length, 10);
+      for (let index = 0; index < maxImages; index++) {
+        const img = packData.carouselImages[index];
+        if (img) {
+          formData.append(`carouselImage${index}`, img);
+        }
+      }
+    }
+
+    // Log du contenu du formData pour déboguer
+    console.log("FormData content:");
+    for (let [key, value] of formData.entries()) {
+      console.log(
+        `${key}:`,
+        value instanceof File ? `File: ${value.name}` : value
+      );
     }
 
     const response = await fetch(`${API_URL}/api/packs`, {
@@ -276,7 +290,16 @@ export const createPack = async (packData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const contentType = response.headers.get("content-type");
+      let errorData;
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await response.json();
+      } else {
+        const text = await response.text();
+        errorData = {
+          message: `Invalid server response: ${text.substring(0, 100)}`,
+        };
+      }
       throw new Error(errorData.message || "Failed to create pack");
     }
 
@@ -346,6 +369,12 @@ export const updatePack = async (packId, packData) => {
     formData.append("title", packData.title);
     formData.append("description", packData.description);
 
+    // Générer le slug à partir du titre si nécessaire
+    if (packData.title) {
+      const slug = generateSlug(packData.title);
+      formData.append("slug", slug);
+    }
+
     // On convertit comme pour createPack
     const convertedProducts = packData.products.map((item) => ({
       product: item.id || item._id,
@@ -355,12 +384,46 @@ export const updatePack = async (packId, packData) => {
 
     formData.append("discountPercentage", packData.discountPercentage);
     formData.append("minRentalDays", packData.minRentalDays);
-
     formData.append("category", packData.category);
     formData.append("navCategory", packData.navCategory);
 
+    if (packData.minQuantity) {
+      formData.append("minQuantity", packData.minQuantity);
+    }
+
+    // Ajouter les champs SEO
+    if (packData.seo) {
+      formData.append("seoTitle", packData.seo.title || packData.title);
+      formData.append(
+        "seoMetaDescription",
+        packData.seo.metaDescription || packData.description
+      );
+    }
+
+    // Ajouter l'image principale si modifiée
     if (packData.image) {
       formData.append("image", packData.image);
+    }
+
+    // Ajouter les images du carrousel directement comme fichiers
+    if (packData.carouselImages && packData.carouselImages.length > 0) {
+      // Limiter à 10 images maximum pour le carrousel
+      const maxImages = Math.min(packData.carouselImages.length, 10);
+      for (let index = 0; index < maxImages; index++) {
+        const img = packData.carouselImages[index];
+        if (img) {
+          formData.append(`carouselImage${index}`, img);
+        }
+      }
+    }
+
+    // Log du contenu du formData pour déboguer
+    console.log("UpdatePack FormData content:");
+    for (let [key, value] of formData.entries()) {
+      console.log(
+        `${key}:`,
+        value instanceof File ? `File: ${value.name}` : value
+      );
     }
 
     const response = await fetch(`${API_URL}/api/packs/${packId}`, {
@@ -369,7 +432,17 @@ export const updatePack = async (packId, packData) => {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to update pack");
+      const contentType = response.headers.get("content-type");
+      let errorData;
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await response.json();
+      } else {
+        const text = await response.text();
+        errorData = {
+          message: `Invalid server response: ${text.substring(0, 100)}`,
+        };
+      }
+      throw new Error(errorData.message || "Failed to update pack");
     }
 
     const updatedPack = await response.json();

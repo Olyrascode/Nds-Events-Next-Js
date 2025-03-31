@@ -1,21 +1,30 @@
-
-import React from 'react';
-import { Box, Typography } from '@mui/material';
+import React from "react";
+import { Box, Typography } from "@mui/material";
 import {
   DatePicker as MuiDatePicker,
   PickersDay,
   PickersDayProps,
-} from '@mui/x-date-pickers';
-import { addDays, isSunday } from 'date-fns';
-import { styled } from '@mui/material/styles';
+} from "@mui/x-date-pickers";
+import { addDays, isSunday } from "date-fns";
+import { styled } from "@mui/material/styles";
 
-// Style personnalisé pour les dimanches
+// Style personnalisé pour les dimanches (jours fermés) - tout le jour en rouge
 const StyledSundayDay = styled(PickersDay)(({ theme }) => ({
   backgroundColor: theme.palette.error.light,
   color: theme.palette.error.contrastText,
-  borderRadius: '50%',
-  '&:hover': {
+  width: "100%", // S'assurer que le jour prend toute la largeur
+  "&:hover": {
     backgroundColor: theme.palette.error.main,
+  },
+  "&.MuiPickersDay-root": {
+    backgroundColor: theme.palette.error.light,
+    color: theme.palette.error.contrastText,
+    borderRadius: "4px", // Un rectangle plutôt qu'un cercle
+    opacity: 1,
+  },
+  "&.Mui-selected": {
+    backgroundColor: theme.palette.error.dark,
+    color: theme.palette.error.contrastText,
   },
 }));
 
@@ -30,7 +39,8 @@ interface ExtendedDatePickerProps
 }
 
 // Utiliser le type étendu sans recourir à "any"
-const DatePicker = MuiDatePicker as React.ComponentType<ExtendedDatePickerProps>;
+const DatePicker =
+  MuiDatePicker as React.ComponentType<ExtendedDatePickerProps>;
 
 interface RentalPeriodProps {
   startDate: Date | null;
@@ -79,7 +89,7 @@ export default function RentalPeriod({
       <Typography variant="h6" gutterBottom>
         Période de location
       </Typography>
-      <Box sx={{ display: 'flex', gap: 2 }}>
+      <Box sx={{ display: "flex", gap: 2 }}>
         {/* Date de début */}
         <DatePicker
           label="Début de location"
@@ -90,7 +100,15 @@ export default function RentalPeriod({
           renderDay={renderDay} // Prop customisée
           disabled={disabled}
           slotProps={{
-            textField: { fullWidth: true },
+            textField: {
+              fullWidth: true,
+              onClick: (e) => {
+                const target = e.currentTarget.querySelector("button");
+                if (target && !disabled) {
+                  target.click();
+                }
+              },
+            },
           }}
         />
 
@@ -106,7 +124,15 @@ export default function RentalPeriod({
           renderDay={renderDay}
           disabled={!startDate || disabled}
           slotProps={{
-            textField: { fullWidth: true },
+            textField: {
+              fullWidth: true,
+              onClick: (e) => {
+                const target = e.currentTarget.querySelector("button");
+                if (target && !(!startDate || disabled)) {
+                  target.click();
+                }
+              },
+            },
           }}
         />
       </Box>
