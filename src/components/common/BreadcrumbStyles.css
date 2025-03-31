@@ -1,0 +1,42 @@
+/* Styles supplémentaires pour le composant Breadcrumb */
+
+.breadcrumb-container {
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1.5rem;
+}
+
+/* Classe pour l'accessibilité - texte visible uniquement par les lecteurs d'écran */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Style pour l'élément actif (fin du breadcrumb) */
+.breadcrumb-active {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Animations au survol */
+.breadcrumb-link {
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: #ff9101; /* Couleur principale du site */
+}
+
+/* Styles responsifs */
+@media (max-width: 768px) {
+  .breadcrumb-container {
+    padding: 0.5rem 0;
+  }
+}

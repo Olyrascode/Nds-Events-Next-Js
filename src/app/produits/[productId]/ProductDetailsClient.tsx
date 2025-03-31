@@ -20,6 +20,7 @@ import PriceCalculation from "../components/PriceCalculation";
 import Image from "next/image";
 import { useAppDispatch } from "../../../hooks/useAppDispatch";
 import "./ProductDetails.scss";
+import Breadcrumb from "../../../components/common/Breadcrumb";
 
 interface ProductOption {
   id: string;
@@ -262,6 +263,7 @@ export default function ProductDetails() {
 
   return (
     <div className="mainContainer">
+      <Breadcrumb />
       <Container className="product-details">
         <div className="product-details__header">
           <div className="product-details__left-column">
