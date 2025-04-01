@@ -34,7 +34,6 @@ export default function ProductCard({
       router.push(`/packs-complets/${identifier}`);
     } else {
       // Pour les produits normaux, on utilise le nouveau format d'URL avec slug obligatoire
-      // Si le slug n'existe pas, on utilise quand même l'ID mais on encourage à créer des slugs
       const identifier = product.slug || product._id;
 
       // Si c'est un ID et non un slug, log un avertissement pour encourager l'usage des slugs
@@ -44,9 +43,15 @@ export default function ProductCard({
         );
       }
 
-      const category = product.navCategory?.toLowerCase() || "la-table";
-      const subcategory = product.category?.toLowerCase() || "autre";
-      router.push(`/${category}/${subcategory}/${identifier}`);
+      // Cas spécial pour les tentes qui n'ont pas de sous-catégories
+      if (product.navCategory?.toLowerCase() === "tentes") {
+        router.push(`/tentes/${identifier}`);
+      } else {
+        // Pour les autres produits, utiliser le format standard avec sous-catégorie
+        const category = product.navCategory?.toLowerCase() || "la-table";
+        const subcategory = product.category?.toLowerCase() || "autre";
+        router.push(`/${category}/${subcategory}/${identifier}`);
+      }
     }
   };
 

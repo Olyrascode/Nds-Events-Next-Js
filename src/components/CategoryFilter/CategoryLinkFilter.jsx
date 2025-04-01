@@ -22,21 +22,26 @@ export default function CategoryLinkFilter({
           className="category-filter__chip"
         />
       </Link>
-      {categories.map((category) => (
-        <Link
-          key={category}
-          href={`/${navCategory}/${slugify(category)}`}
-          passHref
-        >
-          <Chip
-            label={category}
-            clickable
-            color={selectedCategory === category ? "primary" : "default"}
-            variant={selectedCategory === category ? "filled" : "outlined"}
-            className="category-filter__chip"
-          />
-        </Link>
-      ))}
+      {categories.map((category) => {
+        // S'assurer que l'URL utilise des tirets au lieu des espaces
+        const slugifiedCategory = slugify(category);
+
+        return (
+          <Link
+            key={category}
+            href={`/${navCategory}/${slugifiedCategory}`}
+            passHref
+          >
+            <Chip
+              label={category}
+              clickable
+              color={selectedCategory === category ? "primary" : "default"}
+              variant={selectedCategory === category ? "filled" : "outlined"}
+              className="category-filter__chip"
+            />
+          </Link>
+        );
+      })}
     </Box>
   );
 }

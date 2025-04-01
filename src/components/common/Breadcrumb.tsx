@@ -135,6 +135,33 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 };
 
 /**
+ * Fonction pour formater un segment de chemin en libellé lisible
+ */
+function formatSegmentLabel(segment: string): string {
+  try {
+    // Décoder les caractères URL (ex: %20, %C3%A9, etc.)
+    const decodedSegment = decodeURIComponent(segment);
+
+    return (
+      decodedSegment
+        // Remplacer les tirets par des espaces
+        .replace(/-/g, " ")
+        // Première lettre en majuscule
+        .replace(/^\w/, (c) => c.toUpperCase())
+        // Remplacer les paramètres dynamiques par "Détails"
+        .replace(/\[(.*?)\]/, "Détails")
+    );
+  } catch (error) {
+    // En cas d'erreur de décodage, retourner le segment original
+    console.error("Erreur lors du décodage d'un segment d'URL:", error);
+    return segment
+      .replace(/-/g, " ")
+      .replace(/^\w/, (c) => c.toUpperCase())
+      .replace(/\[(.*?)\]/, "Détails");
+  }
+}
+
+/**
  * Génère automatiquement les éléments du fil d'Ariane à partir du chemin
  */
 function generateBreadcrumbItems(pathname: string): BreadcrumbItem[] {
@@ -148,12 +175,8 @@ function generateBreadcrumbItems(pathname: string): BreadcrumbItem[] {
     // Construire le chemin cumulatif jusqu'à ce segment
     const href = `/${segments.slice(0, index + 1).join("/")}`;
 
-    // Formater le libellé (première lettre en majuscule, remplacer les tirets par des espaces)
-    const label = segment
-      .replace(/-/g, " ")
-      .replace(/^\w/, (c) => c.toUpperCase())
-      // Remplacer [paramètre] par un texte plus générique si nécessaire
-      .replace(/\[(.*?)\]/, "Détails");
+    // Formater le libellé en utilisant la nouvelle fonction
+    const label = formatSegmentLabel(segment);
 
     // Le dernier segment est actif
     const active = index === segments.length - 1;

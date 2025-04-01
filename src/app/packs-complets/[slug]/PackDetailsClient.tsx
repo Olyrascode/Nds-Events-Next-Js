@@ -14,7 +14,6 @@ import { fr } from "date-fns/locale";
 import { addDays } from "date-fns";
 import { useRentalPeriod } from "../../../contexts/RentalperiodContext";
 import "../../PackDetails/PackDetails.scss";
-import Breadcrumb from "../../../components/common/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
@@ -162,17 +161,6 @@ export default function PackDetails({ pack }: { pack: Pack }) {
 
   return (
     <>
-      <Breadcrumb
-        items={[
-          { label: "Packs complets", href: "/packs-complets" },
-          {
-            label: pack.title,
-            href: `/packs-complets/${pack.slug}`,
-            active: true,
-          },
-        ]}
-      />
-
       <Container className="pack-details">
         <Paper className="pack-details__content">
           <div className="pack__section">

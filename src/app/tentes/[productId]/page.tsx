@@ -1,7 +1,7 @@
 import React from "react";
-import ProductDetailsClient from "./ProductDetailsClient";
+import ProductDetailsClient from "../../produits/[productId]/ProductDetailsClient";
 
-export default function ProductDetailsPage({
+export default function TentesProductPage({
   params,
 }: {
   params: Promise<{ productId: string }>;
