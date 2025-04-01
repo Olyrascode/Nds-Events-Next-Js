@@ -6,16 +6,17 @@ import { notFound } from "next/navigation";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   try {
-    const pack = await fetchPackBySlug(params.slug);
+    const { slug } = await params;
+    const pack = await fetchPackBySlug(slug);
 
     return {
       title: pack.seo?.title || pack.name,
       description: pack.seo?.metaDescription || pack.description,
     };
-  } catch (error) {
+  } catch {
     return {
       title: "Pack non trouvé",
       description: "Le pack demandé n'existe pas",
@@ -26,12 +27,13 @@ export async function generateMetadata({
 export default async function PackDetailsPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   try {
-    const pack = await fetchPackBySlug(params.slug);
+    const { slug } = await params;
+    const pack = await fetchPackBySlug(slug);
     return <PackDetailsClient pack={pack} />;
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

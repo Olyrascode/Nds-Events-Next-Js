@@ -54,8 +54,16 @@ interface RootState {
   };
 }
 
-export default function ProductDetails() {
-  const { productId } = useParams() as { productId: string };
+interface ProductDetailsProps {
+  productId?: string; // Rendre productId optionnel pour la compatibilité
+}
+
+export default function ProductDetails({
+  productId,
+}: ProductDetailsProps = {}) {
+  const paramProductId = useParams()?.productId as string;
+  const actualProductId = productId || paramProductId; // Utiliser le productId des props ou des params
+
   const { addToCart, setIsCartOpen, cart } = useCart();
 
   const dispatch = useAppDispatch();
@@ -76,7 +84,7 @@ export default function ProductDetails() {
   const isCalendarDisabled = cart.length > 0;
 
   const availableStock = useSelector(
-    (state: RootState) => state.stock.stockByProduct[productId]
+    (state: RootState) => state.stock.stockByProduct[actualProductId]
   );
   const stockLoading = useSelector((state: RootState) => state.stock.loading);
 
@@ -98,7 +106,7 @@ export default function ProductDetails() {
     async function loadProduct() {
       try {
         setError(null);
-        const productData = await fetchProductById(productId);
+        const productData = await fetchProductById(actualProductId);
         setProduct(productData);
         // Définir l'image principale comme image affichée par défaut
         setCurrentDisplayImage(productData.imageUrl || null);
@@ -108,7 +116,7 @@ export default function ProductDetails() {
       }
     }
     loadProduct();
-  }, [productId]);
+  }, [actualProductId]);
 
   // On utilise useMemo pour éviter de recréer des objets Date à chaque rendu
   const displayedStartDate = useMemo(
@@ -130,16 +138,16 @@ export default function ProductDetails() {
   const effectiveEndDate = displayedEndDate;
 
   useEffect(() => {
-    if (productId && effectiveStartDate && effectiveEndDate) {
+    if (actualProductId && effectiveStartDate && effectiveEndDate) {
       dispatch(
         fetchAvailableStock({
-          productId,
+          productId: actualProductId,
           startDate: effectiveStartDate,
           endDate: effectiveEndDate,
         } as any)
       );
     }
-  }, [productId, effectiveStartDate, effectiveEndDate, dispatch]);
+  }, [actualProductId, effectiveStartDate, effectiveEndDate, dispatch]);
 
   useEffect(() => {
     if (!product) return;
