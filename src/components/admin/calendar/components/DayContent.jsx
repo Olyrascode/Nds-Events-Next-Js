@@ -1,30 +1,48 @@
+import { Box, Typography } from "@mui/material";
+import { format, isToday } from "date-fns";
+import OrderEventBar from "./OrderEventBar";
 
-import { Box, Typography } from '@mui/material';
-import { format, isToday } from 'date-fns';
-import OrderEventBar from './OrderEventBar';
+export default function DayContent({
+  day,
+  orders,
+  onOrderClick,
+  isClosed = false,
+}) {
+  // Si le jour est fermé, on ne montre pas les commandes
+  const displayOrders = !isClosed && orders && orders.length > 0;
 
-export default function DayContent({ day, orders, onOrderClick }) {
   return (
-    <>
-      <Typography
-        variant="body2"
-        sx={{
-          fontWeight: isToday(day) ? 'bold' : 'normal',
-          color: isToday(day) ? 'primary.main' : 'text.primary'
-        }}
-      >
-        {format(day, 'd')}
-      </Typography>
-      <Box sx={{ mt: 1 }}>
-        {orders.map((order, index) => (
+    <Box
+      sx={{
+        height: "100%",
+        opacity: isClosed ? 0.7 : 1,
+      }}
+    >
+      {displayOrders ? (
+        orders.map((order, index) => (
           <OrderEventBar
-            key={order.id || `order-${index}`} // Correction ici : index est bien défini
+            key={order.id || `order-${index}`}
             order={order}
             onClick={() => onOrderClick(order)}
             currentDate={day}
+            disabled={isClosed}
           />
-        ))}
-      </Box>
-    </>
+        ))
+      ) : isClosed ? (
+        <Box
+          sx={{
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            pt: 3,
+          }}
+        >
+          <Typography variant="body2" color="error.main" fontStyle="italic">
+            Indisponible
+          </Typography>
+        </Box>
+      ) : null}
+    </Box>
   );
 }

@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import {
   DatePicker as MuiDatePicker,
   PickersDay,
   PickersDayProps,
 } from "@mui/x-date-pickers";
-import { addDays, isSunday } from "date-fns";
+import { addDays, isSunday, format, isSameDay } from "date-fns";
 import { styled } from "@mui/material/styles";
+import { getClosedDaysBetweenDates } from "../../../services/closedDays.service";
 
-// Style personnalisé pour les dimanches (jours fermés) - tout le jour en rouge
-const StyledSundayDay = styled(PickersDay)(({ theme }) => ({
+// Style personnalisé pour les jours fermés - tout le jour en rouge
+const StyledClosedDay = styled(PickersDay)(({ theme }) => ({
   backgroundColor: theme.palette.error.light,
   color: theme.palette.error.contrastText,
   width: "100%", // S'assurer que le jour prend toute la largeur
@@ -51,6 +52,15 @@ interface RentalPeriodProps {
   disabled?: boolean;
 }
 
+// Définir une interface pour les jours fermés
+interface ClosedDay {
+  _id: string;
+  date: string;
+  reason: string;
+  createdAt: string;
+  createdBy: string;
+}
+
 export default function RentalPeriod({
   startDate,
   endDate,
@@ -59,17 +69,54 @@ export default function RentalPeriod({
   minStartDate,
   disabled = false,
 }: RentalPeriodProps) {
-  // Fonction pour désactiver les dimanches
-  const disableSundays = (date: Date): boolean => isSunday(date);
+  const [closedDays, setClosedDays] = useState<Date[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Personnaliser le rendu des jours pour styliser les dimanches
+  // Charger les jours fermés pour les 6 prochains mois
+  useEffect(() => {
+    const fetchClosedDays = async () => {
+      setLoading(true);
+      try {
+        const startDate = new Date();
+        const endDate = addDays(startDate, 180); // 6 mois à l'avance
+
+        const response = await getClosedDaysBetweenDates(
+          format(startDate, "yyyy-MM-dd"),
+          format(endDate, "yyyy-MM-dd")
+        );
+
+        // Convertir les dates en objets Date
+        const closedDatesArray = response.map(
+          (day: ClosedDay) => new Date(day.date)
+        );
+        setClosedDays(closedDatesArray);
+      } catch (error) {
+        console.error("Erreur lors du chargement des jours fermés:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClosedDays();
+  }, []);
+
+  // Fonction pour vérifier si un jour est fermé (dimanche ou jour fermé par l'admin)
+  const isClosedDay = (date: Date): boolean => {
+    // Vérifier si c'est un dimanche
+    if (isSunday(date)) return true;
+
+    // Vérifier si c'est un jour fermé par l'admin
+    return closedDays.some((closedDate) => isSameDay(closedDate, date));
+  };
+
+  // Personnaliser le rendu des jours pour styliser les jours fermés
   const renderDay = (
     day: Date,
     selectedDates: (Date | null)[],
     pickersDayProps: PickersDayProps<Date>
   ): React.ReactElement => {
-    if (isSunday(day)) {
-      return <StyledSundayDay {...pickersDayProps} />;
+    if (isClosedDay(day)) {
+      return <StyledClosedDay {...pickersDayProps} />;
     }
     return <PickersDay {...pickersDayProps} />;
   };
@@ -96,15 +143,15 @@ export default function RentalPeriod({
           value={startDate}
           onChange={handleStartDateChange}
           minDate={minStartDate}
-          shouldDisableDate={disableSundays}
+          shouldDisableDate={isClosedDay}
           renderDay={renderDay} // Prop customisée
-          disabled={disabled}
+          disabled={disabled || loading}
           slotProps={{
             textField: {
               fullWidth: true,
               onClick: (e) => {
                 const target = e.currentTarget.querySelector("button");
-                if (target && !disabled) {
+                if (target && !disabled && !loading) {
                   target.click();
                 }
               },
@@ -120,15 +167,15 @@ export default function RentalPeriod({
             if (!disabled) onEndDateChange(date);
           }}
           minDate={startDate ? addDays(startDate, 1) : undefined}
-          shouldDisableDate={disableSundays}
+          shouldDisableDate={isClosedDay}
           renderDay={renderDay}
-          disabled={!startDate || disabled}
+          disabled={!startDate || disabled || loading}
           slotProps={{
             textField: {
               fullWidth: true,
               onClick: (e) => {
                 const target = e.currentTarget.querySelector("button");
-                if (target && !(!startDate || disabled)) {
+                if (target && !(!startDate || disabled || loading)) {
                   target.click();
                 }
               },
