@@ -14,6 +14,7 @@ import { fr } from "date-fns/locale";
 import { addDays } from "date-fns";
 import { useRentalPeriod } from "../../../contexts/RentalperiodContext";
 import "../../PackDetails/PackDetails.scss";
+import SimilarPacksCarousel from "../../../components/SimilarPacksCarousel";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
@@ -38,6 +39,8 @@ interface Pack {
   products: PackProduct[];
   discountPercentage?: number;
   minQuantity?: number;
+  category?: string;
+  navCategory?: string;
   carouselImages?: Array<{
     url: string;
     fileName: string;
@@ -299,6 +302,14 @@ export default function PackDetails({ pack }: { pack: Pack }) {
             </Button>
           </div>
         </Paper>
+
+        {pack && (
+          <SimilarPacksCarousel
+            currentPackId={pack._id}
+            category={pack.category || ""}
+            navCategory={pack.navCategory || ""}
+          />
+        )}
       </Container>
     </>
   );

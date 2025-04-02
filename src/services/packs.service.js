@@ -376,10 +376,15 @@ export const updatePack = async (packId, packData) => {
     }
 
     // On convertit comme pour createPack
-    const convertedProducts = packData.products.map((item) => ({
-      product: item.id || item._id,
-      quantity: item.quantity,
-    }));
+    const convertedProducts = packData.products.map((item) => {
+      // Afficher chaque élément pour déboguer
+      console.log("Item produit à convertir:", item);
+      return {
+        product: item.product || item.product_id || item.id || item._id,
+        quantity: item.quantity || 1,
+      };
+    });
+    console.log("Produits convertis:", convertedProducts);
     formData.append("products", JSON.stringify(convertedProducts));
 
     formData.append("discountPercentage", packData.discountPercentage);
@@ -472,5 +477,40 @@ export const deletePack = async (packId) => {
   } catch (error) {
     console.error("Error deleting pack:", error);
     throw error;
+  }
+};
+
+// Récupérer les packs similaires (même catégorie)
+export const getSimilarPacks = async (currentPackId, category, navCategory) => {
+  try {
+    if (!category) {
+      console.warn("Catégorie non définie pour récupérer les packs similaires");
+      return [];
+    }
+
+    // Utiliser l'API existante pour récupérer tous les packs
+    const response = await fetch(`${API_URL}/api/packs`);
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des packs similaires");
+    }
+
+    const packs = await response.json();
+
+    // Filtrer les packs par catégorie et exclure le pack actuel
+    const similarPacks = packs.filter(
+      (pack) =>
+        pack._id !== currentPackId &&
+        (pack.category === category ||
+          (navCategory && pack.navCategory === navCategory))
+    );
+
+    // Limiter à 4 packs maximum
+    return similarPacks.slice(0, 4);
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des packs similaires:",
+      error
+    );
+    return [];
   }
 };

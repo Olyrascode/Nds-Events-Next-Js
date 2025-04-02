@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { fetchAvailableStock } from "../../../features/stockSlice";
 import { useCart } from "../../../contexts/CartContext";
@@ -20,6 +20,7 @@ import PriceCalculation from "../components/PriceCalculation";
 import Image from "next/image";
 import { useAppDispatch } from "../../../hooks/useAppDispatch";
 import "./ProductDetails.scss";
+import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
 
 interface ProductOption {
   id: string;
@@ -36,6 +37,8 @@ export interface Product {
   minQuantity?: number;
   lotSize?: number;
   options?: ProductOption[];
+  category?: string;
+  navCategory?: string;
   carouselImages?: Array<{
     url: string;
     fileName: string;
@@ -61,6 +64,7 @@ export default function ProductDetails({
   productId,
 }: ProductDetailsProps = {}) {
   const paramProductId = useParams()?.productId as string;
+  const pathname = usePathname(); // Récupérer le chemin URL
   const actualProductId = productId || paramProductId; // Utiliser le productId des props ou des params
 
   const { addToCart, setIsCartOpen, cart } = useCart();
@@ -78,6 +82,9 @@ export default function ProductDetails({
   const [currentDisplayImage, setCurrentDisplayImage] = useState<string | null>(
     null
   );
+
+  // Extraire la sous-catégorie de l'URL si possible
+  const [extractedCategory, setExtractedCategory] = useState<string>("");
 
   // Bloquer le calendrier si un produit est déjà dans le panier (quelle que soient ses dates)
   const isCalendarDisabled = cart.length > 0;
@@ -102,15 +109,32 @@ export default function ProductDetails({
   };
 
   useEffect(() => {
+    // Extraire la catégorie de l'URL
+    if (pathname) {
+      console.log("Pathname:", pathname);
+      // Format attendu: /[category]/[subcategory]/[productId]
+      const parts = pathname.split("/").filter((p) => p);
+      if (parts.length >= 2) {
+        // Si l'URL contient au moins deux parties (catégorie, sous-catégorie)
+        const subcategory = parts[1]; // La deuxième partie est la sous-catégorie
+        console.log("Sous-catégorie extraite de l'URL:", subcategory);
+        setExtractedCategory(subcategory);
+      }
+    }
+  }, [pathname]);
+
+  useEffect(() => {
     async function loadProduct() {
       try {
         setError(null);
         const productData = await fetchProductById(actualProductId);
+        console.log("Produit chargé:", productData);
         setProduct(productData);
         // Définir l'image principale comme image affichée par défaut
         setCurrentDisplayImage(productData.imageUrl || null);
         setQuantity(productData.minQuantity || 1);
-      } catch {
+      } catch (err) {
+        console.error("Erreur lors du chargement du produit:", err);
         setError("Impossible de charger le produit.");
       }
     }
@@ -415,6 +439,12 @@ export default function ProductDetails({
           Ajouter au panier
         </Button>
       </Container>
+      {product && (
+        <SimilarProductsCarousel
+          currentProductId={product._id}
+          category={product.category || extractedCategory}
+        />
+      )}
       <div className="listIconContainer">
         <div className="listIcon">
           <ul>

@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -26,12 +25,34 @@ export default function ProductCard({
   isPack = false,
 }: ProductCardProps) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const extractCategory = () => {
+    // Extraire la catégorie de l'URL actuelle
+    if (pathname) {
+      const parts = pathname.split("/").filter((p) => p);
+      if (parts.length >= 1) {
+        return parts[0]; // Première partie = catégorie principale
+      }
+    }
+    return null;
+  };
 
   const handleViewDetails = () => {
     if (isPack) {
       // Pour les packs, on utilise toujours le slug s'il existe
       const identifier = product.slug || product._id;
-      router.push(`/packs-complets/${identifier}`);
+
+      // Essayer d'extraire la catégorie de l'URL actuelle
+      const currentCategory = extractCategory();
+
+      if (currentCategory && currentCategory !== "packs-complets") {
+        // Si on est déjà dans une catégorie (comme "la-table"), l'utiliser dans l'URL du pack
+        router.push(`/${currentCategory}/packs-complets/${identifier}`);
+      } else {
+        // Sinon, utiliser l'URL par défaut des packs
+        router.push(`/packs-complets/${identifier}`);
+      }
     } else {
       // Pour les produits normaux, on utilise le nouveau format d'URL avec slug obligatoire
       const identifier = product.slug || product._id;
@@ -49,7 +70,12 @@ export default function ProductCard({
       } else {
         // Pour les autres produits, utiliser le format standard avec sous-catégorie
         const category = product.navCategory?.toLowerCase() || "la-table";
-        const subcategory = product.category?.toLowerCase() || "autre";
+        // Assurer que subcategory utilise des tirets au lieu d'espaces pour les URL
+        let subcategory = product.category?.toLowerCase() || "autre";
+
+        // Remplacer les espaces par des tirets dans la sous-catégorie
+        subcategory = subcategory.replace(/\s+/g, "-");
+
         router.push(`/${category}/${subcategory}/${identifier}`);
       }
     }

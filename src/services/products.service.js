@@ -171,3 +171,20 @@ export const fetchProducts = async () => {
 
   return normalized;
 };
+
+export const getSimilarProducts = async (productId, category) => {
+  try {
+    const response = await fetch(
+      `${API_URL}/api/products?category=${category}`
+    );
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des produits similaires");
+    }
+    const products = await response.json();
+    // Filtrer pour exclure le produit actuel
+    return products.filter((product) => product._id !== productId);
+  } catch (error) {
+    console.error("Erreur:", error);
+    return [];
+  }
+};

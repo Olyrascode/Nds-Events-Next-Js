@@ -1,85 +1,96 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { Container, CircularProgress } from "@mui/material";
-import { fetchProductById } from "../../../../services/products.service";
-import { useRouter } from "next/navigation";
+import React from "react";
+import { notFound } from "next/navigation";
+import nodeFetch from "node-fetch";
 import ProductDetailsClient from "../../../produits/[productId]/ProductDetailsClient";
 import "../../../produits/[productId]/ProductDetails.scss";
-import { slugify } from "../../../../utils/slugify";
 
-export default function ProductDetailsPage({
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+// Interface pour définir la structure du produit
+interface Product {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  seo?: {
+    title?: string;
+    metaDescription?: string;
+  };
+  // autres propriétés si nécessaire
+}
+
+// Fonction pour récupérer les données du produit - utilisée dans generateMetadata et le composant page
+async function getProductData(productId: string): Promise<Product | null> {
+  try {
+    const response = await nodeFetch(`${API_URL}/api/products/${productId}`);
+    if (!response.ok) {
+      return null;
+    }
+    const data = await response.json();
+    return data as Product;
+  } catch (error) {
+    console.error("Erreur lors de la récupération du produit:", error);
+    return null;
+  }
+}
+
+export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ category: string; subcategory: string; productId: string }>;
+  params: { category: string; subcategory: string; productId: string };
 }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const { productId } = params;
+  const product = await getProductData(productId);
 
-  // Déballer les paramètres avec React.use()
-  const resolvedParams = React.use(params);
-  const { category, subcategory, productId } = resolvedParams;
-
-  useEffect(() => {
-    // Vérifier si l'URL contient des espaces encodés (%20)
-    const hasEncodedSpaces = subcategory.includes("%20");
-
-    if (hasEncodedSpaces) {
-      // Décoder l'URL et remplacer les espaces par des tirets
-      const decodedSubcategory = decodeURIComponent(subcategory);
-      const slugifiedSubcategory = slugify(decodedSubcategory);
-
-      // Rediriger vers l'URL corrigée
-      router.replace(`/${category}/${slugifiedSubcategory}/${productId}`);
-      return;
-    }
-
-    // Cas spécial: si c'est un produit de type tentes avec un format URL incorrect
-    if (category === "tentes" && subcategory === "tentes") {
-      // Rediriger vers le format simplifié pour les tentes
-      router.replace(`/tentes/${productId}`);
-      return;
-    }
-
-    // Vérifie si l'ID est un identifiant MongoDB (24 caractères hexadécimaux)
-    const isMongoDB_ID = /^[0-9a-f]{24}$/i.test(productId);
-
-    if (isMongoDB_ID) {
-      // Si c'est un ID MongoDB, récupère le produit pour obtenir son slug
-      const redirectToSlug = async () => {
-        try {
-          const product = await fetchProductById(productId);
-          if (product && product.slug) {
-            if (product.navCategory?.toLowerCase() === "tentes") {
-              // Format simplifié pour les tentes
-              router.replace(`/tentes/${product.slug}`);
-            } else {
-              // Format standard pour les autres produits
-              router.replace(`/${category}/${subcategory}/${product.slug}`);
-            }
-          } else {
-            setLoading(false);
-          }
-        } catch (error) {
-          console.error("Erreur lors de la récupération du produit:", error);
-          setLoading(false);
-        }
-      };
-      redirectToSlug();
-    } else {
-      // Si c'est déjà un slug, on affiche simplement le produit
-      setLoading(false);
-    }
-  }, [productId, category, subcategory, router]);
-
-  if (loading) {
-    return (
-      <Container sx={{ display: "flex", justifyContent: "center", py: 5 }}>
-        <CircularProgress />
-      </Container>
-    );
+  if (!product) {
+    return {
+      title: "Produit non trouvé | NDS EVENTS",
+      description:
+        "Le produit que vous recherchez n'existe pas ou a été déplacé.",
+    };
   }
 
-  // On utilise le productId des paramètres pour afficher le produit
+  // Utiliser les métadonnées SEO personnalisées si elles existent
+  const title = product.seo?.title || product.title || "Produit | NDS EVENTS";
+  const description =
+    product.seo?.metaDescription ||
+    product.description ||
+    "Découvrez ce produit sur NDS EVENTS";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://nds-events.fr"}/${
+        params.category
+      }/${params.subcategory}/${params.productId}`,
+      images: [
+        {
+          url: product.imageUrl || "/images/logo.png",
+          width: 800,
+          height: 600,
+          alt: product.title,
+        },
+      ],
+    },
+  };
+}
+
+export default async function ProductDetailsPage({
+  params,
+}: {
+  params: { category: string; subcategory: string; productId: string };
+}) {
+  const { productId } = params;
+  const product = await getProductData(productId);
+
+  if (!product) {
+    notFound();
+  }
+
+  // Le SEO est géré par generateMetadata, nous pouvons simplement afficher le composant client
   return <ProductDetailsClient productId={productId} />;
 }
