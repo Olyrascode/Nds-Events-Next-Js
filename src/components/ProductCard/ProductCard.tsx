@@ -54,13 +54,14 @@ export default function ProductCard({
         router.push(`/packs-complets/${identifier}`);
       }
     } else {
-      // Pour les produits normaux, on utilise le nouveau format d'URL avec slug obligatoire
-      const identifier = product.slug || product._id;
+      // Pour les produits normaux, on utilise le slug s'il existe, sinon on crée un slug à partir du titre
+      const slug = product.slug || slugifyTitle(product.title);
+      const identifier = slug;
 
       // Si c'est un ID et non un slug, log un avertissement pour encourager l'usage des slugs
       if (!product.slug) {
         console.warn(
-          `Produit sans slug détecté: ${product.title} (${product._id}). Veuillez ajouter un slug à ce produit.`
+          `Produit sans slug détecté: ${product.title} (${product._id}). Un slug temporaire a été créé.`
         );
       }
 
@@ -79,6 +80,21 @@ export default function ProductCard({
         router.push(`/${category}/${subcategory}/${identifier}`);
       }
     }
+  };
+
+  // Fonction utilitaire pour générer un slug temporaire à partir du titre
+  const slugifyTitle = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[éèêë]/g, "e")
+      .replace(/[àâä]/g, "a")
+      .replace(/[ùûü]/g, "u")
+      .replace(/[ôö]/g, "o")
+      .replace(/[îï]/g, "i")
+      .replace(/[ç]/g, "c")
+      .replace(/\s+/g, "-")
+      .replace(/[^\w\-]+/g, "")
+      .replace(/\-\-+/g, "-");
   };
 
   const imageUrl = product.imageUrl || "/default-placeholder.png";

@@ -5,6 +5,7 @@ import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryFilterWrapper from "@/components/CategoryFilter/CategoryFilterWrapper";
 import "@/app/tous-nos-produits/_Products.scss";
 import { slugify } from "@/utils/slugify";
+import Link from "next/link";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
@@ -58,6 +59,7 @@ async function fetchProducts(): Promise<Product[]> {
     discountPercentage: product.discountPercentage || 0,
     navCategory: product.navCategory,
     category: product.category,
+    slug: slugify(product.title),
   }));
 
   const packs: Product[] = packsData.map((pack: RawPack) => ({
@@ -192,9 +194,9 @@ export default async function CategoryPage({
           <br />
           Dans cette catégorie, vous trouverez à la location, de la vaisselle
           (verres, couverts, assiettes, tasses, etc...), tout l&apos;art de la
-          table avec différentes gammes, du traditionnel "standard" aux produits
-          hauts de gamme pour un mariage par exemple, mais aussi des nappes et
-          serviettes en tissus blanc. <br />
+          table avec différentes gammes, du traditionnel &quot;standard&quot;
+          aux produits hauts de gamme pour un mariage par exemple, mais aussi
+          des nappes et serviettes en tissus blanc. <br />
           <br />
           La vaisselle se loue propre et se rend sale, nous nous occupons du
           lavage et il est inclus dans les prix ! Idem pour les tissus, le
@@ -202,7 +204,7 @@ export default async function CategoryPage({
           <br /> Une offre au meilleur prix garanti dans la région !
         </p>
         <button className="button-contacez-nous">
-          <a href="/contact">Plus de produits - contactez nous</a>
+          <Link href="/contact">Plus de produits - contactez nous</Link>
         </button>
       </Container>
       <div className="listIconContainer">

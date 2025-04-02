@@ -8,6 +8,7 @@ import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
 import "@/app/tous-nos-produits/_Products.scss";
 import { Product } from "../../type/Product";
+import { slugify } from "@/utils/slugify";
 
 // Interface pour les données brutes provenant de l'API
 interface RawProduct {
@@ -81,6 +82,7 @@ export default function LaTableClient() {
           discountPercentage: product.discountPercentage || 0,
           navCategory: product.navCategory,
           category: product.category,
+          slug: slugify(product.title),
         }));
 
       // Filtrer les packs pour ne garder que ceux de la catégorie "la-table"

@@ -123,6 +123,7 @@ async function fetchProducts(): Promise<Product[]> {
     discountPercentage: product.discountPercentage || 0,
     navCategory: product.navCategory,
     category: product.category,
+    slug: slugify(product.title),
   }));
 
   const packs: Product[] = packsData.map((pack: any) => ({
