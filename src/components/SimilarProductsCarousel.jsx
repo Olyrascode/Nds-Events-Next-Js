@@ -11,7 +11,6 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scrollPosition, setScrollPosition] = useState(0);
-  const [visibleProducts, setVisibleProducts] = useState([]);
   const theme = useTheme();
 
   useEffect(() => {
@@ -37,26 +36,24 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
         );
 
         if (products && products.length > 0) {
-          // Limiter à 4 produits maximum
-          const limitedProducts = products.slice(0, 4);
-          setSimilarProducts(limitedProducts);
-          setVisibleProducts(limitedProducts);
+          setSimilarProducts(products);
         } else {
           console.log("Aucun produit similaire trouvé");
           setSimilarProducts([]);
-          setVisibleProducts([]);
         }
       } catch (err) {
-        console.error("Erreur détaillée:", err);
-        setError(null);
+        console.error(
+          "Erreur lors de la récupération des produits similaires:",
+          err
+        );
+        setError("Erreur lors du chargement des produits similaires");
         setSimilarProducts([]);
-        setVisibleProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (currentProductId) {
+    if (currentProductId && category) {
       fetchSimilarProducts();
     }
   }, [currentProductId, category]);
@@ -85,8 +82,6 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
   if (!similarProducts || similarProducts.length === 0) return null;
 
   // Déterminer si nous devons afficher les boutons de navigation
-  // Les boutons sont nécessaires seulement si la largeur de tous les produits
-  // dépasse la largeur du conteneur
   const shouldShowNavigation = similarProducts.length > 1;
 
   return (
@@ -100,7 +95,9 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
             className="similar-products__nav-button similar-products__nav-button--left"
             onClick={() => handleScroll("left")}
             disabled={scrollPosition === 0}
-          ></IconButton>
+          >
+            <ChevronLeftIcon />
+          </IconButton>
         )}
 
         <Box className="similar-products__container">
@@ -115,7 +112,9 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
           <IconButton
             className="similar-products__nav-button similar-products__nav-button--right"
             onClick={() => handleScroll("right")}
-          ></IconButton>
+          >
+            <ChevronRightIcon />
+          </IconButton>
         )}
       </Box>
     </Box>

@@ -12,14 +12,14 @@
     display: flex;
     overflow-x: hidden;
     scroll-behavior: smooth;
-    gap: 1rem;
+    gap: 20px;
     padding: 0.5rem;
     -webkit-overflow-scrolling: touch;
   }
 
   &__item {
-    flex: 0 0 calc(100% - 1rem);
-    min-width: calc(100% - 1rem);
+    flex: 0 0 calc(100% - 20px);
+    min-width: calc(100% - 20px);
   }
 
   &__nav-button {
@@ -47,8 +47,8 @@
 @media (min-width: 576px) {
   .similar-products {
     &__item {
-      flex: 0 0 calc(50% - 1rem);
-      min-width: calc(50% - 1rem);
+      flex: 0 0 calc(50% - 20px);
+      min-width: calc(50% - 20px);
     }
   }
 }
@@ -56,8 +56,8 @@
 @media (min-width: 768px) {
   .similar-products {
     &__item {
-      flex: 0 0 calc(33.333% - 1rem);
-      min-width: calc(33.333% - 1rem);
+      flex: 0 0 calc(33.333% - 20px);
+      min-width: calc(33.333% - 20px);
     }
 
     &__nav-button {
@@ -75,8 +75,8 @@
 @media (min-width: 992px) {
   .similar-products {
     &__item {
-      flex: 0 0 calc(25% - 1rem);
-      min-width: calc(25% - 1rem);
+      flex: 0 0 calc(25% - 20px);
+      min-width: calc(25% - 20px);
     }
   }
 }
