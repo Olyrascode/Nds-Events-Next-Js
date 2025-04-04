@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Typography, Box } from "@mui/material";
 import Link from "next/link";
-import "../tentes-de-receptions/_TentesDeReceptions.scss";
+import "./_Pagodes.scss";
 
 function Pagodes() {
   const imagesCarrousel1 = [
@@ -40,7 +40,27 @@ function Pagodes() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+
+    // Défilement automatique pour le premier carrousel
+    const interval1 = setInterval(() => {
+      setCurrentImageIndex1(
+        (prevIndex) => (prevIndex + 1) % imagesCarrousel1.length
+      );
+    }, 5000);
+
+    // Défilement automatique pour le deuxième carrousel
+    const interval2 = setInterval(() => {
+      setCurrentImageIndex2(
+        (prevIndex) => (prevIndex + 1) % imagesCarrousel2.length
+      );
+    }, 5000);
+
+    // Nettoyage des intervalles lors du démontage du composant
+    return () => {
+      clearInterval(interval1);
+      clearInterval(interval2);
+    };
+  }, [imagesCarrousel1.length, imagesCarrousel2.length]);
 
   const nextImage1 = () => {
     setCurrentImageIndex1(
@@ -172,42 +192,46 @@ function Pagodes() {
       <div className="tentesHeader">
         <h1>PAGODES</h1>
         <p>
-          Découvrez notre sélection de tentes pliantes pour tous vos événements
-          en extérieur.
+          Découvrez nos élégantes pagodes pour vos événements et réceptions en
+          extérieur.
         </p>
       </div>
 
       {/* Premier carrousel */}
       <div className="carrouselContainer">
         <div className="carrousel">
-          <button onClick={prevImage1} className="carrousel-button left">
-            ←
-          </button>
-          <Image
-            src={imagesCarrousel1[currentImageIndex1]}
-            alt={`Slide ${currentImageIndex1 + 1}`}
-            width={800} // Ajustez la largeur souhaitée
-            height={600} // Ajustez la hauteur souhaitée
-            className="carrousel-image"
-          />
-          <button onClick={nextImage1} className="carrousel-button right">
-            →
-          </button>
+          <div className="carrousel-buttons">
+            <button onClick={prevImage1} className="carrousel-button left">
+              ←
+            </button>
+            <button onClick={nextImage1} className="carrousel-button right">
+              →
+            </button>
+          </div>
+          <div className="image-container">
+            <Image
+              src={imagesCarrousel1[currentImageIndex1]}
+              alt={`Slide ${currentImageIndex1 + 1}`}
+              width={800}
+              height={600}
+              className="carrousel-image"
+            />
+          </div>
         </div>
         <div className="asideContainer">
-          <h3>Les caractéristiques de nos tentes de réceptions</h3>
+          <h3>Les caractéristiques de nos pagodes</h3>
           <ul>
-            <li>Disponible avec ou sans les murs autour</li>
-            <li>Taille allant de 24m² à 364m²</li>
-            <li>Parquet pour rehausser le niveau</li>
-            <li>Moquette de tout type de couleurs</li>
-            <li>Éclairage LED ou 400W</li>
-            <li>Chauffage soufflant pour l&apos;hiver</li>
+            <li>Design élégant avec toits pointus</li>
+            <li>Tailles allant de 9m² à 36m²</li>
+            <li>Modulables et connectables entre elles</li>
+            <li>Disponibles avec ou sans parois</li>
+            <li>Résistantes aux intempéries</li>
+            <li>Installation rapide par nos équipes</li>
           </ul>
         </div>
       </div>
 
-      {/* Section de contenu (anciennement accordéon) */}
+      {/* Section de contenu */}
       <div className="content-section">
         <Typography variant="h4" component="h2" className="section-title">
           Tout savoir sur nos pagodes
@@ -219,49 +243,36 @@ function Pagodes() {
           </Typography>
           {dimensionsContent}
         </Box>
-
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h5" component="h3" className="section-subtitle">
-            Options et accessoires
-          </Typography>
-          {optionsContent}
-        </Box>
-
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h5" component="h3" className="section-subtitle">
-            Conditions de location
-          </Typography>
-          {conditionsContent}
-        </Box>
-
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h5" component="h3" className="section-subtitle">
-            Conseils et recommandations
-          </Typography>
-          {conseilsContent}
-        </Box>
       </div>
 
       {/* Deuxième carrousel */}
       <div className="carrouselContainer2">
-        <h2>Les options disponibles pour nos tentes de réceptions</h2>
+        <h2>Les options disponibles pour nos pagodes</h2>
+        <Box sx={{ my: 4 }}>
+          <div className="options-content">{optionsContent}</div>
+        </Box>
         <div className="carrousel2">
-          <button onClick={prevImage2} className="carrousel-button left">
-            ←
-          </button>
+          <div className="carrousel-buttons">
+            <button onClick={prevImage2} className="carrousel-button left">
+              ←
+            </button>
+            <button onClick={nextImage2} className="carrousel-button right">
+              →
+            </button>
+          </div>
           <div className="carrousel-slides">
             <div className="slide">
               <Image
                 src={imagesCarrousel2[currentImageIndex2].src}
                 alt={`Slide ${currentImageIndex2 + 1}`}
-                width={800}
-                height={600}
+                width={600}
+                height={400}
               />
               <p className="image-caption">
                 {imagesCarrousel2[currentImageIndex2].caption}
               </p>
             </div>
-            <div className="slide">
+            <div className="slide mobile-hidden">
               <Image
                 src={
                   imagesCarrousel2[
@@ -271,8 +282,8 @@ function Pagodes() {
                 alt={`Slide ${
                   (currentImageIndex2 + 2) % imagesCarrousel2.length
                 }`}
-                width={800}
-                height={600}
+                width={600}
+                height={400}
               />
               <p className="image-caption">
                 {
@@ -283,44 +294,32 @@ function Pagodes() {
               </p>
             </div>
           </div>
-          <button onClick={nextImage2} className="carrousel-button right">
-            →
-          </button>
         </div>
       </div>
 
       {/* Contenu en dessous */}
       <div className="bottomContainer">
         <section className="dark-section">
-          <h3>Conditions de location</h3>
-          <Box sx={{ my: 4 }}>{conditionsContent}</Box>
+          <h3>Conditions de locations</h3>
+          <Box sx={{ my: 4 }}>
+            <div className="conditions-content">{conditionsContent}</div>
+          </Box>
         </section>
         <section>
           <h3>Conseils et recommandations</h3>
-          <Box sx={{ my: 4 }}>{conseilsContent}</Box>
+          <Box sx={{ my: 4 }}>
+            <div className="conseils-content">{conseilsContent}</div>
+          </Box>
         </section>
         <div className="choiceContainer">
           <div className="choix1">
             <h3>Une question ?</h3>
-            {/* Remplacez <img> par <Image> ou fournissez une URL valide */}
-            <Image
-              src="/img/placeholder-question.png"
-              alt="Question"
-              width={200}
-              height={150}
-            />
             <button>
               <Link href="/contact">Contactez nous</Link>
             </button>
           </div>
           <div className="choix2">
             <h3>Vous voulez réserver ?</h3>
-            <Image
-              src="/img/placeholder-reservation.png"
-              alt="Réservation"
-              width={200}
-              height={150}
-            />
             <button>Demander un devis</button>
           </div>
         </div>

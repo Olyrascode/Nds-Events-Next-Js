@@ -44,7 +44,27 @@ function TentesDeReception() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+
+    // Défilement automatique pour le premier carrousel
+    const interval1 = setInterval(() => {
+      setCurrentImageIndex1(
+        (prevIndex) => (prevIndex + 1) % imagesCarrousel1.length
+      );
+    }, 5000);
+
+    // Défilement automatique pour le deuxième carrousel
+    const interval2 = setInterval(() => {
+      setCurrentImageIndex2(
+        (prevIndex) => (prevIndex + 1) % imagesCarrousel2.length
+      );
+    }, 5000);
+
+    // Nettoyage des intervalles lors du démontage du composant
+    return () => {
+      clearInterval(interval1);
+      clearInterval(interval2);
+    };
+  }, [imagesCarrousel1.length, imagesCarrousel2.length]);
 
   const nextImage1 = () => {
     setCurrentImageIndex1(
@@ -343,18 +363,22 @@ function TentesDeReception() {
       {/* Premier carrousel */}
       <div className="carrouselContainer">
         <div className="carrousel">
-          <button onClick={prevImage1} className="carrousel-button left">
-            ←
-          </button>
-          <Image
-            src={imagesCarrousel1[currentImageIndex1]}
-            alt={`Slide ${currentImageIndex1 + 1}`}
-            width={600}
-            height={400}
-          />
-          <button onClick={nextImage1} className="carrousel-button right">
-            →
-          </button>
+          <div className="carrousel-buttons">
+            <button onClick={prevImage1} className="carrousel-button left">
+              ←
+            </button>
+            <button onClick={nextImage1} className="carrousel-button right">
+              →
+            </button>
+          </div>
+          <div className="image-container">
+            <Image
+              src={imagesCarrousel1[currentImageIndex1]}
+              alt={`Slide ${currentImageIndex1 + 1}`}
+              width={600}
+              height={400}
+            />
+          </div>
         </div>
         <div className="asideContainer">
           <h3>Les caractéristiques de nos tentes de réceptions</h3>
@@ -389,9 +413,14 @@ function TentesDeReception() {
           <div className="options-content">{optionsContent}</div>
         </Box>
         <div className="carrousel2">
-          <button onClick={prevImage2} className="carrousel-button left">
-            ←
-          </button>
+          <div className="carrousel-buttons">
+            <button onClick={prevImage2} className="carrousel-button left">
+              ←
+            </button>
+            <button onClick={nextImage2} className="carrousel-button right">
+              →
+            </button>
+          </div>
           <div className="carrousel-slides">
             <div className="slide">
               <Image
@@ -404,7 +433,7 @@ function TentesDeReception() {
                 {imagesCarrousel2[currentImageIndex2].caption}
               </p>
             </div>
-            <div className="slide">
+            <div className="slide mobile-hidden">
               <Image
                 src={
                   imagesCarrousel2[
@@ -426,9 +455,6 @@ function TentesDeReception() {
               </p>
             </div>
           </div>
-          <button onClick={nextImage2} className="carrousel-button right">
-            →
-          </button>
         </div>
       </div>
 
