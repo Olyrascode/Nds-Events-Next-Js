@@ -312,9 +312,7 @@ function TentesDeReception() {
 
   const conditionsContent = (
     <div>
-      <p>
-        Informations importantes pour la location de nos tentes de réception :
-      </p>
+      <p>Informations importantes</p>
       <ul>
         <li>Durée minimale de location : 2 jours</li>
         <li>Installation et démontage inclus dans le prix</li>
@@ -330,7 +328,7 @@ function TentesDeReception() {
 
   const conseilsContent = (
     <div>
-      <p>Pour une expérience optimale avec nos tentes de réception :</p>
+      <p>Pour une expérience optimale </p>
       <ul>
         <li>Prévoyez 1m² par personne pour un cocktail debout</li>
         <li>Comptez 1.5m² par personne pour un repas assis</li>
@@ -460,18 +458,20 @@ function TentesDeReception() {
 
       {/* Contenu en dessous */}
       <div className="bottomContainer">
-        <section className="dark-section">
-          <h3>Conditions de locations</h3>
-          <Box sx={{ my: 4 }}>
-            <div className="conditions-content">{conditionsContent}</div>
-          </Box>
-        </section>
-        <section>
-          <h3>Conseils et recommandations</h3>
-          <Box sx={{ my: 4 }}>
-            <div className="conseils-content">{conseilsContent}</div>
-          </Box>
-        </section>
+        <div className="sections-wrapper">
+          <section className="dark-section">
+            <h3>Conditions de locations</h3>
+            <Box sx={{ my: 4 }}>
+              <div className="conditions-content">{conditionsContent}</div>
+            </Box>
+          </section>
+          <section className="light-section">
+            <h3>Conseils et recommandations</h3>
+            <Box sx={{ my: 4 }}>
+              <div className="conseils-content">{conseilsContent}</div>
+            </Box>
+          </section>
+        </div>
         <div className="choiceContainer">
           <div className="choix1">
             <h3>Une question ?</h3>
