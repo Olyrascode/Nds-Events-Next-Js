@@ -258,6 +258,8 @@ export default function ProductDetails({
       startDate: effectiveStartDate,
       endDate: effectiveEndDate,
       selectedOptions,
+      lotSize: product.lotSize,
+      type: "product",
     });
     setIsCartOpen(true);
   };

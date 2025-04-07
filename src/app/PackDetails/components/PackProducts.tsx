@@ -1,5 +1,13 @@
-import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material';
-import { formatPrice } from '../../../utils/priceUtils';
+import {
+  Box,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
+} from "@mui/material";
+import { formatPrice } from "../../../utils/priceUtils";
 
 // Définir une interface pour le produit inclus dans un pack
 interface PackProduct {
@@ -31,9 +39,9 @@ export default function PackProducts({ products }: PackProductsProps) {
         {products.map((packItem) => {
           const p = packItem.product;
           const itemKey = p?._id || packItem._id || Math.random().toString();
-          const title = p?.title || 'Produit inconnu';
+          const title = p?.title || "Produit inconnu";
           const price = p?.price ?? 0;
-          const imageUrl = p?.imageUrl || '';
+          const imageUrl = p?.imageUrl || "";
           const quantity = packItem.quantity || 1;
 
           return (

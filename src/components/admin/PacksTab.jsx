@@ -115,12 +115,21 @@ export default function PacksTab() {
   const handleProductSelect = (event, product) => {
     if (!product) return;
     if (pack.products.some((p) => p.id === product.id)) {
-      setGlobalError("This product is already in the pack");
+      setGlobalError("Ce produit est déjà dans le pack");
       return;
     }
+
+    // Ajouter une propriété qui indique que le produit était originalement vendu par lot
+    const enhancedProduct = {
+      ...product,
+      quantity: 1,
+      lotSize: product.lotSize || 1,
+      isLotProduct: product.lotSize > 1,
+    };
+
     setPack((prev) => ({
       ...prev,
-      products: [...prev.products, { ...product, quantity: 1 }],
+      products: [...prev.products, enhancedProduct],
     }));
     setErrors((prev) => ({ ...prev, products: "" }));
   };
@@ -215,8 +224,19 @@ export default function PacksTab() {
       .filter(Boolean)
       .slice(0, 10);
 
+    // Transformer les produits en format approprié pour le backend
+    const productsForSubmit = pack.products.map((product) => ({
+      id: product.id,
+      quantity: product.quantity, // La quantité est déjà en unités, pas en lots
+      title: product.title,
+      price: product.price,
+      category: product.category,
+      lotSize: product.lotSize || 1,
+    }));
+
     const packToSubmit = {
       ...pack,
+      products: productsForSubmit,
       category: finalCategory,
       carouselImages: filteredCarouselImages,
     };
@@ -464,7 +484,8 @@ export default function PacksTab() {
                 <TableCell>Produit</TableCell>
                 <TableCell>Catégorie</TableCell>
                 <TableCell align="right">Prix/jour</TableCell>
-                <TableCell align="right">Quantité</TableCell>
+                <TableCell align="right">Conditionnement</TableCell>
+                <TableCell align="right">Quantité (unité)</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -480,6 +501,11 @@ export default function PacksTab() {
                   <TableCell>{product.category}</TableCell>
                   <TableCell align="right">${product.price}</TableCell>
                   <TableCell align="right">
+                    {product.lotSize > 1
+                      ? `Lot de ${product.lotSize}`
+                      : "Unité"}
+                  </TableCell>
+                  <TableCell align="right">
                     <TextField
                       type="number"
                       value={product.quantity}
@@ -489,6 +515,17 @@ export default function PacksTab() {
                       inputProps={{ min: 1 }}
                       size="small"
                       sx={{ width: 80 }}
+                      helperText={
+                        product.isLotProduct
+                          ? `(${Math.ceil(
+                              product.quantity / product.lotSize
+                            )} lot${
+                              Math.ceil(product.quantity / product.lotSize) > 1
+                                ? "s"
+                                : ""
+                            })`
+                          : ""
+                      }
                     />
                   </TableCell>
                   <TableCell align="right">
