@@ -6,6 +6,7 @@ import CategoryFilterWrapper from "@/components/CategoryFilter/CategoryFilterWra
 import "@/app/tous-nos-produits/_Products.scss";
 import { slugify } from "@/utils/slugify";
 import Link from "next/link";
+import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
@@ -99,8 +100,6 @@ export async function generateMetadata(context: {
   params: { category: string };
 }) {
   const { category } = context.params;
-  const navCategory = "la-table";
-  const decodedNavCategory = decodeURIComponent(navCategory);
   const decodedCategory = decodeURIComponent(category);
 
   return {
@@ -211,7 +210,13 @@ export default async function CategoryPage({
         <div className="listIcon">
           <div className="cardBottom">
             <div className="cardLeft">
-              <img src="../../img/divers/visa.svg" alt="" />
+              <Image
+                src="/img/divers/visa.svg"
+                alt="Paiement par carte bancaire"
+                width={50}
+                height={32}
+                priority
+              />
               <p>
                 Choisissez vos produits directement en ligne et payez par Carte
                 Bancaire ou directement au depot NDS par chèque, virement ou
@@ -219,7 +224,13 @@ export default async function CategoryPage({
               </p>
             </div>
             <div className="cardRight">
-              <img src="../../img/divers/truck.svg" alt="" />
+              <Image
+                src="/img/divers/truck.svg"
+                alt="Livraison et récupération"
+                width={50}
+                height={32}
+                priority
+              />
               <p>
                 Divers modes de livraison à votre disposition : Retrait sur
                 place, ou livraison et récupération par nos équipes!

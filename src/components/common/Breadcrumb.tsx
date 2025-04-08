@@ -72,25 +72,22 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
           // Si c'est le premier élément et qu'il s'agit de l'accueil, afficher une icône
           if (index === 0 && item.href === "/" && showHomeLink) {
             return (
-              <Link
-                href="/"
-                passHref
+              <MuiLink
                 key="home"
-                style={{ textDecoration: "none" }}
+                component={Link}
+                href="/"
+                color="inherit"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  "&:hover": { color: "primary.main" },
+                  textDecoration: "none",
+                }}
+                underline="hover"
               >
-                <MuiLink
-                  color="inherit"
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    "&:hover": { color: "primary.main" },
-                  }}
-                  underline="hover"
-                >
-                  <HomeIcon sx={{ mr: 0.5, fontSize: 20 }} />
-                  <span className="sr-only">Accueil</span>
-                </MuiLink>
-              </Link>
+                <HomeIcon sx={{ mr: 0.5, fontSize: 20 }} />
+                <span className="sr-only">Accueil</span>
+              </MuiLink>
             );
           }
 
@@ -113,20 +110,19 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 
           // Sinon, afficher comme lien
           return (
-            <Link
-              href={item.href}
-              passHref
+            <MuiLink
               key={item.href}
-              style={{ textDecoration: "none" }}
+              component={Link}
+              href={item.href}
+              color="inherit"
+              underline="hover"
+              sx={{
+                "&:hover": { color: "primary.main" },
+                textDecoration: "none",
+              }}
             >
-              <MuiLink
-                color="inherit"
-                underline="hover"
-                sx={{ "&:hover": { color: "primary.main" } }}
-              >
-                {item.label}
-              </MuiLink>
-            </Link>
+              {item.label}
+            </MuiLink>
           );
         })}
       </Breadcrumbs>

@@ -1,27 +1,31 @@
 // scss admin panel //
 @use "../components/admin/ordersTab/OrdersTab";
 
-//font import //
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
-// .home {
+// Les polices sont maintenant gérées via next/font dans layout.tsx
+
 // Global styles
 :root {
   --primary-color: #ff6b00;
   --secondary-color: #000000;
   --background-color: #ffffff;
+  --font-family: var(--font-montserrat), sans-serif;
 }
 
 body {
   margin: 0;
   padding: 0;
   background-color: var(--background-color);
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-family);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
   margin: 0 auto;
   padding: 0 1rem;
 }
+
 .MuiContainer-root {
   max-width: 100% !important;
 }
@@ -34,8 +38,12 @@ body {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
 
   &:hover {
-    background-color: (#ff6b00);
+    background-color: var(--primary-color);
   }
 }

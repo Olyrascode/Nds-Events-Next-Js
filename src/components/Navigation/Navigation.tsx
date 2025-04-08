@@ -168,12 +168,13 @@ export default function Navigation() {
         >
           <MenuIcon />
         </IconButton>
-        <Link href="/" passHref>
+        <Link href="/" passHref className={styles.navigation__logoLink}>
           <Image
             src="/img/home/logoHomePage.png"
-            alt="NDS Events"
-            width={100}
+            alt="NDS Events - Accueil"
+            width={150}
             height={40}
+            priority
             className={styles.navigation__logo}
           />
         </Link>
@@ -192,24 +193,32 @@ export default function Navigation() {
           {menuItems.map(renderMenuItem)}
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton color="inherit" onClick={() => setIsCartOpen(true)}>
+          <IconButton
+            color="inherit"
+            onClick={() => setIsCartOpen(true)}
+            aria-label="Voir le panier"
+          >
             <Badge badgeContent={cartItemCount} color="error">
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
           {currentUser ? (
-            <IconButton color="inherit" onClick={handleMenu}>
+            <IconButton
+              color="inherit"
+              onClick={handleMenu}
+              aria-label="Compte utilisateur"
+            >
               <AccountCircleIcon />
             </IconButton>
           ) : (
             <>
               <Link key="login" href="/Login" passHref>
-                <IconButton sx={{ color: "#ffffff" }}>
+                <IconButton sx={{ color: "#ffffff" }} aria-label="Se connecter">
                   <LoginIcon />
                 </IconButton>
               </Link>
               <Link key="signup" href="/Signup" passHref>
-                <IconButton sx={{ color: "#ffffff" }}>
+                <IconButton sx={{ color: "#ffffff" }} aria-label="S'inscrire">
                   <PersonAddIcon />
                 </IconButton>
               </Link>

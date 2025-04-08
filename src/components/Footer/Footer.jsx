@@ -1,4 +1,5 @@
 import Link from "next/link"; // 🔧 Utilisation de Next.js Link
+import Image from "next/image"; // Importation du composant Image de Next.js
 import "./_Footer.scss";
 
 function Footer() {
@@ -6,7 +7,14 @@ function Footer() {
     <footer>
       <div className="container1">
         <Link href="/">
-          <img src="../img/home/logoHomePage.png" alt="Logo NDS" />
+          <Image
+            src="/img/home/logoHomePage.png"
+            alt="Logo NDS"
+            width={150}
+            height={60}
+            loading="lazy"
+            className="footer-logo"
+          />
         </Link>
         <p>
           Isère Réception est une boutique officielle de location de matériel de

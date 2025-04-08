@@ -1,7 +1,19 @@
 .navigation {
+  &__logoLink {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
   &__logo {
     height: 40px;
-    margin-right: 1rem;
+    width: auto;
+    object-fit: contain;
   }
 
   &__link {
@@ -17,8 +29,7 @@
       color: #ff6b00;
     }
   }
-  
-  
+
   .heroLocation {
     border-top: 2px solid white;
     color: white;
@@ -26,12 +37,10 @@
     width: 100%;
     text-align: center;
     background-color: #000000;
-    
-    
-    p{
+
+    p {
       margin-bottom: 0;
       margin-top: 5px;
     }
-    
   }
 }

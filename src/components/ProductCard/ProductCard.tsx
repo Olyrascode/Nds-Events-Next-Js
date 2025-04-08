@@ -2,14 +2,8 @@
 
 import React from "react";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Button,
-  Box,
-} from "@mui/material";
+import Image from "next/image";
+import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 // Use a relative import if your tsconfig paths aren't set up
 import { Product } from "../../type/Product";
 import "./ProductCard.scss";
@@ -102,14 +96,23 @@ export default function ProductCard({
 
   return (
     <Card className="product-card">
-      <CardMedia
-        component="img"
-        height="200"
-        image={imageUrl}
-        alt={title}
-        className="product-card__image"
-        sx={{ objectFit: "contain", backgroundColor: "#ffff" }}
-      />
+      <div className="product-card__image-container">
+        <Image
+          src={imageUrl}
+          alt={title}
+          width={0}
+          height={0}
+          sizes="100%"
+          className="product-card__image"
+          loading="lazy"
+          style={{
+            objectFit: "contain",
+            backgroundColor: "#ffff",
+            maxWidth: "100%",
+            maxHeight: "100%",
+          }}
+        />
+      </div>
       <CardContent className="product-card__content">
         <Typography gutterBottom variant="h5" component="h2">
           {title}
