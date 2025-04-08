@@ -1,70 +1,65 @@
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+} from "@mui/material";
 
-// import { useState, useEffect } from 'react';
-// import { FormControl, InputLabel, Select, MenuItem, Box, Typography } from '@mui/material';
+export interface OptionValue {
+  value: string;
+  price: number;
+  deliveryMandatory: boolean;
+}
 
-// export default function ProductOptions({ options, selectedOptions, onChange }) {
+export interface ProductOption {
+  id: string;
+  name: string;
+  price: number;
+  values?: OptionValue[];
+}
 
-//   const handleOptionChange = (optionName, value) => {
-//     const option = options.find(opt => opt.name === optionName);
-//     const valueIndex = option.values.indexOf(value);
-//     const price = option.prices[valueIndex];
-    
-//     onChange((prevSelectedOptions) => ({
-//       ...prevSelectedOptions,
-//       [optionName]: {
-//         name: optionName,
-//         value,
-//         price
-//       }
-//     }));
-//   };
+export interface SelectedOption {
+  id: string;
+  name: string;
+  value?: string;
+  price: number;
+  deliveryMandatory?: boolean;
+}
 
-//   return (
-//     <Box sx={{ mb: 3 }}>
-//       <Typography variant="h6" gutterBottom>
-//         Option du produit
-//       </Typography>
-//       {options.map((option) => (
-//         <FormControl key={option.name} fullWidth margin="normal">
-//           <InputLabel>{option.name}</InputLabel>
-//           <Select
-//             value={selectedOptions[option.name]?.value || ''}
-//             label={option.name}
-//             onChange={(e) => handleOptionChange(option.name, e.target.value)}
-//             required
-//           >
-//             {option.values.map((value, index) => (
-//               <MenuItem key={index} value={value}>
-//                 {value} | +{option.prices[index]}€/jours
-//               </MenuItem>
-//             ))}
-//           </Select>
-//         </FormControl>
-//       ))}
-//     </Box>
-//   );
-// }
-import { Box, FormControl, InputLabel, Select, MenuItem, Typography } from '@mui/material';
+export interface ProductOptionsProps {
+  options: ProductOption[];
+  selectedOptions: Record<string, SelectedOption>;
+  onChange: (
+    callback: (
+      prev: Record<string, SelectedOption>
+    ) => Record<string, SelectedOption>
+  ) => void;
+}
 
-export default function ProductOptions({ options, selectedOptions, onChange }) {
+export default function ProductOptions({
+  options,
+  selectedOptions,
+  onChange,
+}: ProductOptionsProps) {
+  const handleOptionChange = (optionName: string, value: string) => {
+    const option = options.find((opt) => opt.name === optionName);
+    const valueObject = option?.values?.find((v) => v.value === value);
+    const price = valueObject ? valueObject.price : option?.price || 0;
+    const deliveryMandatory = valueObject
+      ? valueObject.deliveryMandatory
+      : false;
 
-  const handleOptionChange = (optionName, value) => {
-    // Récupérer l'option correspondante
-    const option = options.find(opt => opt.name === optionName);
-    // Chercher l'objet valeur sélectionnée
-    const valueObject = option.values.find(v => v.value === value);
-    // Si trouvé, on récupère le prix et le flag deliveryMandatory
-    const price = valueObject ? valueObject.price : 0;
-    const deliveryMandatory = valueObject ? valueObject.deliveryMandatory : false;
-    
     onChange((prevSelectedOptions) => ({
       ...prevSelectedOptions,
       [optionName]: {
+        id: option?.id || "",
         name: optionName,
         value,
         price,
-        deliveryMandatory
-      }
+        deliveryMandatory,
+      },
     }));
   };
 
@@ -77,14 +72,15 @@ export default function ProductOptions({ options, selectedOptions, onChange }) {
         <FormControl key={option.name} fullWidth margin="normal">
           <InputLabel>{option.name}</InputLabel>
           <Select
-            value={selectedOptions[option.name]?.value || ''}
+            value={selectedOptions[option.name]?.value || ""}
             label={option.name}
             onChange={(e) => handleOptionChange(option.name, e.target.value)}
             required
           >
-            {option.values.map((valueObj, index) => (
+            {option.values?.map((valueObj, index) => (
               <MenuItem key={index} value={valueObj.value}>
-                {valueObj.value} | +{valueObj.price}€/jours {valueObj.deliveryMandatory ? '(Livraison obligatoire)' : ''}
+                {valueObj.value} | +{valueObj.price}€/jours{" "}
+                {valueObj.deliveryMandatory ? "(Livraison obligatoire)" : ""}
               </MenuItem>
             ))}
           </Select>

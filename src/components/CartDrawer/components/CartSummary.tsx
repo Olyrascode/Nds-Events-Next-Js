@@ -1,8 +1,17 @@
-import { Typography, Box } from '@mui/material';
-import { format } from 'date-fns';
-import { calculateRentalDays } from '../../../utils/dateUtils';
+import { Typography, Box } from "@mui/material";
+import { format } from "date-fns";
+import { calculateRentalDays } from "../../../utils/dateUtils";
 
-export default function CartSummary({ cart }) {
+interface CartItem {
+  startDate: string | Date;
+  endDate: string | Date;
+}
+
+interface CartSummaryProps {
+  cart: CartItem[];
+}
+
+export default function CartSummary({ cart }: CartSummaryProps) {
   if (!cart.length) return null;
 
   const firstItem = cart[0];
@@ -16,14 +25,10 @@ export default function CartSummary({ cart }) {
         Période de location:
       </Typography>
       <Box sx={{ mb: 2 }}>
-        <Typography variant="body2">
-          Du: {format(startDate, 'PP')}
-        </Typography>
-        <Typography variant="body2">
-          Au: {format(endDate, 'PP')}
-        </Typography>
+        <Typography variant="body2">Du: {format(startDate, "PP")}</Typography>
+        <Typography variant="body2">Au: {format(endDate, "PP")}</Typography>
         <Typography variant="body2" sx={{ mt: 1 }}>
-          Durée: {days} {days === 1 ? 'day' : 'days'}
+          Durée: {days} {days === 1 ? "day" : "days"}
         </Typography>
       </Box>
     </Box>

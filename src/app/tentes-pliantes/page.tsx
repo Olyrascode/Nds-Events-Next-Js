@@ -1,16 +1,15 @@
-
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import "./_TentesPliantes.scss";
 
 function TentesPliantes() {
   const images = [
-    '/img/tentespliantes/tente-reception.jpg',
-    '/img/tentespliantes/tente-pliante-reception.jpg',
-    '/img/tentespliantes/tente-de-reception-sans-cote.jpg',
-    '/img/tentespliantes/pagodes-reception.jpg'
+    "/img/tentespliantes/tente-reception.jpg",
+    "/img/tentespliantes/tente-pliante-reception.jpg",
+    "/img/tentespliantes/tente-de-reception-sans-cote.jpg",
+    "/img/tentespliantes/pagodes-reception.jpg",
   ];
 
   useEffect(() => {
@@ -24,15 +23,18 @@ function TentesPliantes() {
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+    setCurrentImageIndex(
+      (prevIndex) => (prevIndex - 1 + images.length) % images.length
+    );
   };
 
   return (
-    <div className='sectionContainer'>
-      <div className='tentesHeader'>
+    <div className="sectionContainer">
+      <div className="tentesHeader">
         <h1>TENTES PLIANTES</h1>
         <p>
-          Découvrez notre sélection de tentes pliantes pour tous vos événements en extérieur.
+          Découvrez notre sélection de tentes pliantes pour tous vos événements
+          en extérieur.
         </p>
       </div>
       <div className="carrouselContainer">
@@ -62,7 +64,7 @@ function TentesPliantes() {
         </div>
       </div>
 
-      <div className='bottomContainer'>
+      <div className="bottomContainer">
         <h3>Les caractéristiques principales de nos tentes pliantes</h3>
         <div>
           <ul>
@@ -74,15 +76,17 @@ function TentesPliantes() {
           </ul>
         </div>
         <section>
-          <div className='choiceContainer'>
-            <div className='choix1'>
+          <div className="choiceContainer">
+            <div className="choix1">
               <h3>Une question ?</h3>
-          
-              <button><a href="/contact">Contactez nous</a></button>
+
+              <button>
+                <a href="/contact">Contactez nous</a>
+              </button>
             </div>
-            <div className='choix2'>
+            <div className="choix2">
               <h3>Vous voulez réserver ?</h3>
-         
+
               <button>Demander un devis</button>
             </div>
           </div>

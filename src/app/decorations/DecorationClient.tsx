@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Container, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
@@ -17,7 +19,6 @@ export default function DecorationsClient() {
   // Typage explicite
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState(false);
 
@@ -79,7 +80,7 @@ export default function DecorationsClient() {
             <div className="products__filters">
               <CategoryLinkFilter
                 categories={categories}
-                selectedCategory={selectedCategory}
+                selectedCategory={null}
                 navCategory={navCategory ?? "decorations"}
               />
             </div>
@@ -106,18 +107,18 @@ export default function DecorationsClient() {
       </Container>
       <Container className="bottom-info">
         <button className="button-contacez-nous">
-          <a href="/contact">Plus de produits - contactez nous</a>
+          <Link href="/contact">Plus de produits - contactez nous</Link>
         </button>
         <p>
           <span>
-            Ne perdez plus de temps ou d'argent pour votre décoration de
-            mariage! NDS Event's vous propose de louer votre décoration en kits
-            complets ou des produits à l'unité, le tout au meilleur prix
-            garanti!
+            Ne perdez plus de temps ou d&Apos;argent pour votre décoration de
+            mariage! NDS Event&Apos;s vous propose de louer votre décoration en
+            kits complets ou des produits à l&Apos;unité, le tout au meilleur
+            prix garanti!
           </span>{" "}
           <br />
           <br />
-          Votre budget ne permet pas de faire appel aux services d'une
+          Votre budget ne permet pas de faire appel aux services d&Apos;une
           décoratrice? Louez directement vos déco pour vos salles et tables de
           votre mariage.
           <br />
@@ -134,7 +135,13 @@ export default function DecorationsClient() {
         <div className="listIcon">
           <div className="cardBottom">
             <div className="cardLeft">
-              <img src="../../img/divers/visa.svg" alt="" />
+              <Image
+                src="/img/divers/visa.svg"
+                alt="Logo Visa"
+                width={48}
+                height={32}
+                priority
+              />
               <p>
                 Choisissez vos produits directement en ligne et payez par Carte
                 Bancaire ou directement au depot NDS par chèque, virement ou
@@ -142,7 +149,13 @@ export default function DecorationsClient() {
               </p>
             </div>
             <div className="cardRight">
-              <img src="../../img/divers/truck.svg" alt="" />
+              <Image
+                src="/img/divers/truck.svg"
+                alt="Icône de livraison"
+                width={48}
+                height={32}
+                priority
+              />
               <p>
                 Divers modes de livraison à votre disposition : Retrait sur
                 place, ou livraison et récupération par nos équipes!

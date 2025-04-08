@@ -3,12 +3,31 @@ import Link from "next/link";
 import { menuItems, adminMenuItems } from "./navigationConfig";
 import { useCategories } from "@/hooks/useCategories";
 import { slugify } from "@/utils/slugify";
+import { User } from "@/contexts/AuthContext";
 
-export function MobileMenu({ anchorEl, onClose, currentUser, isActive }) {
+interface MobileMenuProps {
+  anchorEl: HTMLElement | null;
+  onClose: () => void;
+  currentUser: User | null;
+  isActive: (path: string) => boolean;
+}
+
+interface MenuItem {
+  value?: string;
+  path: string;
+  label: string;
+}
+
+export function MobileMenu({
+  anchorEl,
+  onClose,
+  currentUser,
+  isActive,
+}: MobileMenuProps) {
   const { categories: autresProduitsCategories, loading: categoriesLoading } =
     useCategories("autres-produits");
 
-  const renderMenuItem = (item) => {
+  const renderMenuItem = (item: MenuItem) => {
     if (item.value === "autres-produits") {
       return (
         <div key={item.path}>
@@ -68,7 +87,6 @@ export function MobileMenu({ anchorEl, onClose, currentUser, isActive }) {
         style={{ textDecoration: "none" }}
       >
         <MenuItem
-          component="a"
           onClick={onClose}
           selected={isActive(item.path)}
           sx={{

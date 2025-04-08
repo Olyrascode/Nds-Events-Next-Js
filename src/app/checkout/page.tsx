@@ -81,7 +81,11 @@ export default function Checkout() {
     (item) =>
       item.selectedOptions &&
       Object.values(item.selectedOptions).some(
-        (opt) => opt.deliveryMandatory === true
+        (opt) =>
+          typeof opt === "object" &&
+          opt !== null &&
+          "deliveryMandatory" in opt &&
+          opt.deliveryMandatory === true
       )
   );
 
@@ -141,9 +145,17 @@ export default function Checkout() {
           ? orderTotals.total - 60 + shippingFee!
           : orderTotals.total;
 
+      // S'assurer d'avoir un email client, même sans utilisateur connecté
+      const customerEmail = currentUser?.email || billingInfo.email || "";
+
+      if (!customerEmail) {
+        setError("L'email du client est requis pour créer une commande.");
+        return;
+      }
+
       const order = await createOrder({
-        userId: userId,
-        customerEmail: currentUser ? currentUser.email : "",
+        userId: userId || "guest",
+        customerEmail: customerEmail,
         products: cart,
         deliveryMethod,
         shippingInfo: deliveryMethod === "delivery" ? shippingInfo : null,

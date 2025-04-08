@@ -1,4 +1,3 @@
-
 import {
   ListItem,
   ListItemText,
@@ -6,12 +5,23 @@ import {
   ListItemAvatar,
   IconButton,
   Avatar,
-  Typography
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { formatPrice } from '../../../utils/priceUtils';
+  Typography,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { formatPrice } from "../../../utils/priceUtils";
 
-export default function CartItem({ item, onRemove }) {
+interface CartItemProps {
+  item: {
+    imageUrl?: string;
+    title?: string;
+    name?: string;
+    quantity: number;
+    price: number;
+  };
+  onRemove: () => void;
+}
+
+export default function CartItem({ item, onRemove }: CartItemProps) {
   return (
     <ListItem>
       <ListItemAvatar>
@@ -22,7 +32,10 @@ export default function CartItem({ item, onRemove }) {
         secondary={
           <>
             <Typography variant="body2">Quantité: {item.quantity}</Typography>
-            <Typography variant="body2">Total: {formatPrice(item.price)}</Typography> {/* ✅ Prix final */}
+            <Typography variant="body2">
+              Total: {formatPrice(item.price)}
+            </Typography>{" "}
+            {/* ✅ Prix final */}
           </>
         }
       />

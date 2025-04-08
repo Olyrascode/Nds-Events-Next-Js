@@ -8,10 +8,11 @@ import {
   useCallback,
 } from "react";
 
-interface User {
+export interface User {
   _id?: string;
   id?: string;
   email: string;
+  isAdmin?: boolean;
 }
 
 interface AuthResponse {

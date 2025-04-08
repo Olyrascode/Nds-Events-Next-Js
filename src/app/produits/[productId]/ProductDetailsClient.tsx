@@ -13,7 +13,10 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { fr } from "date-fns/locale";
 import { useRentalPeriod } from "../../../contexts/RentalperiodContext";
-import ProductOptions from "../components/ProductOptions";
+import ProductOptions, {
+  ProductOption,
+  SelectedOption,
+} from "../components/ProductOptions";
 import RentalPeriod from "../components/RentalPeriod";
 import QuantitySelector from "../components/QuantitySelector";
 import PriceCalculation from "../components/PriceCalculation";
@@ -21,12 +24,6 @@ import Image from "next/image";
 import { useAppDispatch } from "../../../hooks/useAppDispatch";
 import "./ProductDetails.scss";
 import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
-
-interface ProductOption {
-  id: string;
-  name: string;
-  price: number;
-}
 
 export interface Product {
   _id: string;
@@ -45,9 +42,7 @@ export interface Product {
   }>;
 }
 
-type SelectedOptions = {
-  [key: string]: ProductOption;
-};
+type SelectedOptions = Record<string, SelectedOption>;
 
 interface RootState {
   stock: {
@@ -162,13 +157,15 @@ export default function ProductDetails({
 
   useEffect(() => {
     if (actualProductId && effectiveStartDate && effectiveEndDate) {
-      dispatch(
-        fetchAvailableStock({
-          productId: actualProductId,
-          startDate: effectiveStartDate,
-          endDate: effectiveEndDate,
-        } as any)
-      );
+      const params = {
+        productId: actualProductId,
+        startDate: effectiveStartDate.toISOString(),
+        endDate: effectiveEndDate.toISOString(),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      dispatch(fetchAvailableStock(params));
     }
   }, [actualProductId, effectiveStartDate, effectiveEndDate, dispatch]);
 
@@ -342,7 +339,7 @@ export default function ProductDetails({
           <div className="product-details__right-column">
             <div className="product-details__text">
               <Typography variant="h1">{product.title}</Typography>
-              <Typography variant="h6">{product.description}</Typography>
+              <Typography variant="h2">{product.description}</Typography>
             </div>
 
             {product.options?.length ? (
@@ -451,21 +448,39 @@ export default function ProductDetails({
         <div className="listIcon">
           <ul>
             <li>
-              <img src="../../img/divers/calendar-small.svg" alt="" />
+              <Image
+                src="/img/divers/calendar-small.svg"
+                alt="Calendrier"
+                width={24}
+                height={24}
+                priority
+              />
               <p>
                 Les tarifs de base sur notre site sont donnés pour des locations
                 de 1 à 4 jours.
               </p>
             </li>
             <li>
-              <img src="../../img/divers/double-arrow-up.svg" alt="" />
+              <Image
+                src="/img/divers/double-arrow-up.svg"
+                alt="Flèche double vers le haut"
+                width={24}
+                height={24}
+                priority
+              />
               <p>
                 Livraisons/Récupérations sur votre événement non disponible le
                 Dimanche
               </p>
             </li>
             <li>
-              <img src="../../img/divers/double-arrow-down.svg" alt="" />
+              <Image
+                src="/img/divers/double-arrow-down.svg"
+                alt="Flèche double vers le bas"
+                width={24}
+                height={24}
+                priority
+              />
               <p>
                 Récupérations/Restitutions à nos locaux non disponible le Samedi
                 et Dimanche
@@ -474,7 +489,13 @@ export default function ProductDetails({
           </ul>
           <div className="cardBottom">
             <div className="cardLeft">
-              <img src="../../img/divers/visa.svg" alt="" />
+              <Image
+                src="/img/divers/visa.svg"
+                alt="Logo Visa"
+                width={48}
+                height={32}
+                priority
+              />
               <p>
                 Choisissez vos produits directement en ligne et payez par Carte
                 Bancaire ou directement au depot NDS par chèque, virement ou
@@ -482,7 +503,13 @@ export default function ProductDetails({
               </p>
             </div>
             <div className="cardRight">
-              <img src="../../img/divers/truck.svg" alt="" />
+              <Image
+                src="/img/divers/truck.svg"
+                alt="Camion de livraison"
+                width={48}
+                height={32}
+                priority
+              />
               <p>
                 Divers modes de livraison à votre disposition : Retrait sur
                 place, ou livraison et récupération par nos équipes!

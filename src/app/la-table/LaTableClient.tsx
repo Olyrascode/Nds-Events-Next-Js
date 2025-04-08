@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Container, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
@@ -42,13 +44,12 @@ export default function LaTableClient() {
   const { navCategory, category } = useParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
   // Si aucune catégorie n'est sélectionnée, affichez tous les produits déjà filtrés par navCategory 'la-table'
-  const filteredProducts = selectedCategory
-    ? products.filter((product) => product.category === selectedCategory)
+  const filteredProducts = category
+    ? products.filter((product) => product.category === category)
     : products;
 
   useEffect(() => {
@@ -142,7 +143,7 @@ export default function LaTableClient() {
             <div className="products__filters">
               <CategoryLinkFilter
                 categories={categories}
-                selectedCategory={selectedCategory}
+                selectedCategory={null}
                 navCategory={navCategory ?? "la-table"}
               />
             </div>
@@ -169,7 +170,7 @@ export default function LaTableClient() {
       </Container>
       <Container className="bottom-info">
         <button className="button-contacez-nous">
-          <a href="/contact">Plus de produits - contactez nous</a>
+          <Link href="/contact">Plus de produits - contactez nous</Link>
         </button>
         <p>
           <span>
@@ -181,9 +182,10 @@ export default function LaTableClient() {
           <br />
           Dans cette catégorie, vous trouverez à la location, de la vaisselle
           (verres, couverts, assiettes, tasses, etc...), tout l&apos;art de la
-          table avec différentes gammes, du traditionnel "standard" aux produits
-          hauts de gamme pour un mariage par exemple, mais aussi des nappes et
-          serviettes en tissus blanc. <br />
+          table avec différentes gammes, du traditionnel
+          &Apos;&Apos;standard&Apos;&Apos; aux produits hauts de gamme pour un
+          mariage par exemple, mais aussi des nappes et serviettes en tissus
+          blanc. <br />
           <br />
           La vaisselle se loue propre et se rend sale, nous nous occupons du
           lavage et il est inclus dans les prix ! Idem pour les tissus, le
@@ -195,7 +197,13 @@ export default function LaTableClient() {
         <div className="listIcon">
           <div className="cardBottom">
             <div className="cardLeft">
-              <img src="../../img/divers/visa.svg" alt="" />
+              <Image
+                src="/img/divers/visa.svg"
+                alt="Logo Visa"
+                width={48}
+                height={32}
+                priority
+              />
               <p>
                 Choisissez vos produits directement en ligne et payez par Carte
                 Bancaire ou directement au depot NDS par chèque, virement ou
@@ -203,7 +211,13 @@ export default function LaTableClient() {
               </p>
             </div>
             <div className="cardRight">
-              <img src="../../img/divers/truck.svg" alt="" />
+              <Image
+                src="/img/divers/truck.svg"
+                alt="Icône de livraison"
+                width={48}
+                height={32}
+                priority
+              />
               <p>
                 Divers modes de livraison à votre disposition : Retrait sur
                 place, ou livraison et récupération par nos équipes!
