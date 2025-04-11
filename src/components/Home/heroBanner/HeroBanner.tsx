@@ -27,7 +27,7 @@ export default function HeroBanner() {
           Votre référence en location évènementielle
         </h2>
 
-        <Link href="/tous-nos-produits" className={styles.ctaLink}>
+        <Link href="/produits" className={styles.ctaLink}>
           <button className={styles.homeCta}>Découvrez notre boutique</button>
         </Link>
       </div>

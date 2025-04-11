@@ -24,6 +24,7 @@ import Image from "next/image";
 import { useAppDispatch } from "../../../hooks/useAppDispatch";
 import "./ProductDetails.scss";
 import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
+import Breadcrumb from "@/components/common/Breadcrumb";
 
 export interface Product {
   _id: string;
@@ -51,12 +52,20 @@ interface RootState {
   };
 }
 
+interface BreadcrumbItem {
+  label: string;
+  href: string;
+  active?: boolean;
+}
+
 interface ProductDetailsProps {
   productId?: string; // Rendre productId optionnel pour la compatibilité
+  breadcrumbItems?: BreadcrumbItem[]; // Élements du fil d'Ariane
 }
 
 export default function ProductDetails({
   productId,
+  breadcrumbItems,
 }: ProductDetailsProps = {}) {
   const paramProductId = useParams()?.productId as string;
   const pathname = usePathname(); // Récupérer le chemin URL
@@ -293,80 +302,81 @@ export default function ProductDetails({
 
   return (
     <div className="mainContainer">
-      <Container className="product-details">
-        <div className="product-details__header">
-          <div className="product-details__left-column">
-            {/* Affiche l'image actuellement sélectionnée */}
-            {currentDisplayImage && (
-              <Image
-                src={currentDisplayImage}
-                alt={product.title}
-                className="product-details__image"
-                width={500}
-                height={400}
-                style={{ objectFit: "contain" }}
-                unoptimized
-              />
-            )}
+      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
+        {breadcrumbItems && <Breadcrumb items={breadcrumbItems} />}
+        <Container className="product-details">
+          <div className="product-details__header">
+            <div className="product-details__left-column">
+              {/* Affiche l'image actuellement sélectionnée */}
+              {currentDisplayImage && (
+                <Image
+                  src={currentDisplayImage}
+                  alt={product.title}
+                  className="product-details__image"
+                  width={500}
+                  height={400}
+                  style={{ objectFit: "contain" }}
+                  unoptimized
+                />
+              )}
 
-            {/* Carrousel avec toutes les images */}
-            {allImages.length > 1 && (
-              <div className="product-details__carousel">
-                <div className="product-details__carousel-container">
-                  {allImages.map((img, index) => (
-                    <div
-                      key={index}
-                      className={`product-details__carousel-item ${
-                        currentDisplayImage === img.url ? "active" : ""
-                      }`}
-                      onClick={() => handleImageClick(img.url)}
-                    >
-                      <Image
-                        src={img.url}
-                        alt={`${product.title} - Image ${index + 1}`}
-                        width={120}
-                        height={90}
-                        style={{ objectFit: "contain" }}
-                        unoptimized
-                      />
-                    </div>
-                  ))}
+              {/* Carrousel avec toutes les images */}
+              {allImages.length > 1 && (
+                <div className="product-details__carousel">
+                  <div className="product-details__carousel-container">
+                    {allImages.map((img, index) => (
+                      <div
+                        key={index}
+                        className={`product-details__carousel-item ${
+                          currentDisplayImage === img.url ? "active" : ""
+                        }`}
+                        onClick={() => handleImageClick(img.url)}
+                      >
+                        <Image
+                          src={img.url}
+                          alt={`${product.title} - Image ${index + 1}`}
+                          width={120}
+                          height={90}
+                          style={{ objectFit: "contain" }}
+                          unoptimized
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-
-          <div className="product-details__right-column">
-            <div className="product-details__text">
-              <Typography variant="h1">{product.title}</Typography>
-              <Typography variant="h2">{product.description}</Typography>
+              )}
             </div>
 
-            {product.options?.length ? (
-              <ProductOptions
-                options={product.options}
-                selectedOptions={selectedOptions}
-                onChange={setSelectedOptions}
-              />
-            ) : (
-              <Typography variant="h6">{product.price}€ par jour</Typography>
-            )}
+            <div className="product-details__right-column">
+              <div className="product-details__text">
+                <Typography variant="h1">{product.title}</Typography>
+                <Typography variant="h2">{product.description}</Typography>
+              </div>
 
-            <Typography variant="h6">
-              {Number(product.lotSize) > 1
-                ? `${(
-                    product.price *
-                    Number(product.lotSize) *
-                    quantity
-                  ).toFixed(2)}€ pour ${quantity} ${
-                    quantity > 1 ? "lots" : "lot"
-                  } de ${product.lotSize} unités`
-                : `${product.price.toFixed(2)}€ par unité`}
-            </Typography>
+              {product.options?.length ? (
+                <ProductOptions
+                  options={product.options}
+                  selectedOptions={selectedOptions}
+                  onChange={setSelectedOptions}
+                />
+              ) : (
+                <Typography variant="h6">{product.price}€ par jour</Typography>
+              )}
+
+              <Typography variant="h6">
+                {Number(product.lotSize) > 1
+                  ? `${(
+                      product.price *
+                      Number(product.lotSize) *
+                      quantity
+                    ).toFixed(2)}€ pour ${quantity} ${
+                      quantity > 1 ? "lots" : "lot"
+                    } de ${product.lotSize} unités`
+                  : `${product.price.toFixed(2)}€ par unité`}
+              </Typography>
+            </div>
           </div>
-        </div>
 
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
           <RentalPeriod
             startDate={displayedStartDate}
             endDate={displayedEndDate}
@@ -375,155 +385,155 @@ export default function ProductDetails({
             disabled={isCalendarDisabled}
             minStartDate={addDays(new Date(), 2)}
           />
-        </LocalizationProvider>
-        {effectiveStartDate &&
-          effectiveEndDate &&
-          (stockLoading ? (
-            <Typography color="textSecondary" variant="body2">
-              Chargement du stock...
+          {effectiveStartDate &&
+            effectiveEndDate &&
+            (stockLoading ? (
+              <Typography color="textSecondary" variant="body2">
+                Chargement du stock...
+              </Typography>
+            ) : availableStock !== undefined ? (
+              <Typography
+                color="textSecondary"
+                variant="body2"
+                sx={{ mt: 1 }}
+                fontWeight={600}
+                fontSize={18}
+              >
+                {product.lotSize && product.lotSize > 1
+                  ? `Stock disponible : ${maxLotsAvailable} lots (soit ${
+                      maxLotsAvailable * product.lotSize
+                    } unités)`
+                  : `Stock disponible : ${availableStock} unités`}
+              </Typography>
+            ) : null)}
+          {product.lotSize && product.lotSize > 1 && (
+            <Typography color="textSecondary" variant="body2" sx={{ mt: 1 }}>
+              <strong>
+                ({quantity} lots) {quantity * product.lotSize} unités
+              </strong>
             </Typography>
-          ) : availableStock !== undefined ? (
-            <Typography
-              color="textSecondary"
-              variant="body2"
-              sx={{ mt: 1 }}
-              fontWeight={600}
-              fontSize={18}
-            >
-              {product.lotSize && product.lotSize > 1
-                ? `Stock disponible : ${maxLotsAvailable} lots (soit ${
-                    maxLotsAvailable * product.lotSize
-                  } unités)`
-                : `Stock disponible : ${availableStock} unités`}
+          )}
+
+          <QuantitySelector
+            quantity={quantity}
+            onChange={handleQuantityChange}
+            minQuantity={product.minQuantity}
+            stock={availableStock}
+          />
+
+          {quantityError && (
+            <Typography color="error" variant="body2">
+              {quantityError}
             </Typography>
-          ) : null)}
-        {product.lotSize && product.lotSize > 1 && (
-          <Typography color="textSecondary" variant="body2" sx={{ mt: 1 }}>
-            <strong>
-              ({quantity} lots) {quantity * product.lotSize} unités
-            </strong>
-          </Typography>
+          )}
+
+          <PriceCalculation
+            price={product.price}
+            quantity={quantity}
+            startDate={effectiveStartDate || new Date()}
+            endDate={effectiveEndDate || new Date()}
+            selectedOptions={selectedOptions}
+            setFinalPrice={setFinalPrice}
+            lotSize={product.lotSize || 1}
+          />
+          <Button
+            className="product-details__add-to-cart"
+            onClick={handleAddToCart}
+            disabled={!isFormValid}
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+          >
+            Ajouter au panier
+          </Button>
+        </Container>
+        {product && (
+          <SimilarProductsCarousel
+            currentProductId={product._id}
+            category={product.category || extractedCategory}
+          />
         )}
-
-        <QuantitySelector
-          quantity={quantity}
-          onChange={handleQuantityChange}
-          minQuantity={product.minQuantity}
-          stock={availableStock}
-        />
-
-        {quantityError && (
-          <Typography color="error" variant="body2">
-            {quantityError}
-          </Typography>
-        )}
-
-        <PriceCalculation
-          price={product.price}
-          quantity={quantity}
-          startDate={effectiveStartDate || new Date()}
-          endDate={effectiveEndDate || new Date()}
-          selectedOptions={selectedOptions}
-          setFinalPrice={setFinalPrice}
-          lotSize={product.lotSize || 1}
-        />
-        <Button
-          className="product-details__add-to-cart"
-          onClick={handleAddToCart}
-          disabled={!isFormValid}
-          variant="contained"
-          color="primary"
-          sx={{ mt: 2 }}
-        >
-          Ajouter au panier
-        </Button>
-      </Container>
-      {product && (
-        <SimilarProductsCarousel
-          currentProductId={product._id}
-          category={product.category || extractedCategory}
-        />
-      )}
-      <div className="listIconContainer">
-        <div className="listIcon">
-          <ul>
-            <li>
-              <Image
-                src="/img/divers/calendar-small.svg"
-                alt="Calendrier"
-                width={24}
-                height={24}
-                priority
-              />
-              <p>
-                Les tarifs de base sur notre site sont donnés pour des locations
-                de 1 à 4 jours.
-              </p>
-            </li>
-            <li>
-              <Image
-                src="/img/divers/double-arrow-up.svg"
-                alt="Flèche double vers le haut"
-                width={24}
-                height={24}
-                priority
-              />
-              <p>
-                Livraisons/Récupérations sur votre événement non disponible le
-                Dimanche
-              </p>
-            </li>
-            <li>
-              <Image
-                src="/img/divers/double-arrow-down.svg"
-                alt="Flèche double vers le bas"
-                width={24}
-                height={24}
-                priority
-              />
-              <p>
-                Récupérations/Restitutions à nos locaux non disponible le Samedi
-                et Dimanche
-              </p>
-            </li>
-          </ul>
-          <div className="cardBottom">
-            <div className="cardLeft">
-              <Image
-                src="/img/divers/visa.svg"
-                alt="Logo Visa"
-                width={48}
-                height={32}
-                priority
-              />
-              <p>
-                Choisissez vos produits directement en ligne et payez par Carte
-                Bancaire ou directement au depot NDS par chèque, virement ou
-                espèce
-              </p>
-            </div>
-            <div className="cardRight">
-              <Image
-                src="/img/divers/truck.svg"
-                alt="Camion de livraison"
-                width={48}
-                height={32}
-                priority
-              />
-              <p>
-                Divers modes de livraison à votre disposition : Retrait sur
-                place, ou livraison et récupération par nos équipes!
-              </p>
+        <div className="listIconContainer">
+          <div className="listIcon">
+            <ul>
+              <li>
+                <Image
+                  src="/img/divers/calendar-small.svg"
+                  alt="Calendrier"
+                  width={24}
+                  height={24}
+                  priority
+                />
+                <p>
+                  Les tarifs de base sur notre site sont donnés pour des
+                  locations de 1 à 4 jours.
+                </p>
+              </li>
+              <li>
+                <Image
+                  src="/img/divers/double-arrow-up.svg"
+                  alt="Flèche double vers le haut"
+                  width={24}
+                  height={24}
+                  priority
+                />
+                <p>
+                  Livraisons/Récupérations sur votre événement non disponible le
+                  Dimanche
+                </p>
+              </li>
+              <li>
+                <Image
+                  src="/img/divers/double-arrow-down.svg"
+                  alt="Flèche double vers le bas"
+                  width={24}
+                  height={24}
+                  priority
+                />
+                <p>
+                  Récupérations/Restitutions à nos locaux non disponible le
+                  Samedi et Dimanche
+                </p>
+              </li>
+            </ul>
+            <div className="cardBottom">
+              <div className="cardLeft">
+                <Image
+                  src="/img/divers/visa.svg"
+                  alt="Logo Visa"
+                  width={48}
+                  height={32}
+                  priority
+                />
+                <p>
+                  Choisissez vos produits directement en ligne et payez par
+                  Carte Bancaire ou directement au depot NDS par chèque,
+                  virement ou espèce
+                </p>
+              </div>
+              <div className="cardRight">
+                <Image
+                  src="/img/divers/truck.svg"
+                  alt="Camion de livraison"
+                  width={48}
+                  height={32}
+                  priority
+                />
+                <p>
+                  Divers modes de livraison à votre disposition : Retrait sur
+                  place, ou livraison et récupération par nos équipes!
+                </p>
+              </div>
             </div>
           </div>
+          <div className="bottomLink">
+            <p>
+              Pour toutes autres questions, vous pouvez vous référer à nos
+              Conditions Générales de Vente ou notre Foire Aux Questions.
+            </p>
+          </div>
         </div>
-        <div className="bottomLink">
-          <p>
-            Pour toutes autres questions, vous pouvez vous référer à nos
-            Conditions Générales de Vente ou notre Foire Aux Questions.
-          </p>
-        </div>
-      </div>
+      </LocalizationProvider>
     </div>
   );
 }

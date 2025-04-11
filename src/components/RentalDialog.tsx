@@ -31,12 +31,14 @@ interface RentalDialogProps {
   open: boolean;
   onClose: () => void;
   product: Product;
+  isPack?: boolean;
 }
 
 export default function RentalDialog({
   open,
   onClose,
   product,
+  isPack = false,
 }: RentalDialogProps) {
   // Récupération du contexte
   const cartContext = useCart();
@@ -68,9 +70,9 @@ export default function RentalDialog({
       return;
     }
 
-    // Vérifier la disponibilité selon le type
+    // Vérifier la disponibilité selon si c'est un pack ou un produit
     const available =
-      product.type === "pack"
+      isPack || product.type === "pack"
         ? isPackAvailable(product, startDate, endDate, quantity)
         : isProductAvailable(product, startDate, endDate, quantity);
 
@@ -87,7 +89,7 @@ export default function RentalDialog({
       quantity: quantity,
       startDate: startDate,
       endDate: endDate,
-      type: product.type,
+      type: isPack ? "pack" : product.type || "product",
       // Ajoutez d'autres champs si nécessaire
     };
 
@@ -125,7 +127,9 @@ export default function RentalDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Rent {product.title}</DialogTitle>
+      <DialogTitle>
+        Rent {isPack ? "Pack" : ""} {product.title}
+      </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
           {error && <Alert severity="error">{error}</Alert>}

@@ -59,20 +59,8 @@ export default function ProductCard({
         );
       }
 
-      // Cas spécial pour les tentes qui n'ont pas de sous-catégories
-      if (product.navCategory?.toLowerCase() === "tentes") {
-        router.push(`/tentes/${identifier}`);
-      } else {
-        // Pour les autres produits, utiliser le format standard avec sous-catégorie
-        const category = product.navCategory?.toLowerCase() || "la-table";
-        // Assurer que subcategory utilise des tirets au lieu d'espaces pour les URL
-        let subcategory = product.category?.toLowerCase() || "autre";
-
-        // Remplacer les espaces par des tirets dans la sous-catégorie
-        subcategory = subcategory.replace(/\s+/g, "-");
-
-        router.push(`/${category}/${subcategory}/${identifier}`);
-      }
+      // Rediriger tous les produits vers le nouveau format /produits/slug
+      router.push(`/produits/${identifier}`);
     }
   };
 

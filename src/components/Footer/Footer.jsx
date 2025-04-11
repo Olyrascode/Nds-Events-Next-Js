@@ -50,7 +50,7 @@ function Footer() {
         <div className="container3">
           <ul>
             <li>
-              <Link href="/tous-nos-produits">Nos Produits</Link>{" "}
+              <Link href="/produits">Nos Produits</Link>{" "}
               {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>

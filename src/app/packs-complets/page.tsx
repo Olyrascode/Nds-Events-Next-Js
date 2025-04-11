@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Container, Typography, Grid } from "@mui/material";
+import { Container, Typography } from "@mui/material";
 import { fetchPacks } from "../../services/packs.service";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import RentalDialog from "../../components/RentalDialog";
@@ -9,8 +9,8 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import "./_ProductPacks.scss";
-import { Product } from "@/types/Product";
+import "@/app/produits/_Products.scss";
+import { Product } from "@/type/Product";
 
 interface Pack {
   _id: string;
@@ -89,9 +89,13 @@ export default function ProductPacks() {
     }
   };
 
-  const handleRentClick = (pack: Pack) => {
-    setSelectedPack(pack);
-    setOpenRentalDialog(true);
+  const handleRentClick = (product: Product) => {
+    // Trouver le pack correspondant au produit
+    const packFound = packs.find((pack) => pack._id === product._id);
+    if (packFound) {
+      setSelectedPack(packFound);
+      setOpenRentalDialog(true);
+    }
   };
 
   if (loading) return <LoadingSpinner />;
@@ -106,50 +110,59 @@ export default function ProductPacks() {
   };
 
   return (
-    <div className="product-packs">
+    <div className="products">
       <Container>
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          className="product-packs__title"
-        >
-          {getTitle()}
-        </Typography>
-        <Typography
-          variant="h5"
-          gutterBottom
-          className="product-packs__subtitle"
-        >
-          Simplifiez votre location avec nos packs
-        </Typography>
-
-        {filteredPacks.length === 0 ? (
-          <Typography variant="h6" className="product-packs__no-results">
-            Aucun pack disponible pour cette catégorie.
+        <div className="products__header">
+          <Typography variant="h4" component="h1" className="products__title">
+            {getTitle()}
           </Typography>
-        ) : (
-          <Grid container spacing={4}>
-            {filteredPacks.map((pack) => (
-              <Grid item key={pack.slug || pack._id} xs={12} sm={6} md={4}>
+          <Typography
+            variant="h5"
+            gutterBottom
+            className="product-packs__subtitle"
+          >
+            Simplifiez votre location avec nos packs
+          </Typography>
+
+          <Typography mt={5}>
+            Choisissez vos packs directement en ligne et payez par Carte
+            Bancaire, par chèque, par virement et par espèce.
+          </Typography>
+          <Typography>
+            Divers modes de livraison à votre disposition : Retrait sur place,
+            ou livraison et récupération par nos équipes!
+          </Typography>
+        </div>
+
+        <div className="products__section">
+          {filteredPacks.length === 0 ? (
+            <Typography variant="h6">
+              Aucun pack disponible pour cette catégorie.
+            </Typography>
+          ) : (
+            <div className="products__grid">
+              {filteredPacks.map((pack) => (
                 <ProductCard
+                  key={pack.slug || pack._id}
                   product={convertPackToProduct(pack)}
                   onRent={handleRentClick}
                   isPack
                 />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-        {selectedPack && (
-          <RentalDialog
-            open={openRentalDialog}
-            onClose={() => setOpenRentalDialog(false)}
-            product={convertPackToProduct(selectedPack)}
-            isPack
-          />
-        )}
+              ))}
+            </div>
+          )}
+
+          {selectedPack && (
+            <RentalDialog
+              open={openRentalDialog}
+              onClose={() => setOpenRentalDialog(false)}
+              product={convertPackToProduct(selectedPack)}
+              isPack
+            />
+          )}
+        </div>
       </Container>
+
       <Container className="bottom-info">
         <button className="button-contacez-nous">
           <Link href="/contact">Plus de produits - contactez nous</Link>
@@ -163,11 +176,11 @@ export default function ProductPacks() {
           <br />
           <br />
           Dans cette catégorie, vous trouverez à la location, des packs complets
-          où tout est inclus ! Des tanbles, des chaises, de la vaisselle
-          (verres, couverts, assiettes, tasses, etc...), tout l&apos;art de la
-          table avec différentes gammes, du traditionnel &quot;standard&quot;
-          aux produits hauts de gamme pour un mariage par exemple, mais aussi
-          des nappes et serviettes en tissus blanc. <br />
+          où tout est inclus ! Des tables, des chaises, de la vaisselle (verres,
+          couverts, assiettes, tasses, etc...), tout l&apos;art de la table avec
+          différentes gammes, du traditionnel &quot;standard&quot; aux produits
+          hauts de gamme pour un mariage par exemple, mais aussi des nappes et
+          serviettes en tissus blanc. <br />
           <br />
           La vaisselle se loue propre et se rend sale, nous nous occupons du
           lavage et il est inclus dans les prix ! Idem pour les tissus, le

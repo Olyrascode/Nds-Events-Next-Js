@@ -8,7 +8,7 @@ import Image from "next/image";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
-import "@/app/tous-nos-produits/_Products.scss";
+import "@/app/produits/_Products.scss";
 import { Product } from "@/type/Product"; // Assurez-vous que le chemin est correct
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";

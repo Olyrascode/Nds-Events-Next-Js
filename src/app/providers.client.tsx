@@ -21,6 +21,11 @@ export default function ProvidersWrapper({
   const pathname = usePathname();
   const isHomePage = pathname === "/";
 
+  // Ne pas afficher le Breadcrumb global sur la page d'accueil et sur les pages de détail de produit
+  const isProductDetailsPage =
+    pathname?.startsWith("/produits/") && pathname?.split("/").length > 2;
+  const shouldShowBreadcrumb = !isHomePage && !isProductDetailsPage;
+
   return (
     <Provider store={store}>
       <ThemeProvider>
@@ -28,7 +33,7 @@ export default function ProvidersWrapper({
           <CartProvider>
             <RentalPeriodProvider>
               <Navigation />
-              {!isHomePage && <Breadcrumb />}
+              {shouldShowBreadcrumb && <Breadcrumb />}
               <StripeProvider>{children}</StripeProvider>
               <Footer />
             </RentalPeriodProvider>

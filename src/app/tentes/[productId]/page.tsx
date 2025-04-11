@@ -1,8 +1,8 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import nodeFetch from "node-fetch";
-import ProductDetailsClient from "../../produits/[productId]/ProductDetailsClient";
-import "../../produits/[productId]/ProductDetails.scss";
+import ProductDetailsClient from "../../produit-details/[productId]/ProductDetailsClient";
+import "../../produit-details/[productId]/ProductDetails.scss";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 

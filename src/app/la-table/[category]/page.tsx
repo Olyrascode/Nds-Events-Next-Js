@@ -3,7 +3,7 @@ import { Product } from "../../../type/Product";
 import { Container, Typography } from "@mui/material";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryFilterWrapper from "@/components/CategoryFilter/CategoryFilterWrapper";
-import "@/app/tous-nos-produits/_Products.scss";
+import "@/app/produits/_Products.scss";
 import { slugify } from "@/utils/slugify";
 import Link from "next/link";
 import Image from "next/image";
