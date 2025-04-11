@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
-import "@/app/tproduits/_Products.scss";
+import "@/app/produits/_Products.scss";
 import { Product } from "@/type/Product";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
