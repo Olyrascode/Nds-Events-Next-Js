@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import {
   DatePicker as MuiDatePicker,
@@ -75,6 +75,10 @@ export default function RentalPeriod({
   const [loading, setLoading] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
+  // Références pour suivre l'état des pickers
+  const startDateOpened = useRef<boolean>(false);
+  const endDateOpened = useRef<boolean>(false);
+
   // Détection de l'appareil mobile
   const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -143,10 +147,24 @@ export default function RentalPeriod({
   };
 
   // Solution spécifique pour les mobiles
-  const getDatePickerProps = () => {
+  const getDatePickerProps = (isStartDate: boolean) => {
     const commonProps = {
       renderDay,
       shouldDisableDate: isClosedDay,
+      onOpen: () => {
+        if (isStartDate) {
+          startDateOpened.current = true;
+        } else {
+          endDateOpened.current = true;
+        }
+      },
+      onClose: () => {
+        if (isStartDate) {
+          startDateOpened.current = false;
+        } else {
+          endDateOpened.current = false;
+        }
+      },
     };
 
     // Props spécifiques pour mobile et desktop
@@ -163,16 +181,23 @@ export default function RentalPeriod({
                 fontSize: "16px", // Évite le zoom automatique sur iOS
               },
             },
-            // Assurer que le focus sur le champ ouvre le calendrier
+            // Assurer que le focus sur le champ, mais seulement la première fois
             onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
-              // Un petit délai pour s'assurer que le champ est bien ciblé
-              setTimeout(() => {
-                e.target.click();
-              }, 100);
+              const isOpened = isStartDate
+                ? startDateOpened.current
+                : endDateOpened.current;
+
+              // N'ouvrir que si ce n'est pas déjà ouvert
+              if (!isOpened) {
+                const target = e.currentTarget.querySelector("button");
+                if (target) {
+                  target.click();
+                }
+              }
             },
             // Forcer le champ à utiliser l'attribut inputmode numérique pour les claviers mobiles
             inputProps: {
-              inputMode: "numeric",
+              inputMode: "numeric" as const, // Correction du type
             },
           },
           // Améliorer la taille des touches du calendrier sur mobile
@@ -191,7 +216,7 @@ export default function RentalPeriod({
       slotProps: {
         textField: {
           fullWidth: true,
-          onClick: (e) => {
+          onClick: (e: React.MouseEvent<HTMLDivElement>) => {
             const target = e.currentTarget.querySelector("button");
             if (target && !disabled && !loading) {
               target.click();
@@ -250,7 +275,7 @@ export default function RentalPeriod({
           onChange={handleStartDateChange}
           minDate={minStartDate}
           disabled={disabled || loading}
-          {...getDatePickerProps()}
+          {...getDatePickerProps(true)}
         />
 
         {/* Date de fin */}
@@ -262,7 +287,7 @@ export default function RentalPeriod({
           }}
           minDate={startDate ? addDays(startDate, 1) : undefined}
           disabled={!startDate || disabled || loading}
-          {...getDatePickerProps()}
+          {...getDatePickerProps(false)}
         />
       </Box>
     </Box>
