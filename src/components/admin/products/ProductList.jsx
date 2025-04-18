@@ -27,6 +27,15 @@ import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import EditProductDialog from "./EditProductDialog";
 import { formatCurrency } from "../../../utils/formatters";
 
+// Ajout de la constante pour l'URL de l'API
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+// Fonction utilitaire pour corriger les URLs d'images
+const fixImageUrl = (url) => {
+  if (!url) return ""; // Retourner une chaîne vide si l'URL est manquante
+  return url.replace("http://localhost:5000", API_URL);
+};
+
 export default function ProductList() {
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
@@ -133,7 +142,7 @@ export default function ProductList() {
                   <TableCell>
                     {item.imageUrl && (
                       <img
-                        src={item.imageUrl}
+                        src={fixImageUrl(item.imageUrl)}
                         alt={item.title}
                         style={{ width: 50, height: 50, objectFit: "cover" }}
                       />
@@ -191,7 +200,7 @@ export default function ProductList() {
                       <TableCell>
                         {item.imageUrl && (
                           <img
-                            src={item.imageUrl}
+                            src={fixImageUrl(item.imageUrl)}
                             alt={item.title}
                             style={{
                               width: 50,

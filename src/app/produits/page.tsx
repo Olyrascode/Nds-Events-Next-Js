@@ -3,62 +3,118 @@
 import React, { useState, useEffect } from "react";
 import { Container, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryFilter from "@/components/CategoryFilter/CategoryFilter";
 import RentalDialog from "@/components/RentalDialog";
 import "./_Products.scss";
+import { Product } from "../../type/Product";
+import { slugify } from "@/utils/slugify";
+
+interface ApiProduct {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  minQuantity?: number;
+  discountPercentage?: number;
+  navCategory: string;
+  category: string;
+  slug?: string;
+}
+
+interface ApiPack extends ApiProduct {
+  slug: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 export default function Products() {
-  // Récupération du paramètre de la route (exemple : /products/nav/la-table)
   const { navCategory } = useParams();
 
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [openRentalDialog, setOpenRentalDialog] = useState(false);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
-  // Charger les produits au démarrage
   useEffect(() => {
-    fetchProducts();
+    fetchAllItems();
   }, []);
 
-  // Fonction pour récupérer les produits depuis le backend
-  const fetchProducts = async () => {
+  const fetchAllItems = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) {
+      const productsResponse = await fetch(`${API_URL}/api/products`);
+      if (!productsResponse.ok) {
         throw new Error("Failed to fetch products");
       }
-      const productsData = await response.json();
+      const productsData: ApiProduct[] = await productsResponse.json();
 
-      // Exclure les produits de la catégorie "Tentes" (selon votre besoin)
-      const filteredProducts = productsData.filter(
-        (product) => product.category !== "Tentes"
-      );
-      setProducts(filteredProducts);
+      const packsResponse = await fetch(`${API_URL}/api/packs`);
+      if (!packsResponse.ok) {
+        throw new Error("Failed to fetch packs");
+      }
+      const packsData: ApiPack[] = await packsResponse.json();
 
-      // Extraire les catégories uniques (sans "Tentes")
+      const formattedProducts: Product[] = productsData
+        .filter((product: ApiProduct) => product.category !== "Tentes")
+        .map((product: ApiProduct) => ({
+          _id: product._id,
+          id: product._id,
+          title: product.title,
+          name: product.title,
+          description: product.description || "",
+          imageUrl: product.imageUrl
+            ? product.imageUrl.replace("http://localhost:5000", API_URL)
+            : "",
+          price: product.price || 0,
+          minQuantity: product.minQuantity || 1,
+          discountPercentage: product.discountPercentage || 0,
+          navCategory: product.navCategory,
+          category: product.category,
+          slug: product.slug || slugify(product.title),
+          isPack: false,
+        }));
+
+      const formattedPacks: Product[] = packsData
+        .filter((pack: ApiPack) => pack.category !== "Tentes")
+        .map((pack: ApiPack) => ({
+          _id: pack._id,
+          id: pack._id,
+          title: pack.title,
+          name: pack.title,
+          description: pack.description || "",
+          imageUrl: pack.imageUrl
+            ? pack.imageUrl.replace("http://localhost:5000", API_URL)
+            : "",
+          price: pack.price || 0,
+          minQuantity: pack.minQuantity || 1,
+          discountPercentage: pack.discountPercentage || 0,
+          navCategory: pack.navCategory,
+          category: pack.category,
+          slug: pack.slug,
+          isPack: true,
+        }));
+
+      const combinedItems = [...formattedProducts, ...formattedPacks];
+      setAllProducts(combinedItems);
+
       const uniqueCategories = [
-        ...new Set(filteredProducts.map((product) => product.category)),
+        ...new Set(combinedItems.map((item) => item.category)),
       ];
       setCategories(uniqueCategories);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Error fetching items:", error);
     }
   };
 
-  const handleRentClick = (product) => {
+  const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
     setOpenRentalDialog(true);
   };
 
-  // Filtrage des produits :
-  // - Si un paramètre navCategory est présent, on filtre sur le champ product.navCategory
-  // - Sinon, on filtre avec le filtre par catégorie détaillée sélectionnée
-  let filteredProducts = products;
+  let filteredProducts = allProducts;
   if (navCategory) {
     filteredProducts = filteredProducts.filter(
       (product) => product.navCategory === navCategory
@@ -81,7 +137,7 @@ export default function Products() {
             gutterBottom
             className="product-packs__subtitle"
           >
-            Découvrez tous les produits Nds disponnibles à la location
+            Découvrez tous les produits et packs NDS disponibles à la location
           </Typography>
           <Typography mt={5}>
             Choisissez vos produits directement en ligne et payez par Carte
@@ -93,7 +149,6 @@ export default function Products() {
           </Typography>
         </div>
         <div className="products__section">
-          {/* Afficher le filtre par catégorie seulement si aucun navCategory n'est défini */}
           {!navCategory && (
             <div className="products__filters">
               <CategoryFilter
@@ -107,9 +162,10 @@ export default function Products() {
           <div className="products__grid">
             {filteredProducts.map((product) => (
               <ProductCard
-                key={product.id || product._id}
+                key={product._id}
                 product={product}
                 onRent={handleRentClick}
+                isPack={product.isPack}
               />
             ))}
           </div>
@@ -126,7 +182,7 @@ export default function Products() {
 
       <Container className="bottom-info">
         <button className="button-contacez-nous">
-          <a href="/contact">Plus de produits - contactez nous</a>
+          <Link href="/contact">Plus de produits - contactez nous</Link>
         </button>
         <p>
           <span>
@@ -138,9 +194,9 @@ export default function Products() {
           <br />
           Dans cette catégorie, vous trouverez à la location, de la vaisselle
           (verres, couverts, assiettes, tasses, etc...), tout l&apos;art de la
-          table avec différentes gammes, du traditionnel "standard" aux produits
-          hauts de gamme pour un mariage par exemple, mais aussi des nappes et
-          serviettes en tissus blanc. <br />
+          table avec différentes gammes, du traditionnel &quot;standard&quot;
+          aux produits hauts de gamme pour un mariage par exemple, mais aussi
+          des nappes et serviettes en tissus blanc. <br />
           <br />
           La vaisselle se loue propre et se rend sale, nous nous occupons du
           lavage et il est inclus dans les prix ! Idem pour les tissus, le

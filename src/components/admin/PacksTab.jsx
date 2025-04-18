@@ -44,18 +44,14 @@ export default function PacksTab() {
       title: "",
       metaDescription: "",
     },
-    category: "",
+    category: "packs-complets",
     navCategory: "",
   });
   const [availableProducts, setAvailableProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [creatingNewCategory, setCreatingNewCategory] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Objet d'erreurs champ par champ
   const [errors, setErrors] = useState({
     title: "",
     description: "",
@@ -63,26 +59,11 @@ export default function PacksTab() {
     discountPercentage: "",
     minRentalDays: "",
     image: "",
-    category: "",
     navCategory: "",
   });
 
   useEffect(() => {
     loadProducts();
-  }, []);
-
-  useEffect(() => {
-    // Charger les catégories existantes depuis l'API
-    fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://api-nds-events.fr"
-      }/api/categories`
-    )
-      .then((res) => res.json())
-      .then((data) => setCategories(data))
-      .catch((err) =>
-        console.error("Erreur lors du chargement des catégories:", err)
-      );
   }, []);
 
   const loadProducts = async () => {
@@ -119,7 +100,6 @@ export default function PacksTab() {
       return;
     }
 
-    // Ajouter une propriété qui indique que le produit était originalement vendu par lot
     const enhancedProduct = {
       ...product,
       quantity: 1,
@@ -150,7 +130,6 @@ export default function PacksTab() {
     }));
   };
 
-  // --- FONCTION DE VALIDATION ---
   const validate = () => {
     const newErrors = { ...errors };
 
@@ -192,12 +171,6 @@ export default function PacksTab() {
       newErrors.image = "";
     }
 
-    if (!pack.category.trim()) {
-      newErrors.category = "La catégorie du pack est obligatoire.";
-    } else {
-      newErrors.category = "";
-    }
-
     if (!pack.navCategory.trim()) {
       newErrors.navCategory = "Le groupe de menu est obligatoire.";
     } else {
@@ -213,32 +186,21 @@ export default function PacksTab() {
     setLoading(true);
     setGlobalError("");
 
-    // Déterminer la catégorie finale (existante ou nouvelle)
-    const finalCategory = creatingNewCategory ? newCategory : pack.category;
-    const slugifiedCategory = creatingNewCategory
-      ? slugify(newCategory)
-      : pack.category;
-
-    // Filtrer les images null du carrousel et s'assurer qu'il n'y en a pas plus de 10
     const filteredCarouselImages = pack.carouselImages
       .filter(Boolean)
       .slice(0, 10);
 
-    // Transformer les produits en format approprié pour le backend
     const productsForSubmit = pack.products.map((product) => ({
-      id: product.id,
-      quantity: product.quantity, // La quantité est déjà en unités, pas en lots
-      title: product.title,
-      price: product.price,
-      category: product.category,
-      lotSize: product.lotSize || 1,
+      product: product._id,
+      quantity: product.quantity,
     }));
 
     const packToSubmit = {
       ...pack,
       products: productsForSubmit,
-      category: finalCategory,
+      category: "packs-complets",
       carouselImages: filteredCarouselImages,
+      slug: slugify(pack.title),
     };
 
     const isValid = validate();
@@ -248,23 +210,6 @@ export default function PacksTab() {
     }
 
     try {
-      // Si on crée une nouvelle catégorie, l'envoyer d'abord au backend
-      if (creatingNewCategory && newCategory) {
-        await fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL || "http://api-nds-events.fr"
-          }/api/categories`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: newCategory,
-              slug: slugifiedCategory,
-            }),
-          }
-        );
-      }
-
       await createPack(packToSubmit);
       setSuccess(true);
       setPack({
@@ -280,7 +225,7 @@ export default function PacksTab() {
           title: "",
           metaDescription: "",
         },
-        category: "",
+        category: "packs-complets",
         navCategory: "",
       });
       setErrors({
@@ -290,11 +235,8 @@ export default function PacksTab() {
         discountPercentage: "",
         minRentalDays: "",
         image: "",
-        category: "",
         navCategory: "",
       });
-      setCreatingNewCategory(false);
-      setNewCategory("");
     } catch (error) {
       setGlobalError(error.message || "Failed to create pack");
     } finally {
@@ -384,43 +326,12 @@ export default function PacksTab() {
         helperText={errors.description}
       />
 
-      {/* Sélection de la catégorie du pack */}
-      <FormControl fullWidth margin="normal" required>
-        <InputLabel>Catégorie du pack</InputLabel>
-        <Select
-          value={creatingNewCategory ? "__new__" : pack.category || ""}
-          label="Catégorie du pack"
-          onChange={(e) => {
-            if (e.target.value === "__new__") {
-              setCreatingNewCategory(true);
-              setPack({ ...pack, category: "" });
-            } else {
-              setCreatingNewCategory(false);
-              setPack({ ...pack, category: e.target.value });
-            }
-          }}
-        >
-          {categories.map((cat) => (
-            <MenuItem key={cat._id || cat.name} value={cat.name}>
-              {cat.name}
-            </MenuItem>
-          ))}
-          <MenuItem value="__new__">Créer une nouvelle catégorie</MenuItem>
-        </Select>
-      </FormControl>
-      {creatingNewCategory && (
-        <TextField
-          fullWidth
-          label="Nouvelle catégorie"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-          margin="normal"
-          required
-        />
-      )}
-
-      {/* Sélection du groupe de menu pour le pack */}
-      <FormControl fullWidth margin="normal" required>
+      <FormControl
+        fullWidth
+        margin="normal"
+        required
+        error={Boolean(errors.navCategory)}
+      >
         <InputLabel>Groupe de menu</InputLabel>
         <Select
           value={pack.navCategory || ""}
@@ -431,8 +342,14 @@ export default function PacksTab() {
           <MenuItem value="le-mobilier">Le Mobilier</MenuItem>
           <MenuItem value="tentes">Tentes</MenuItem>
           <MenuItem value="decorations">Décorations</MenuItem>
-          <MenuItem value="autres-packs">Autres packs</MenuItem>
+          <MenuItem value="autres-produits">Autres produits</MenuItem>
+          <MenuItem value="packs-complets">Packs Complets</MenuItem>
         </Select>
+        {errors.navCategory && (
+          <Typography color="error" variant="caption">
+            {errors.navCategory}
+          </Typography>
+        )}
       </FormControl>
 
       <Divider sx={{ my: 3 }} />

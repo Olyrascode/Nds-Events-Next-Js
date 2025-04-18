@@ -38,6 +38,15 @@ import {
 } from "../../../services/products.service";
 import { fetchPackById, updatePack } from "../../../services/packs.service";
 
+// Ajout de la constante pour l'URL de l'API
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+// Fonction utilitaire pour corriger les URLs d'images
+const fixImageUrl = (url) => {
+  if (!url) return ""; // Retourner une chaîne vide si l'URL est manquante
+  return url.replace("http://localhost:5000", API_URL);
+};
+
 // Fonction utilitaire pour générer un slug
 const generateSlug = (title) => {
   return title
@@ -81,6 +90,21 @@ export default function EditProductDialog({
 
       fetchData
         .then((responseData) => {
+          // Corriger les URLs des images avant de définir les données
+          if (responseData.imageUrl) {
+            responseData.imageUrl = fixImageUrl(responseData.imageUrl);
+          }
+          if (
+            responseData.carouselImages &&
+            responseData.carouselImages.length > 0
+          ) {
+            responseData.carouselImages = responseData.carouselImages.map(
+              (img) => ({
+                ...img,
+                url: fixImageUrl(img.url),
+              })
+            );
+          }
           setData(responseData);
           setLoading(false);
         })
@@ -134,7 +158,7 @@ export default function EditProductDialog({
     const [pack, setPack] = useState({
       title: initialData?.title || "",
       description: initialData?.description || "",
-      category: initialData?.category || "",
+      category: "packs-complets",
       navCategory: initialData?.navCategory || "",
       products:
         initialData?.products?.map((item) => {
@@ -146,7 +170,7 @@ export default function EditProductDialog({
             title: productData.title || "Sans titre",
             description: productData.description || "",
             price: productData.price || 0,
-            imageUrl: productData.imageUrl || "",
+            imageUrl: fixImageUrl(productData.imageUrl || ""),
             quantity: item.quantity || 1,
             originalItem: item, // Garder l'élément original pour référence
           };
@@ -155,21 +179,20 @@ export default function EditProductDialog({
       minRentalDays: initialData?.minRentalDays || "1",
       minQuantity: initialData?.minQuantity || "1",
       image: initialData?.image || null,
-      carouselImages: initialData?.carouselImages || Array(10).fill(null),
+      imageUrl: fixImageUrl(initialData?.imageUrl || ""),
+      carouselImages:
+        initialData?.carouselImages?.map((img) => fixImageUrl(img?.url)) ||
+        Array(10).fill(null),
       seoTitle: initialData?.seoTitle || "",
       seoMetaDescription: initialData?.seoMetaDescription || "",
     });
 
     const [availableProducts, setAvailableProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
-    const [creatingNewCategory, setCreatingNewCategory] = useState(false);
-    const [newCategory, setNewCategory] = useState("");
 
     useEffect(() => {
       loadProducts();
-      loadCategories();
 
       // Log pour déboguer les produits chargés
       console.log("Products in pack:", initialData?.products);
@@ -181,22 +204,6 @@ export default function EditProductDialog({
         setAvailableProducts(products);
       } catch (error) {
         console.error("Error loading products:", error);
-      }
-    };
-
-    const loadCategories = async () => {
-      try {
-        const response = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr"
-          }/api/categories`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data);
-        }
-      } catch (error) {
-        console.error("Erreur lors du chargement des catégories:", error);
       }
     };
 
@@ -270,13 +277,9 @@ export default function EditProductDialog({
     const handleFormSubmit = (e) => {
       e.preventDefault();
 
-      // Vérifier que les champs requis sont remplis
+      // Simplifier la validation : plus besoin de vérifier la catégorie
       const newErrors = {};
       if (!pack.title) newErrors.title = "Le titre est requis";
-      if (!creatingNewCategory && !pack.category)
-        newErrors.category = "La catégorie est requise";
-      if (creatingNewCategory && !newCategory)
-        newErrors.newCategory = "Le nom de la nouvelle catégorie est requis";
       if (!pack.navCategory)
         newErrors.navCategory = "Le groupe de menu est requis";
       if (pack.products.length === 0)
@@ -290,19 +293,15 @@ export default function EditProductDialog({
       // Filtrer les images null du carrousel
       const filteredCarouselImages = pack.carouselImages.filter(Boolean);
 
-      // Déterminer la catégorie finale (existante ou nouvelle)
-      const finalCategory = creatingNewCategory ? newCategory : pack.category;
-
-      // Préparer l'objet à soumettre
+      // Préparer l'objet à soumettre avec la catégorie fixée
       const packToSubmit = {
         ...pack,
-        category: finalCategory,
+        category: "packs-complets",
         // Format attendu par l'API : { product: id, quantity: number }
         products: pack.products.map((product) => {
           console.log("Préparation produit pour soumission:", product);
-          // S'assurer que nous avons le bon ID du produit
           return {
-            product: product.product_id, // Utiliser product_id qui contient l'ID réel du produit
+            product: product.product_id,
             quantity: parseInt(product.quantity) || 1,
           };
         }),
@@ -314,47 +313,10 @@ export default function EditProductDialog({
       };
 
       console.log("Pack à soumettre:", packToSubmit);
-      // Logging des produits formatés pour les déboguer
       console.log("Produits formatés pour API:", packToSubmit.products);
 
-      // Si on crée une nouvelle catégorie, d'abord l'envoyer au backend
-      if (creatingNewCategory && newCategory) {
-        // On crée la catégorie, puis on soumet le pack
-        createNewCategory().then(() => {
-          onSubmit(packToSubmit);
-        });
-      } else {
-        // Sinon, on soumet directement le pack
-        onSubmit(packToSubmit);
-      }
-    };
-
-    // Fonction pour créer une nouvelle catégorie
-    const createNewCategory = async () => {
-      try {
-        const response = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr"
-          }/api/categories`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: newCategory,
-              slug: generateSlug(newCategory),
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors de la création de la catégorie");
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error("Erreur lors de la création de la catégorie:", error);
-        throw error;
-      }
+      // Soumettre directement sans vérifier la création de catégorie
+      onSubmit(packToSubmit);
     };
 
     return (
@@ -364,8 +326,8 @@ export default function EditProductDialog({
             Image principale
           </Typography>
           <ImageUpload
-            onChange={handleImageChange}
-            currentImage={initialData?.imageUrl}
+            existingImageUrl={pack.imageUrl}
+            onFileChange={handleImageChange}
           />
         </Box>
 
@@ -383,10 +345,12 @@ export default function EditProductDialog({
             {Array.from({ length: 10 }).map((_, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <CarouselImageUpload
-                  onChange={(file) => handleCarouselImageChange(file, index)}
-                  currentImage={initialData?.carouselImages?.[index]?.url}
+                  existingImageUrl={pack.carouselImages[index]}
+                  onFileChange={(file) =>
+                    handleCarouselImageChange(file, index)
+                  }
+                  onFileDelete={() => handleCarouselImageDelete(index)}
                   index={index}
-                  onDelete={() => handleCarouselImageDelete(index)}
                 />
               </Grid>
             ))}
@@ -426,53 +390,6 @@ export default function EditProductDialog({
           fullWidth
           margin="normal"
           required
-          error={Boolean(errors.category)}
-        >
-          <InputLabel>Catégorie du pack</InputLabel>
-          <Select
-            value={creatingNewCategory ? "__new__" : pack.category}
-            label="Catégorie du pack"
-            onChange={(e) => {
-              if (e.target.value === "__new__") {
-                setCreatingNewCategory(true);
-                setPack({ ...pack, category: "" });
-              } else {
-                setCreatingNewCategory(false);
-                setPack({ ...pack, category: e.target.value });
-              }
-            }}
-          >
-            {categories.map((cat) => (
-              <MenuItem key={cat._id || cat.name} value={cat.name}>
-                {cat.name}
-              </MenuItem>
-            ))}
-            <MenuItem value="__new__">Créer une nouvelle catégorie</MenuItem>
-          </Select>
-          {errors.category && (
-            <Typography color="error" variant="caption">
-              {errors.category}
-            </Typography>
-          )}
-        </FormControl>
-
-        {creatingNewCategory && (
-          <TextField
-            fullWidth
-            label="Nouvelle catégorie"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            margin="normal"
-            required
-            error={Boolean(errors.newCategory)}
-            helperText={errors.newCategory}
-          />
-        )}
-
-        <FormControl
-          fullWidth
-          margin="normal"
-          required
           error={Boolean(errors.navCategory)}
         >
           <InputLabel>Groupe de menu</InputLabel>
@@ -486,6 +403,7 @@ export default function EditProductDialog({
             <MenuItem value="tentes">Tentes</MenuItem>
             <MenuItem value="decorations">Décorations</MenuItem>
             <MenuItem value="autres-produits">Autres produits</MenuItem>
+            <MenuItem value="packs-complets">Packs Complets</MenuItem>
           </Select>
           {errors.navCategory && (
             <Typography color="error" variant="caption">
@@ -550,9 +468,8 @@ export default function EditProductDialog({
                     <TableCell>
                       {product.imageUrl ? (
                         <Avatar
-                          src={product.imageUrl}
-                          alt={product.title || "Produit"}
-                          sx={{ width: 40, height: 40 }}
+                          alt={product.title}
+                          src={fixImageUrl(product.imageUrl)}
                         />
                       ) : (
                         <Avatar sx={{ width: 40, height: 40 }}>?</Avatar>
