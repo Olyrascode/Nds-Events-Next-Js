@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
 import {
   DatePicker as MuiDatePicker,
   PickersDay,
@@ -71,6 +73,15 @@ export default function RentalPeriod({
 }: RentalPeriodProps) {
   const [closedDays, setClosedDays] = useState<Date[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+
+  // Détection de l'appareil mobile
+  const isMobile = useMediaQuery("(max-width:600px)");
+
+  // Assure que le composant est monté côté client
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Charger les jours fermés pour les 6 prochains mois
   useEffect(() => {
@@ -131,32 +142,115 @@ export default function RentalPeriod({
     }
   };
 
+  // Solution spécifique pour les mobiles
+  const getDatePickerProps = () => {
+    const commonProps = {
+      renderDay,
+      shouldDisableDate: isClosedDay,
+    };
+
+    // Props spécifiques pour mobile et desktop
+    if (isMobile) {
+      return {
+        ...commonProps,
+        // Pour les appareils mobiles, rendre le champ plus grand pour être plus facile à toucher
+        slotProps: {
+          textField: {
+            fullWidth: true,
+            sx: {
+              "& .MuiInputBase-root": {
+                height: "48px",
+                fontSize: "16px", // Évite le zoom automatique sur iOS
+              },
+            },
+            // Assurer que le focus sur le champ ouvre le calendrier
+            onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+              // Un petit délai pour s'assurer que le champ est bien ciblé
+              setTimeout(() => {
+                e.target.click();
+              }, 100);
+            },
+            // Forcer le champ à utiliser l'attribut inputmode numérique pour les claviers mobiles
+            inputProps: {
+              inputMode: "numeric",
+            },
+          },
+          // Améliorer la taille des touches du calendrier sur mobile
+          day: {
+            sx: {
+              padding: "8px",
+              margin: "2px",
+            },
+          },
+        },
+      };
+    }
+
+    return {
+      ...commonProps,
+      slotProps: {
+        textField: {
+          fullWidth: true,
+          onClick: (e) => {
+            const target = e.currentTarget.querySelector("button");
+            if (target && !disabled && !loading) {
+              target.click();
+            }
+          },
+        },
+      },
+    };
+  };
+
+  // Ne pas rendre le composant côté serveur
+  if (!isMounted) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Période de location
+        </Typography>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Box
+            sx={{
+              width: "100%",
+              height: "56px",
+              bgcolor: "#f5f5f5",
+              borderRadius: "4px",
+            }}
+          />
+          <Box
+            sx={{
+              width: "100%",
+              height: "56px",
+              bgcolor: "#f5f5f5",
+              borderRadius: "4px",
+            }}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ mb: 3 }}>
       <Typography variant="h6" gutterBottom>
         Période de location
       </Typography>
-      <Box sx={{ display: "flex", gap: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          flexDirection: isMobile ? "column" : "row",
+        }}
+      >
         {/* Date de début */}
         <DatePicker
           label="Début de location"
           value={startDate}
           onChange={handleStartDateChange}
           minDate={minStartDate}
-          shouldDisableDate={isClosedDay}
-          renderDay={renderDay} // Prop customisée
           disabled={disabled || loading}
-          slotProps={{
-            textField: {
-              fullWidth: true,
-              onClick: (e) => {
-                const target = e.currentTarget.querySelector("button");
-                if (target && !disabled && !loading) {
-                  target.click();
-                }
-              },
-            },
-          }}
+          {...getDatePickerProps()}
         />
 
         {/* Date de fin */}
@@ -167,20 +261,8 @@ export default function RentalPeriod({
             if (!disabled) onEndDateChange(date);
           }}
           minDate={startDate ? addDays(startDate, 1) : undefined}
-          shouldDisableDate={isClosedDay}
-          renderDay={renderDay}
           disabled={!startDate || disabled || loading}
-          slotProps={{
-            textField: {
-              fullWidth: true,
-              onClick: (e) => {
-                const target = e.currentTarget.querySelector("button");
-                if (target && !(!startDate || disabled || loading)) {
-                  target.click();
-                }
-              },
-            },
-          }}
+          {...getDatePickerProps()}
         />
       </Box>
     </Box>
