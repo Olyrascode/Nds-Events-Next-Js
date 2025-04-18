@@ -26,6 +26,15 @@ import "./ProductDetails.scss";
 import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
 import Breadcrumb from "@/components/common/Breadcrumb";
 
+// Ajout de la constante pour l'URL de l'API
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+// Fonction utilitaire pour corriger les URLs d'images
+const fixImageUrl = (url: string | undefined): string => {
+  if (!url) return "/default-placeholder.png";
+  return url.replace("http://localhost:5000", API_URL);
+};
+
 export interface Product {
   _id: string;
   title: string;
@@ -133,6 +142,25 @@ export default function ProductDetails({
         setError(null);
         const productData = await fetchProductById(actualProductId);
         console.log("Produit chargé:", productData);
+
+        // Corriger les URLs d'images dans le produit chargé
+        if (productData.imageUrl) {
+          productData.imageUrl = fixImageUrl(productData.imageUrl);
+        }
+
+        // Corriger les URLs des images du carousel
+        if (
+          productData.carouselImages &&
+          productData.carouselImages.length > 0
+        ) {
+          productData.carouselImages = productData.carouselImages.map(
+            (img: { url: string; fileName: string }) => ({
+              ...img,
+              url: fixImageUrl(img.url),
+            })
+          );
+        }
+
         setProduct(productData);
         // Définir l'image principale comme image affichée par défaut
         setCurrentDisplayImage(productData.imageUrl || null);
@@ -281,6 +309,23 @@ export default function ProductDetails({
       : quantity <= availableStock) &&
     !quantityError;
 
+  // Préparation des images pour affichage - placé avant la condition de rendu
+  const allImages = useMemo(() => {
+    if (!product) return [];
+    // Image principale
+    const mainImage = { url: product.imageUrl || "", fileName: "main" };
+    // Images du carousel si elles existent
+    const carouselImgs = product.carouselImages || [];
+
+    // Corriger toutes les URLs d'images
+    return [mainImage, ...carouselImgs].map(
+      (img: { url: string; fileName: string }) => ({
+        ...img,
+        url: fixImageUrl(img.url),
+      })
+    );
+  }, [product]);
+
   if (!product) {
     return (
       <div className="product-details__error">
@@ -288,12 +333,6 @@ export default function ProductDetails({
       </div>
     );
   }
-
-  // Créer un tableau qui contient toutes les images (principale + carrousel)
-  const allImages = [
-    { url: product.imageUrl || "", fileName: "main-image" },
-    ...(product.carouselImages || []),
-  ].filter((img) => img.url); // Filtrer les images sans URL
 
   // Fonction pour changer l'image principale
   const handleImageClick = (imageUrl: string) => {

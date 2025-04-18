@@ -8,6 +8,9 @@ import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import { Product } from "../../type/Product";
 import "./ProductCard.scss";
 
+// Ajout de la constante pour l'URL de l'API
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
 interface ProductCardProps {
   product: Product;
   onRent?: (product: Product) => void;
@@ -79,7 +82,10 @@ export default function ProductCard({
       .replace(/\-\-+/g, "-");
   };
 
-  const imageUrl = product.imageUrl || "/default-placeholder.png";
+  // Modifier la ligne pour transformer l'URL de l'image
+  const imageUrl = product.imageUrl
+    ? product.imageUrl.replace("http://localhost:5000", API_URL)
+    : "/default-placeholder.png";
   const title = product.title || product.name;
 
   return (
