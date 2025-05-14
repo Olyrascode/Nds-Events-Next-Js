@@ -440,20 +440,18 @@ export default function ProductDetails({
                   selectedOptions={selectedOptions}
                   onChange={setSelectedOptions}
                 />
-              ) : (
-                <Typography variant="h6">{product.price}€ par jour</Typography>
-              )}
+              ) : null}
 
               <Typography variant="h6">
                 {Number(product.lotSize) > 1
-                  ? `${(
+                  ? `A partir de ${(
                       product.price *
                       Number(product.lotSize) *
                       quantity
-                    ).toFixed(2)}€ pour ${quantity} ${
+                    ).toFixed(2)} € pour ${quantity} ${
                       quantity > 1 ? "lots" : "lot"
                     } de ${product.lotSize} unités`
-                  : `${product.price.toFixed(2)}€ par unité`}
+                  : `A partir de ${product.price.toFixed(2)} €`}
               </Typography>
             </div>
           </div>
