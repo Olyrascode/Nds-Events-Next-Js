@@ -7,7 +7,7 @@ import { fetchAvailableStock } from "../../../features/stockSlice";
 import { useCart } from "../../../contexts/CartContext";
 import { fetchProductById } from "../../../services/products.service";
 import { calculateRentalDays } from "../../../utils/dateUtils";
-import { addDays } from "date-fns";
+import { addDays, isSaturday, isSunday } from "date-fns";
 import { Typography, Container, Button } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -95,12 +95,25 @@ export default function ProductDetails({
   const [currentDisplayImage, setCurrentDisplayImage] = useState<string | null>(
     null
   );
+  // Nouvel état pour le message d'erreur de sélection de date
+  const [dateSelectionErrorMessage, setDateSelectionErrorMessage] = useState<
+    string | null
+  >(null);
 
   // Extraire la sous-catégorie de l'URL si possible
   const [extractedCategory, setExtractedCategory] = useState<string>("");
 
   // Bloquer le calendrier si un produit est déjà dans le panier (quelle que soient ses dates)
   const isCalendarDisabled = cart.length > 0;
+
+  // Déterminer si les week-ends doivent être désactivés
+  const categoryForCheck = product?.category
+    ?.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const shouldDisableWeekends = categoryForCheck === "bornes a selfie";
 
   const availableStock = useSelector(
     (state: RootState) => state.stock.stockByProduct[actualProductId]
@@ -205,6 +218,29 @@ export default function ProductDetails({
       dispatch(fetchAvailableStock(params));
     }
   }, [actualProductId, effectiveStartDate, effectiveEndDate, dispatch]);
+
+  // useEffect pour vérifier les dates des bornes à selfie
+  useEffect(() => {
+    if (product && shouldDisableWeekends) {
+      // shouldDisableWeekends vérifie déjà la catégorie
+      const startDateIsWeekend =
+        effectiveStartDate &&
+        (isSaturday(effectiveStartDate) || isSunday(effectiveStartDate));
+      const endDateIsWeekend =
+        effectiveEndDate &&
+        (isSaturday(effectiveEndDate) || isSunday(effectiveEndDate));
+
+      if (startDateIsWeekend || endDateIsWeekend) {
+        setDateSelectionErrorMessage(
+          "Les bornes à selfie ne peuvent pas être louées ou rendues pendant le week-end."
+        );
+      } else {
+        setDateSelectionErrorMessage(null);
+      }
+    } else {
+      setDateSelectionErrorMessage(null); // Réinitialiser si ce n'est pas la bonne catégorie ou si le produit n'est pas chargé
+    }
+  }, [product, effectiveStartDate, effectiveEndDate, shouldDisableWeekends]);
 
   useEffect(() => {
     if (!product) return;
@@ -389,7 +425,13 @@ export default function ProductDetails({
             <div className="product-details__right-column">
               <div className="product-details__text">
                 <Typography variant="h1">{product.title}</Typography>
-                <Typography variant="h2">{product.description}</Typography>
+                <Typography
+                  variant="body1"
+                  className="product-description"
+                  sx={{ whiteSpace: "pre-line" }}
+                >
+                  {product.description}
+                </Typography>
               </div>
 
               {product.options?.length ? (
@@ -423,7 +465,18 @@ export default function ProductDetails({
             onEndDateChange={handleEndDateChange}
             disabled={isCalendarDisabled}
             minStartDate={addDays(new Date(), 2)}
+            disableWeekends={shouldDisableWeekends}
           />
+          {/* Affichage du message d'erreur de sélection de date */}
+          {dateSelectionErrorMessage && (
+            <Typography
+              color="error"
+              variant="caption"
+              sx={{ display: "block", mt: 1, fontSize: "18px" }}
+            >
+              {dateSelectionErrorMessage}
+            </Typography>
+          )}
           {effectiveStartDate &&
             effectiveEndDate &&
             (stockLoading ? (
@@ -478,7 +531,7 @@ export default function ProductDetails({
           <Button
             className="product-details__add-to-cart"
             onClick={handleAddToCart}
-            disabled={!isFormValid}
+            disabled={!isFormValid || dateSelectionErrorMessage !== null}
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}

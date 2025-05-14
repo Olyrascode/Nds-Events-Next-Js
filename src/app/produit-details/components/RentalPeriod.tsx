@@ -7,7 +7,7 @@ import {
   PickersDay,
   PickersDayProps,
 } from "@mui/x-date-pickers";
-import { addDays, isSunday, format, isSameDay } from "date-fns";
+import { addDays, isSunday, format, isSameDay, isSaturday } from "date-fns";
 import { styled } from "@mui/material/styles";
 import { getClosedDaysBetweenDates } from "../../../services/closedDays.service";
 
@@ -52,6 +52,7 @@ interface RentalPeriodProps {
   onEndDateChange: (newDate: Date | null) => void;
   minStartDate: Date;
   disabled?: boolean;
+  disableWeekends?: boolean;
 }
 
 // Définir une interface pour les jours fermés
@@ -70,6 +71,7 @@ export default function RentalPeriod({
   onEndDateChange,
   minStartDate,
   disabled = false,
+  disableWeekends = false,
 }: RentalPeriodProps) {
   const [closedDays, setClosedDays] = useState<Date[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -116,9 +118,13 @@ export default function RentalPeriod({
   }, []);
 
   // Fonction pour vérifier si un jour est fermé (dimanche ou jour fermé par l'admin)
-  const isClosedDay = (date: Date): boolean => {
+  // ou si les week-ends sont désactivés et que c'est un samedi
+  const isDayDisabled = (date: Date): boolean => {
     // Vérifier si c'est un dimanche
     if (isSunday(date)) return true;
+
+    // Si disableWeekends est true, vérifier si c'est un samedi
+    if (disableWeekends && isSaturday(date)) return true;
 
     // Vérifier si c'est un jour fermé par l'admin
     return closedDays.some((closedDate) => isSameDay(closedDate, date));
@@ -130,7 +136,7 @@ export default function RentalPeriod({
     selectedDates: (Date | null)[],
     pickersDayProps: PickersDayProps<Date>
   ): React.ReactElement => {
-    if (isClosedDay(day)) {
+    if (isDayDisabled(day)) {
       return <StyledClosedDay {...pickersDayProps} />;
     }
     return <PickersDay {...pickersDayProps} />;
@@ -150,7 +156,7 @@ export default function RentalPeriod({
   const getDatePickerProps = (isStartDate: boolean) => {
     const commonProps = {
       renderDay,
-      shouldDisableDate: isClosedDay,
+      shouldDisableDate: isDayDisabled,
       onOpen: () => {
         if (isStartDate) {
           startDateOpened.current = true;
