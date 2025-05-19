@@ -25,6 +25,7 @@ import { useAppDispatch } from "../../../hooks/useAppDispatch";
 import "./ProductDetails.scss";
 import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
 import Breadcrumb from "@/components/common/Breadcrumb";
+import { slugify } from "@/utils/slugify";
 
 // Ajout de la constante pour l'URL de l'API
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
@@ -69,12 +70,10 @@ interface BreadcrumbItem {
 
 interface ProductDetailsProps {
   productId?: string; // Rendre productId optionnel pour la compatibilité
-  breadcrumbItems?: BreadcrumbItem[]; // Élements du fil d'Ariane
 }
 
 export default function ProductDetails({
   productId,
-  breadcrumbItems,
 }: ProductDetailsProps = {}) {
   const paramProductId = useParams()?.productId as string;
   const pathname = usePathname(); // Récupérer le chemin URL
@@ -99,6 +98,11 @@ export default function ProductDetails({
   const [dateSelectionErrorMessage, setDateSelectionErrorMessage] = useState<
     string | null
   >(null);
+
+  // État pour les items du fil d'Ariane dynamiques
+  const [dynamicBreadcrumbItems, setDynamicBreadcrumbItems] = useState<
+    BreadcrumbItem[]
+  >([]);
 
   // Extraire la sous-catégorie de l'URL si possible
   const [extractedCategory, setExtractedCategory] = useState<string>("");
@@ -362,11 +366,61 @@ export default function ProductDetails({
     );
   }, [product]);
 
+  useEffect(() => {
+    if (product) {
+      const items: BreadcrumbItem[] = [];
+
+      // 1. Accueil (si le composant Breadcrumb ne l'ajoute pas par défaut)
+      // Notre composant Breadcrumb l'ajoute déjà par défaut si showHomeLink = true (ce qui est le cas par défaut)
+      // donc pas besoin de l'ajouter ici manuellement unless showHomeLink est false pour ce Breadcrumb.
+
+      if (product.navCategory) {
+        // Convertir le slug de navCategory en un label lisible
+        // Exemple simple: "autres-produits" -> "Autres produits"
+        // Vous pouvez avoir une fonction plus sophistiquée si nécessaire
+        let navCategoryLabel = product.navCategory.replace(/-/g, " ");
+        navCategoryLabel =
+          navCategoryLabel.charAt(0).toUpperCase() + navCategoryLabel.slice(1);
+
+        items.push({
+          label: navCategoryLabel,
+          href: `/${slugify(product.navCategory)}`,
+        });
+      }
+      if (product.category) {
+        // Utilise le nom de catégorie exact du produit (avec accents)
+        items.push({
+          label: product.category,
+          href: `/${slugify(product.navCategory)}/${slugify(product.category)}`,
+        });
+      }
+      if (product.title) {
+        // Utilise le titre exact du produit (avec accents)
+        items.push({ label: product.title, href: pathname, active: true });
+      }
+      setDynamicBreadcrumbItems(items);
+    }
+  }, [product, pathname]); // Dépendances : product et pathname
+
+  if (error) {
+    return (
+      <Container>
+        <Breadcrumb items={dynamicBreadcrumbItems} />
+        <Typography color="error" align="center" sx={{ mt: 4 }}>
+          {error}
+        </Typography>
+      </Container>
+    );
+  }
+
   if (!product) {
     return (
-      <div className="product-details__error">
-        {error || "Produit introuvable."}
-      </div>
+      <Container>
+        <Breadcrumb items={dynamicBreadcrumbItems} />
+        <Typography align="center" sx={{ mt: 4 }}>
+          Chargement du produit...
+        </Typography>
+      </Container>
     );
   }
 
@@ -376,9 +430,9 @@ export default function ProductDetails({
   };
 
   return (
-    <div className="mainContainer">
-      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
-        {breadcrumbItems && <Breadcrumb items={breadcrumbItems} />}
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
+      <Breadcrumb items={dynamicBreadcrumbItems} />
+      <div className="mainContainer">
         <Container className="product-details">
           <div className="product-details__header">
             <div className="product-details__left-column">
@@ -524,7 +578,8 @@ export default function ProductDetails({
             endDate={effectiveEndDate || new Date()}
             selectedOptions={selectedOptions}
             setFinalPrice={setFinalPrice}
-            lotSize={product.lotSize || 1}
+            lotSize={product?.lotSize}
+            category={product?.category}
           />
           <Button
             className="product-details__add-to-cart"
@@ -623,7 +678,7 @@ export default function ProductDetails({
             </p>
           </div>
         </div>
-      </LocalizationProvider>
-    </div>
+      </div>
+    </LocalizationProvider>
   );
 }

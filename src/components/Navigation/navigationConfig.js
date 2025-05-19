@@ -16,6 +16,4 @@ export const menuItems = [
 
 export const adminMenuItems = [
   { label: "Administration", path: "/AdminPanel" },
-  { label: "Gestion des produits", path: "/admin/products" },
-  { label: "Calendrier des commandes", path: "/admin/calendar" },
 ];

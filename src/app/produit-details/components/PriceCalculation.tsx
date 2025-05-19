@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { calculateRentalDays } from "../../../utils/dateUtils";
+import { isSaturday, isSunday } from "date-fns";
 
 interface PriceCalculationProps {
   price: number;
@@ -12,6 +13,7 @@ interface PriceCalculationProps {
   };
   setFinalPrice: (price: number) => void;
   lotSize?: number; // Nouveau prop pour le lot
+  category?: string; // Ajout de la catégorie du produit
 }
 
 // Fonction utilitaire pour formater le prix avec € à la fin
@@ -27,6 +29,7 @@ export default function PriceCalculation({
   selectedOptions,
   setFinalPrice,
   lotSize = 1, // Par défaut 1 si non fourni
+  category, // Récupération de la catégorie
 }: PriceCalculationProps) {
   const days = calculateRentalDays(startDate, endDate);
 
@@ -49,6 +52,40 @@ export default function PriceCalculation({
 
   // Calcul du prix total (majoration de 15% par jour au-delà de 4 jours)
   let totalPrice = basePrice;
+
+  // Logique de réduction pour "Bornes à selfie"
+  if (category) {
+    const normalizedCategory = category
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (normalizedCategory === "bornes a selfie") {
+      const startDay = startDate.getDay(); // Dimanche = 0, Lundi = 1, ..., Samedi = 6
+      const endDay = endDate.getDay();
+
+      // Vérifier que les jours sont bien en semaine (lundi=1, ..., vendredi=5)
+      // Et que ce ne sont pas des samedis (6) ou dimanches (0)
+      const isWeekdayRental =
+        startDay >= 1 &&
+        startDay <= 5 &&
+        endDay >= 1 &&
+        endDay <= 5 &&
+        !isSaturday(startDate) &&
+        !isSunday(startDate) &&
+        !isSaturday(endDate) &&
+        !isSunday(endDate);
+
+      if (isWeekdayRental && days >= 1 && days <= 2) {
+        totalPrice -= 40 * quantity; // Appliquer la réduction par unité de borne
+        totalPrice = Math.max(0, totalPrice); // S'assurer que le prix ne devient pas négatif
+      }
+    }
+  }
+
+  // Majoration pour location longue durée APRÈS la réduction potentielle
   if (days > 4) {
     const extraDays = days - 4;
     totalPrice += basePrice * 0.15 * extraDays;
