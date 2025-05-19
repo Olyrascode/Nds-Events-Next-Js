@@ -1,10 +1,8 @@
-
-
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Image from 'next/image';
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import {
   Container,
   Paper,
@@ -14,11 +12,11 @@ import {
   Grid,
   Button,
   Alert,
-} from '@mui/material';
-import { format } from 'date-fns';
-import { formatPrice } from '@/utils/priceUtils';
-import DownloadIcon from '@mui/icons-material/Download';
-import { generateInvoicePDF } from '@/utils/invoiceGenerator';
+} from "@mui/material";
+import { format } from "date-fns";
+import { formatPrice } from "@/utils/priceUtils";
+import DownloadIcon from "@mui/icons-material/Download";
+import { generateInvoicePDF } from "@/utils/invoiceGenerator";
 
 // Define interfaces for your order data
 interface BillingInfo {
@@ -37,13 +35,22 @@ interface ShippingInfo {
   zipCode: string;
 }
 
+interface OptionValueObject {
+  id?: string;
+  name?: string;
+  value?: string | number;
+  price?: number;
+  deliveryMandatory?: boolean;
+}
+
 interface OrderProduct {
   _id: string;
   imageUrl: string;
   title: string;
   quantity: number;
   price: number;
-  selectedOptions?: Record<string, string>;
+  selectedOptions?: Record<string, string | OptionValueObject>;
+  lotSize?: number;
 }
 
 interface Order {
@@ -56,17 +63,18 @@ interface Order {
   startDate: string;
   endDate: string;
   total: number;
+  shippingFee?: number;
 }
 
 export default function OrderConfirmation() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('id'); // Retrieve order ID from URL
-
+  const orderId = searchParams.get("id"); // Retrieve order ID from URL
 
   // Define order state with proper type and error state as string | null
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-nds-events.fr';
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
   useEffect(() => {
     if (orderId) {
@@ -111,7 +119,14 @@ export default function OrderConfirmation() {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper sx={{ p: 4 }}>
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Box
+          sx={{
+            mb: 4,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             variant="contained"
             startIcon={<DownloadIcon />}
@@ -131,13 +146,13 @@ export default function OrderConfirmation() {
           </Button>
         </Box>
 
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Box sx={{ textAlign: "center", mb: 4 }}>
           <Typography variant="h4" gutterBottom color="success.main">
             Commande confirmée!
           </Typography>
           <Typography variant="subtitle1">Commande #{order._id}</Typography>
           <Typography variant="body2" color="text.secondary">
-            {format(new Date(order.createdAt), 'PPP')}
+            {format(new Date(order.createdAt), "PPP")}
           </Typography>
         </Box>
 
@@ -159,7 +174,7 @@ export default function OrderConfirmation() {
             </Typography>
           </Grid>
 
-          {order.deliveryMethod === 'delivery' && order.shippingInfo && (
+          {order.deliveryMethod === "delivery" && order.shippingInfo && (
             <Grid item xs={12} md={6}>
               <Typography variant="h6" gutterBottom>
                 Informations de livraison
@@ -182,25 +197,75 @@ export default function OrderConfirmation() {
           <Box key={item._id} sx={{ mb: 2 }}>
             <Grid container alignItems="center" spacing={2}>
               <Grid item>
-              <Image
+                <Image
                   src={item.imageUrl}
                   alt={item.title}
                   width={60}
                   height={60}
-                  style={{ objectFit: 'cover' }}
+                  style={{ objectFit: "cover" }}
                 />
               </Grid>
               <Grid item xs>
                 <Typography variant="subtitle1">{item.title}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Quantité: {item.quantity} | {formatPrice(item.price)}
+                  {item.lotSize && item.lotSize > 1
+                    ? `Quantité: ${item.quantity * item.lotSize} articles (${
+                        item.quantity
+                      } lot(s) de ${item.lotSize})`
+                    : `Quantité: ${item.quantity}`}
+                  {" | "}Prix total ligne:{" "}
+                  {formatPrice(
+                    item.price * item.quantity * (item.lotSize || 1)
+                  )}
                 </Typography>
                 {item.selectedOptions &&
-                  Object.entries(item.selectedOptions).map(([key, value]) => (
-                    <Typography key={key} variant="body2" color="text.secondary">
-                      {key}: {value}
-                    </Typography>
-                  ))}
+                  Object.entries(item.selectedOptions).map(
+                    ([optionKey, optionValue]) => {
+                      let displayValue: string | number = "";
+                      let optionPriceString = "";
+
+                      if (typeof optionValue === "string") {
+                        displayValue = optionValue;
+                      } else if (typeof optionValue === "number") {
+                        displayValue = optionValue;
+                      } else if (
+                        typeof optionValue === "object" &&
+                        optionValue !== null
+                      ) {
+                        if (
+                          "name" in optionValue &&
+                          typeof optionValue.name === "string"
+                        ) {
+                          displayValue = optionValue.name;
+                        } else {
+                          displayValue = JSON.stringify(optionValue);
+                        }
+                        // Vérifier et formater le prix de l'option
+                        if (
+                          "price" in optionValue &&
+                          typeof optionValue.price === "number" &&
+                          optionValue.price > 0
+                        ) {
+                          optionPriceString = ` (+${formatPrice(
+                            optionValue.price
+                          )})`;
+                        }
+                      } else {
+                        displayValue = String(optionValue);
+                      }
+
+                      return (
+                        <Typography
+                          key={optionKey}
+                          variant="body2"
+                          color="text.secondary"
+                        >
+                          {optionKey}: {displayValue}
+                          {optionPriceString}
+                        </Typography>
+                      );
+                    }
+                  )}
               </Grid>
             </Grid>
           </Box>
@@ -208,21 +273,28 @@ export default function OrderConfirmation() {
 
         <Divider sx={{ my: 3 }} />
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
           <Typography>Période de location:</Typography>
           <Typography>
-            {format(new Date(order.startDate), 'PP')} - {format(new Date(order.endDate), 'PP')}
+            {format(new Date(order.startDate), "PP")} -{" "}
+            {format(new Date(order.endDate), "PP")}
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-  <Typography>Méthode de réception:</Typography>
-  <Typography>
-    {order.deliveryMethod === 'delivery' ? `Livraison par NDS (${formatPrice(order.shippingFee)})` : 'Récupération au depot NDS'}
-  </Typography>
-</Box>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+          <Typography>Méthode de réception:</Typography>
+          <Typography>
+            {order.deliveryMethod === "delivery"
+              ? `Livraison par NDS ${
+                  typeof order.shippingFee === "number"
+                    ? `(${formatPrice(order.shippingFee)})`
+                    : "(Frais applicables)"
+                }`
+              : "Récupération au depot NDS"}
+          </Typography>
+        </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
           <Typography variant="h6">Total:</Typography>
           <Typography variant="h6">{formatPrice(order.total)}</Typography>
         </Box>

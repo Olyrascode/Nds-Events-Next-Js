@@ -6,7 +6,9 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
-  }).format(amount || 0);
+  })
+    .format(amount || 0)
+    .replace(/\s/g, " "); // Remplace tous les types d'espaces (y compris insécables) par un espace standard
 };
 
 export const generateInvoicePDF = async (order) => {
@@ -139,16 +141,69 @@ export const generateInvoicePDF = async (order) => {
     doc.setFont("helvetica", "normal");
     doc.text("Comptant", margin + 45, yPosition);
 
-    yPosition += 15; // Espace avant le tableau
+    yPosition += 10; // Espace
+
+    // --- Mode de réception et Frais de livraison ---
+    doc.setFont("helvetica", "bold");
+    doc.text("Mode de réception :", margin, yPosition);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      order.deliveryMethod === "pickup"
+        ? "Récupération au dépôt"
+        : order.deliveryMethod === "delivery"
+        ? "Livraison à l'adresse indiquée"
+        : "N/A",
+      margin + 45, // Ajuster l'indentation si nécessaire
+      yPosition
+    );
+    yPosition += 5;
+
+    let shippingFeeHT = 0;
+    let shippingFeeTVAAmount = 0;
+    const shippingFeeTvaRate = 20; // Taux de TVA supposé pour les frais de port
+
+    if (
+      order.deliveryMethod === "delivery" &&
+      order.shippingFee &&
+      order.shippingFee > 0
+    ) {
+      const shippingFeeTTC = order.shippingFee;
+      doc.setFont("helvetica", "bold");
+      doc.text("Frais de livraison TTC:", margin, yPosition); // Indiquer TTC pour clarté
+      doc.setFont("helvetica", "normal");
+      doc.text(formatCurrency(shippingFeeTTC), margin + 45, yPosition); // Ajuster l'indentation
+      yPosition += 5;
+
+      shippingFeeHT = shippingFeeTTC / (1 + shippingFeeTvaRate / 100);
+      shippingFeeTVAAmount = shippingFeeTTC - shippingFeeHT;
+    }
+
+    yPosition += 10; // Espace avant le tableau
 
     // --- Tableau des produits ---
-    // Regroupement des produits par catégorie (ajuster les catégories si nécessaire)
+    // Regroupement des produits par catégorie
+
+    // Liste des titres de sections explicites qui doivent apparaître si des produits leur appartiennent
+    const explicitSectionTitles = [
+      "Tentes rapides - Location",
+      "Mobilier et autres - Location",
+      "Prestations",
+      "Frais VHR",
+    ];
+
     const groupedProducts = (order.products || []).reduce((acc, product) => {
-      const category = product.category || "Autres"; // Catégorie par défaut
-      if (!acc[category]) {
-        acc[category] = [];
+      let targetGroup = product.category; // Utilise la catégorie du produit
+
+      // Si la catégorie du produit n'est pas l'une des sections explicites,
+      // ou si la catégorie est vide/nulle, la mettre dans "Autres".
+      if (!targetGroup || !explicitSectionTitles.includes(targetGroup)) {
+        targetGroup = "Autres";
       }
-      acc[category].push(product);
+
+      if (!acc[targetGroup]) {
+        acc[targetGroup] = [];
+      }
+      acc[targetGroup].push(product);
       return acc;
     }, {});
 
@@ -168,55 +223,142 @@ export const generateInvoicePDF = async (order) => {
     let totalHT = 0;
     const tvaDetails = {}; // Pour stocker les montants par taux de TVA
 
-    // Définir les sections souhaitées
-    const sections = [
+    // Ajouter les frais de port aux totaux HT et TVA s'ils existent
+    if (shippingFeeHT > 0) {
+      totalHT += shippingFeeHT;
+      if (!tvaDetails[shippingFeeTvaRate]) {
+        tvaDetails[shippingFeeTvaRate] = { base: 0, amount: 0 };
+      }
+      tvaDetails[shippingFeeTvaRate].base += shippingFeeHT;
+      tvaDetails[shippingFeeTvaRate].amount += shippingFeeTVAAmount;
+    }
+
+    // Définir l'ORDRE d'affichage des sections souhaitées dans le PDF
+    const displaySectionsOrder = [
       "Tentes rapides - Location",
       "Mobilier et autres - Location",
       "Prestations",
       "Frais VHR",
-      "Autres",
+      "Autres", // "Autres" est la dernière section où les produits non catégorisés explicitement apparaîtront
     ];
 
-    sections.forEach((section) => {
-      if (groupedProducts[section]) {
+    displaySectionsOrder.forEach((sectionTitle) => {
+      // Vérifier si ce groupe de produits existe et contient des éléments
+      if (
+        groupedProducts[sectionTitle] &&
+        groupedProducts[sectionTitle].length > 0
+      ) {
         // Ajouter une ligne de titre de section
         tableBody.push([
           {
-            content: section,
+            content: sectionTitle, // Utiliser le titre de la section défini dans displaySectionsOrder
             colSpan: tableColumns.length,
             styles: { fontStyle: "bold", fillColor: [230, 230, 230] },
           },
         ]);
 
-        groupedProducts[section].forEach((product) => {
-          const quantity = product.quantity || 1;
-          // Supposons que product.price est le PRIX UNITAIRE TTC que vous avez stocké
-          const unitPriceTTC = product.price || 0;
-          const lineTotalTTC = unitPriceTTC * quantity; // Calcul correct du total de ligne TTC
+        groupedProducts[sectionTitle].forEach((product) => {
+          const nbLots = product.quantity || 1;
+          const sizeOfLot = product.lotSize || 1;
+          const actualItemQuantity = nbLots * sizeOfLot;
 
-          const remise = product.discountPercentage || 0; // Remise en %
-          const tvaRate = product.taxRate || 20; // Taux de TVA (défaut 20%)
+          const unitPriceTTC_perItem = product.price || 0; // Prix TTC d'un item individuel DE BASE
 
-          // Calcul à partir du TTC
+          // Calculer le total des options pour ce produit
+          let optionsTotalTTC = 0;
+          if (
+            product.selectedOptions &&
+            typeof product.selectedOptions === "object"
+          ) {
+            Object.values(product.selectedOptions).forEach((optionValue) => {
+              if (optionValue && typeof optionValue.price === "number") {
+                optionsTotalTTC += optionValue.price;
+              }
+            });
+          }
+
+          const itemsBaseTotalTTC = actualItemQuantity * unitPriceTTC_perItem;
+          const lineTotalTTC = itemsBaseTotalTTC + optionsTotalTTC; // Total TTC pour la ligne (articles de base + options)
+
+          const remise = product.discountPercentage || 0;
+          const tvaRate = product.taxRate || 20;
+
           const mttHT = lineTotalTTC / (1 + tvaRate / 100);
           const tvaAmount = lineTotalTTC - mttHT;
-          // Le PU HT est calculé sur la base du prix unitaire TTC (unitPriceTTC) et non du total de ligne.
-          // Si unitPriceTTC est bien le prix unitaire, alors puHT se calcule à partir de unitPriceTTC / (1 + tvaRate/100)
-          const puHT_calculated_from_unit = unitPriceTTC / (1 + tvaRate / 100);
+
+          const puHT_calculated_from_unit =
+            unitPriceTTC_perItem / (1 + tvaRate / 100);
 
           tableBody.push([
             product.reference ||
               product.product?.toString() ||
               product._id?.toString() ||
-              "N/A", // product.product si c'est l'ID du produit référencé
-            product.name || product.title || "N/A", // Utiliser product.name (souvent stocké) ou product.title
-            quantity,
-            remise > 0 ? `${remise}%` : "", // Afficher la remise en %
-            formatCurrency(puHT_calculated_from_unit), // PU HT calculé à partir du PU TTC
+              "N/A",
+            product.name || product.title || "N/A",
+            actualItemQuantity,
+            remise > 0 ? `${remise}%` : "",
+            formatCurrency(puHT_calculated_from_unit),
             `${tvaRate}%`,
-            formatCurrency(mttHT), // Montant HT de la ligne (basé sur lineTotalTTC)
-            formatCurrency(lineTotalTTC), // Montant TTC de la ligne
+            formatCurrency(mttHT),
+            formatCurrency(lineTotalTTC),
           ]);
+
+          // Ajout des lignes pour les options sélectionnées (FRONTEND)
+          if (
+            product.selectedOptions &&
+            typeof product.selectedOptions === "object"
+          ) {
+            Object.values(product.selectedOptions).forEach((optionValue) => {
+              // On s'attend à ce que optionValue soit un objet avec potentiellement name, value, price
+              if (
+                optionValue &&
+                (typeof optionValue.value === "string" ||
+                  typeof optionValue.price === "number")
+              ) {
+                let optionDisplayText = "  - "; // Indentation pour l'option
+
+                if (
+                  typeof optionValue.value === "string" &&
+                  optionValue.value
+                ) {
+                  optionDisplayText += `${optionValue.value}`;
+                }
+
+                if (
+                  typeof optionValue.price === "number" &&
+                  optionValue.price > 0
+                ) {
+                  if (
+                    typeof optionValue.value === "string" &&
+                    optionValue.value
+                  ) {
+                    optionDisplayText += ` (${formatCurrency(
+                      optionValue.price
+                    )})`; // Prix entre parenthèses si la valeur est aussi affichée
+                  } else {
+                    optionDisplayText += `${formatCurrency(optionValue.price)}`; // Juste le prix si pas de valeur textuelle
+                  }
+                }
+
+                // N'afficher la ligne que si on a quelque chose à montrer (valeur ou prix)
+                if (optionDisplayText.trim() !== "-") {
+                  tableBody.push([
+                    { content: "", styles: { cellWidth: "wrap" } },
+                    {
+                      content: optionDisplayText,
+                      styles: { fontStyle: "italic", cellWidth: "auto" },
+                    },
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                  ]);
+                }
+              }
+            });
+          }
 
           totalHT += mttHT;
           // Agrégation par taux de TVA
@@ -316,7 +458,20 @@ export const generateInvoicePDF = async (order) => {
     doc.setFont("helvetica", "bold");
     doc.text("Total TTC", totalBoxX, yPosition);
     const totalTTC = totalHT + totalTVA;
-    doc.text(formatCurrency(totalTTC), totalBoxX + totalBoxWidth, yPosition, {
+
+    console.log("[Frontend Invoice Debug] totalHT:", totalHT);
+    console.log("[Frontend Invoice Debug] totalTVA:", totalTVA);
+    console.log(
+      "[Frontend Invoice Debug] totalTTC before formatting:",
+      totalTTC
+    );
+    const formattedTotalTTC = formatCurrency(totalTTC);
+    console.log(
+      "[Frontend Invoice Debug] totalTTC after formatting (by formatCurrency):",
+      formattedTotalTTC
+    );
+
+    doc.text(formattedTotalTTC, totalBoxX + totalBoxWidth, yPosition, {
       align: "right",
     });
     yPosition += 10;

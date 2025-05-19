@@ -124,11 +124,12 @@ export default function OrdersTab() {
       return matchesId || fullName.includes(lowerSearch);
     });
   };
-  console.log(
-    "Order data for frontend invoice:",
-    JSON.stringify(order, null, 2)
-  );
+
   const handleDownloadInvoice = async (order) => {
+    console.log(
+      "Order data for frontend invoice (admin tab):",
+      JSON.stringify(order, null, 2)
+    );
     try {
       await generateInvoicePDF(order);
     } catch (error) {
@@ -150,21 +151,6 @@ export default function OrdersTab() {
     }
   };
 
-  // const handleDelete = async (orderId) => {
-  //   if (!orderId) return;
-  //   const confirmed = window.confirm("Voulez-vous vraiment supprimer cette commande ?");
-  //   if (!confirmed) return;
-  //   try {
-  //     await deleteOrder(orderId);
-  //     // Supprimer la commande de la liste active et rejetée, le cas échéant
-  //     setActiveOrders(prev => prev.filter(order => order._id !== orderId));
-
-  //     setCancelledOrders(prev => prev.filter(order => order._id !== orderId));
-  //     console.log("🟢 Commande supprimée avec succès !");
-  //   } catch (error) {
-  //     console.error("🔴 Erreur suppression commande:", error);
-  //   }
-  // };
   const handleDelete = async (orderId) => {
     if (!orderId) return;
     const confirmed = window.confirm(

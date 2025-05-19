@@ -10,7 +10,6 @@ import ShippingForm from "../../components/checkout/ShippingForm";
 import BillingForm from "../../components/checkout/BillingForm";
 import PaymentForm from "../../components/checkout/PaymentForm";
 import PaymentMethodSelection from "../../components/checkout/PaymentMethodSelection/PaymentMethodSelection";
-import { calculateOrderTotal } from "../../utils/priceUtils";
 import {
   Box,
   Stepper,
@@ -41,12 +40,6 @@ interface BillingInfo {
 
 interface PaymentIntent {
   id: string;
-}
-
-interface OrderTotals {
-  itemsTotal: number;
-  deliveryFee: number;
-  total: number;
 }
 
 const steps = ["Review Order", "Billing & Shipping", "Payment"];
@@ -125,7 +118,23 @@ export default function Checkout() {
     setActiveStep((prev) => prev - 1);
   };
 
-  const orderTotals = calculateOrderTotal(cart, deliveryMethod) as OrderTotals;
+  // Calcul du total des articles
+  const itemsTotal = cart.reduce((sum, item) => {
+    // item.price dans le panier INCLUT DÉJÀ le prix des options sélectionnées.
+    const linePrice = parseFloat(String(item.price || 0));
+    return sum + linePrice;
+  }, 0);
+
+  // Déterminer les frais de livraison réels à utiliser pour l'affichage et le paiement
+  const actualShippingFee =
+    deliveryMethod === "delivery"
+      ? shippingFee !== null
+        ? shippingFee
+        : 0 // Utilise les frais calculés si dispos, sinon 0 (ou une valeur par défaut si pertinent)
+      : 0;
+
+  // Calculer le total général pour l'affichage et Stripe
+  const grandTotal = itemsTotal + actualShippingFee;
 
   const handlePaymentSuccess = async (paymentIntent: PaymentIntent) => {
     // Suppression de la vérification d'authentification pour permettre le paiement sans utilisateur connecté
@@ -142,8 +151,8 @@ export default function Checkout() {
       // Pour obtenir le montant correct, soustrayez ce forfait et ajoutez shippingFee.
       const finalTotal =
         deliveryMethod === "delivery"
-          ? orderTotals.total - 60 + shippingFee!
-          : orderTotals.total;
+          ? itemsTotal + (shippingFee !== null ? shippingFee : 0) // Recalcul basé sur itemsTotal et shippingFee de l'état
+          : itemsTotal; // Si pickup, total est juste itemsTotal
 
       // S'assurer d'avoir un email client, même sans utilisateur connecté
       const customerEmail = currentUser?.email || billingInfo.email || "";
@@ -234,7 +243,7 @@ export default function Checkout() {
             />
             {paymentMethod === "card" ? (
               <PaymentForm
-                amount={Math.round(orderTotals.total * 100)}
+                amount={Math.round(grandTotal * 100)}
                 onSuccess={handlePaymentSuccess}
               />
             ) : (
