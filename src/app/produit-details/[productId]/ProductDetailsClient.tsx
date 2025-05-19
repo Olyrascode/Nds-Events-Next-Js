@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import { fetchAvailableStock } from "../../../features/stockSlice";
 import { useCart } from "../../../contexts/CartContext";
 import { fetchProductById } from "../../../services/products.service";
-import { calculateRentalDays } from "../../../utils/dateUtils";
 import { addDays, isSaturday, isSunday } from "date-fns";
 import { Typography, Container, Button } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -245,30 +244,6 @@ export default function ProductDetails({
       setDateSelectionErrorMessage(null); // Réinitialiser si ce n'est pas la bonne catégorie ou si le produit n'est pas chargé
     }
   }, [product, effectiveStartDate, effectiveEndDate, shouldDisableWeekends]);
-
-  useEffect(() => {
-    if (!product) return;
-    const days = calculateRentalDays(effectiveStartDate, effectiveEndDate);
-    const lotSize = product.lotSize || 1;
-    const optionPrice = Object.values(selectedOptions).reduce(
-      (acc, opt) => acc + opt.price,
-      0
-    );
-    const unitPrice = product.price + optionPrice;
-    const basePrice = unitPrice * quantity * lotSize;
-    let computedFinalPrice = basePrice;
-    if (days > 4) {
-      const extraDays = days - 4;
-      computedFinalPrice += basePrice * 0.15 * extraDays;
-    }
-    setFinalPrice(computedFinalPrice);
-  }, [
-    product,
-    selectedOptions,
-    quantity,
-    effectiveStartDate,
-    effectiveEndDate,
-  ]);
 
   // Validation de la quantité en tenant compte du lot
   useEffect(() => {
