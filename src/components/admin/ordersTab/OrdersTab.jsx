@@ -124,7 +124,10 @@ export default function OrdersTab() {
       return matchesId || fullName.includes(lowerSearch);
     });
   };
-
+  console.log(
+    "Order data for frontend invoice:",
+    JSON.stringify(order, null, 2)
+  );
   const handleDownloadInvoice = async (order) => {
     try {
       await generateInvoicePDF(order);

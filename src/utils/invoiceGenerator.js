@@ -190,25 +190,32 @@ export const generateInvoicePDF = async (order) => {
 
         groupedProducts[section].forEach((product) => {
           const quantity = product.quantity || 1;
-          const lineTotalTTC = product.price || 0; // Prix TTC total pour la ligne
+          // Supposons que product.price est le PRIX UNITAIRE TTC que vous avez stocké
+          const unitPriceTTC = product.price || 0;
+          const lineTotalTTC = unitPriceTTC * quantity; // Calcul correct du total de ligne TTC
+
           const remise = product.discountPercentage || 0; // Remise en %
           const tvaRate = product.taxRate || 20; // Taux de TVA (défaut 20%)
 
           // Calcul à partir du TTC
           const mttHT = lineTotalTTC / (1 + tvaRate / 100);
           const tvaAmount = lineTotalTTC - mttHT;
-          const puHT = quantity !== 0 ? mttHT / quantity : 0;
-          // Note: La remise est juste affichée, le prix TTC est supposé déjà remisé
+          // Le PU HT est calculé sur la base du prix unitaire TTC (unitPriceTTC) et non du total de ligne.
+          // Si unitPriceTTC est bien le prix unitaire, alors puHT se calcule à partir de unitPriceTTC / (1 + tvaRate/100)
+          const puHT_calculated_from_unit = unitPriceTTC / (1 + tvaRate / 100);
 
           tableBody.push([
-            product.reference || product._id || "N/A", // Utiliser reference ou _id
-            product.title || "N/A",
+            product.reference ||
+              product.product?.toString() ||
+              product._id?.toString() ||
+              "N/A", // product.product si c'est l'ID du produit référencé
+            product.name || product.title || "N/A", // Utiliser product.name (souvent stocké) ou product.title
             quantity,
             remise > 0 ? `${remise}%` : "", // Afficher la remise en %
-            formatCurrency(puHT), // PU HT calculé
+            formatCurrency(puHT_calculated_from_unit), // PU HT calculé à partir du PU TTC
             `${tvaRate}%`,
-            formatCurrency(mttHT), // Montant HT calculé
-            formatCurrency(lineTotalTTC), // Montant TTC original
+            formatCurrency(mttHT), // Montant HT de la ligne (basé sur lineTotalTTC)
+            formatCurrency(lineTotalTTC), // Montant TTC de la ligne
           ]);
 
           totalHT += mttHT;
