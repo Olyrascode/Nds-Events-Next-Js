@@ -18,6 +18,12 @@ export interface User {
 interface AuthResponse {
   token: string;
   user: User;
+  message?: string;
+}
+
+interface ErrorResponse {
+  message: string;
+  errors?: Array<{ msg: string; param?: string; location?: string }>;
 }
 
 interface AuthContextType {
@@ -26,6 +32,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<AuthResponse>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
+  performPasswordReset: (token: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -55,7 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         });
         if (!response.ok) {
-          throw new Error("Failed to fetch user details");
+          const errorData: ErrorResponse = await response
+            .json()
+            .catch(() => ({ message: "Failed to fetch user details" }));
+          throw new Error(errorData.message || "Failed to fetch user details");
         }
         const userData = await response.json();
         return userData as User;
@@ -78,16 +88,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
       if (!response.ok) {
-        throw new Error("Failed to sign up");
+        const errorData: ErrorResponse = await response
+          .json()
+          .catch(() => ({ message: "Failed to sign up" }));
+        throw new Error(errorData.message || "Failed to sign up");
       }
-      const data = await response.json();
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem(
-        "sessionExpiry",
-        (Date.now() + 60 * 60 * 1000).toString()
-      );
-      setCurrentUser({ email });
-      return data as AuthResponse;
+      const data: AuthResponse = await response.json();
+      return data;
     } catch (error) {
       console.error("Signup error:", error);
       throw error;
@@ -105,16 +112,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
       if (!response.ok) {
-        throw new Error("Failed to login");
+        const errorData: ErrorResponse = await response
+          .json()
+          .catch(() => ({ message: "Failed to login" }));
+        throw new Error(errorData.message || "Failed to login");
       }
-      const data = await response.json();
+      const data: AuthResponse = await response.json();
       localStorage.setItem("authToken", data.token);
       localStorage.setItem(
         "sessionExpiry",
         (Date.now() + 60 * 60 * 1000).toString()
       );
       setCurrentUser(data.user);
-      return data as AuthResponse;
+      return data;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -129,22 +139,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string): Promise<void> => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const response = await fetch(
+        `${API_URL}/api/auth/request-password-reset`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
       if (!response.ok) {
-        throw new Error("Failed to reset password");
+        const errorData: ErrorResponse = await response
+          .json()
+          .catch(() => ({ message: "Failed to request password reset" }));
+        throw new Error(
+          errorData.message || "Failed to request password reset"
+        );
       }
     } catch (error) {
-      console.error("Reset password error:", error);
+      console.error("Reset password request error:", error);
+      throw error;
+    }
+  };
+
+  const performPasswordReset = async (
+    token: string,
+    newPassword: string
+  ): Promise<void> => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/auth/reset-password/${token}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ newPassword }),
+        }
+      );
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response
+          .json()
+          .catch(() => ({ message: "Failed to perform password reset" }));
+        throw new Error(
+          errorData.message || "Failed to perform password reset"
+        );
+      }
+    } catch (error) {
+      console.error("Perform password reset error:", error);
       throw error;
     }
   };
 
   useEffect(() => {
     const initializeUser = async () => {
+      setLoading(true);
       const token = localStorage.getItem("authToken");
       const sessionExpiry = localStorage.getItem("sessionExpiry");
       if (token && sessionExpiry && Date.now() < parseInt(sessionExpiry, 10)) {
@@ -154,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           logout();
         }
-      } else {
+      } else if (token) {
         logout();
       }
       setLoading(false);
@@ -164,7 +210,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, signup, login, logout, resetPassword }}
+      value={{
+        currentUser,
+        signup,
+        login,
+        logout,
+        resetPassword,
+        performPasswordReset,
+      }}
     >
       {!loading && children}
     </AuthContext.Provider>

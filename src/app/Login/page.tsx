@@ -84,7 +84,7 @@ export default function Login() {
               required
             />
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-              Envoyer l'email de réinitialisation
+              Envoyer l&apos;email de réinitialisation
             </Button>
             <Box sx={{ mt: 2, textAlign: "center" }}>
               <Link
