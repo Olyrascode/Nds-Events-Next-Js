@@ -331,17 +331,19 @@ export default function OrdersTab() {
                           size="small"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <MenuItem value="Validated">Validée</MenuItem>
+                          <MenuItem value="confirmé">Validée</MenuItem>
                           <MenuItem value="Pending">En attente</MenuItem>
                           <MenuItem value="Rejected">Rejetée</MenuItem>
                         </Select>
                       ) : (
                         <span>
-                          {order.orderStatus === "Validated"
+                          {order.orderStatus === "confirmé"
                             ? "Validée"
                             : order.orderStatus === "Pending"
                             ? "En attente"
-                            : "Rejetée"}
+                            : order.orderStatus === "Rejected"
+                            ? "Rejetée"
+                            : order.orderStatus}
                         </span>
                       )
                     ) : (
