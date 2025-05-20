@@ -26,6 +26,15 @@ import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { slugify } from "@/utils/slugify";
 
+// Duplication de NAV_CATEGORIES_OPTIONS (idéalement, à centraliser)
+const NAV_CATEGORIES_OPTIONS = [
+  { slug: "la-table", name: "La Table" },
+  { slug: "le-mobilier", name: "Le Mobilier" },
+  { slug: "decorations", name: "Décorations" },
+  { slug: "autres-produits", name: "Autres Produits" },
+  { slug: "tentes", name: "Tentes" },
+];
+
 // Ajout de la constante pour l'URL de l'API
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
@@ -44,12 +53,16 @@ export interface Product {
   minQuantity?: number;
   lotSize?: number;
   options?: ProductOption[];
-  category?: string;
-  navCategory?: string;
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>;
   carouselImages?: Array<{
     url: string;
     fileName: string;
   }>;
+  deliveryMandatory?: boolean;
 }
 
 type SelectedOptions = Record<string, SelectedOption>;
@@ -110,13 +123,17 @@ export default function ProductDetails({
   const isCalendarDisabled = cart.length > 0;
 
   // Déterminer si les week-ends doivent être désactivés
-  const categoryForCheck = product?.category
-    ?.toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  const shouldDisableWeekends = categoryForCheck === "bornes a selfie";
+  const normalizedProductCategories =
+    product?.associations?.map((assoc) =>
+      assoc.categoryName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
+    ) || [];
+  const shouldDisableWeekends =
+    normalizedProductCategories.includes("bornes a selfie");
 
   const availableStock = useSelector(
     (state: RootState) => state.stock.stockByProduct[actualProductId]
@@ -309,6 +326,7 @@ export default function ProductDetails({
       selectedOptions,
       lotSize: product.lotSize,
       type: "product",
+      deliveryMandatory: product.deliveryMandatory,
     });
     setIsCartOpen(true);
   };
@@ -341,41 +359,82 @@ export default function ProductDetails({
     );
   }, [product]);
 
+  // useEffect pour mettre à jour le fil d'Ariane lorsque le produit est chargé
   useEffect(() => {
     if (product) {
-      const items: BreadcrumbItem[] = [];
+      const items: BreadcrumbItem[] = [
+        // L'item "Accueil" est géré par le composant Breadcrumb lui-même si showHomeLink est true,
+        // donc pas besoin de l'ajouter ici manuellement unless showHomeLink est false pour ce Breadcrumb.
+      ];
 
-      // 1. Accueil (si le composant Breadcrumb ne l'ajoute pas par défaut)
-      // Notre composant Breadcrumb l'ajoute déjà par défaut si showHomeLink = true (ce qui est le cas par défaut)
-      // donc pas besoin de l'ajouter ici manuellement unless showHomeLink est false pour ce Breadcrumb.
+      if (product.associations && product.associations.length > 0) {
+        const firstAssociation = product.associations[0];
 
-      if (product.navCategory) {
-        // Convertir le slug de navCategory en un label lisible
-        // Exemple simple: "autres-produits" -> "Autres produits"
-        // Vous pouvez avoir une fonction plus sophistiquée si nécessaire
-        let navCategoryLabel = product.navCategory.replace(/-/g, " ");
-        navCategoryLabel =
-          navCategoryLabel.charAt(0).toUpperCase() + navCategoryLabel.slice(1);
+        const navCategoryOption = NAV_CATEGORIES_OPTIONS.find(
+          (opt) => opt.slug === firstAssociation.navCategorySlug
+        );
+        const navCategoryLabel = navCategoryOption
+          ? navCategoryOption.name
+          : firstAssociation.navCategorySlug;
 
         items.push({
           label: navCategoryLabel,
-          href: `/${slugify(product.navCategory)}`,
+          href: `/${firstAssociation.navCategorySlug}`,
         });
-      }
-      if (product.category) {
-        // Utilise le nom de catégorie exact du produit (avec accents)
         items.push({
-          label: product.category,
-          href: `/${slugify(product.navCategory)}/${slugify(product.category)}`,
+          label: firstAssociation.categoryName,
+          href: `/${firstAssociation.navCategorySlug}/${slugify(
+            firstAssociation.categoryName
+          )}`,
+        });
+      } else if (extractedCategory) {
+        // Fallback si pas d'associations mais une catégorie extraite de l'URL (ancienne logique de produit)
+        // Trouver la navCategory correspondante à extractedCategory si possible (nécessiterait une logique complexe ou une API)
+        // Pour l'instant, on ne met qu'un lien simple basé sur extractedCategory
+        // Ce cas devrait devenir moins pertinent avec la nouvelle structure d'associations
+        const navSlugFromPath = pathname.split("/").filter((p) => p)[0]; // ex: "le-mobilier"
+        const navCategoryOption = NAV_CATEGORIES_OPTIONS.find(
+          (opt) => opt.slug === navSlugFromPath
+        );
+        const navCategoryLabel = navCategoryOption
+          ? navCategoryOption.name
+          : navSlugFromPath;
+
+        if (navSlugFromPath && navSlugFromPath !== slugify(extractedCategory)) {
+          // Eviter de dupliquer si navSlug est la catégorie
+          items.push({
+            label: navCategoryLabel,
+            href: `/${navSlugFromPath}`,
+          });
+        }
+        items.push({
+          label:
+            extractedCategory.charAt(0).toUpperCase() +
+            extractedCategory.slice(1).replace(/-/g, " "),
+          href: `/${navSlugFromPath}/${slugify(extractedCategory)}`,
         });
       }
-      if (product.title) {
-        // Utilise le titre exact du produit (avec accents)
-        items.push({ label: product.title, href: pathname, active: true });
-      }
+
+      items.push({
+        label: product.title,
+        href: pathname, // Lien actuel
+        active: true,
+      });
+
       setDynamicBreadcrumbItems(items);
     }
-  }, [product, pathname]); // Dépendances : product et pathname
+  }, [product, pathname, extractedCategory]);
+
+  console.log(
+    "[ProductDetailsClient] Value of product.associations before render:",
+    product?.associations
+  );
+  console.log(
+    "[ProductDetailsClient] Type of product.associations before render:",
+    typeof product?.associations,
+    "Is Array?",
+    Array.isArray(product?.associations)
+  );
 
   if (error) {
     return (
@@ -554,7 +613,7 @@ export default function ProductDetails({
             selectedOptions={selectedOptions}
             setFinalPrice={setFinalPrice}
             lotSize={product?.lotSize}
-            category={product?.category}
+            category={product?.associations?.[0]?.categoryName}
           />
           <Button
             className="product-details__add-to-cart"
@@ -570,7 +629,11 @@ export default function ProductDetails({
         {product && (
           <SimilarProductsCarousel
             currentProductId={product._id}
-            category={product.category || extractedCategory}
+            category={
+              (product.associations && product.associations.length > 0
+                ? product.associations[0].categoryName
+                : undefined) || extractedCategory
+            }
           />
         )}
         <div className="listIconContainer">

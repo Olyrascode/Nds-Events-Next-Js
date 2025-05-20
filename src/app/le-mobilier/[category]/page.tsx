@@ -5,8 +5,42 @@ import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryFilterWrapper from "@/components/CategoryFilter/CategoryFilterWrapper";
 import "@/app/produits/_Products.scss";
 import { slugify } from "@/utils/slugify";
+import Link from "next/link";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+// Définition des types bruts pour la réponse API
+interface RawProduct {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  minQuantity?: number;
+  lotSize?: number;
+  discountPercentage?: number;
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>;
+  options?: Array<{ name: string; price: number }>;
+  carouselImages?: Array<{ url: string; fileName?: string }>;
+  deliveryMandatory?: boolean;
+}
+
+interface RawPack extends Omit<RawProduct, "associations"> {
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>;
+  products: {
+    product: { _id: string; title: string; imageUrl?: string; price: number };
+    quantity: number;
+  }[];
+  slug?: string;
+}
 
 async function fetchProducts(): Promise<Product[]> {
   const res = await nodeFetch(`${API_URL}/api/products`);
@@ -18,10 +52,10 @@ async function fetchProducts(): Promise<Product[]> {
     );
   }
 
-  const productsData = await res.json();
-  const packsData = await packsRes.json();
+  const productsData = (await res.json()) as RawProduct[];
+  const packsData = (await packsRes.json()) as RawPack[];
 
-  const products: Product[] = productsData.map((product: any) => ({
+  const products: Product[] = productsData.map((product) => ({
     _id: product._id,
     id: product._id,
     title: product.title,
@@ -30,13 +64,16 @@ async function fetchProducts(): Promise<Product[]> {
     imageUrl: product.imageUrl || "",
     price: product.price || 0,
     minQuantity: product.minQuantity || 1,
+    lotSize: product.lotSize || undefined,
     discountPercentage: product.discountPercentage || 0,
-    navCategory: product.navCategory,
-    category: product.category,
+    associations: product.associations || [],
+    options: product.options || [],
+    carouselImages: product.carouselImages || [],
+    deliveryMandatory: product.deliveryMandatory || false,
     slug: slugify(product.title),
   }));
 
-  const packs: Product[] = packsData.map((pack: any) => ({
+  const packs: Product[] = packsData.map((pack) => ({
     _id: pack._id,
     id: pack._id,
     title: pack.title,
@@ -45,11 +82,15 @@ async function fetchProducts(): Promise<Product[]> {
     imageUrl: pack.imageUrl || "",
     price: pack.price || 0,
     minQuantity: pack.minQuantity || 1,
+    lotSize: pack.lotSize || undefined,
     discountPercentage: pack.discountPercentage || 0,
-    navCategory: pack.navCategory,
-    category: pack.category,
+    associations: pack.associations || [],
+    options: pack.options || [],
+    carouselImages: pack.carouselImages || [],
+    deliveryMandatory: pack.deliveryMandatory || false,
     isPack: true,
     products: pack.products,
+    slug: pack.slug || slugify(pack.title),
   }));
 
   return [...products, ...packs];
@@ -57,24 +98,30 @@ async function fetchProducts(): Promise<Product[]> {
 
 export async function generateStaticParams() {
   const products: Product[] = await fetchProducts();
-  const paths = products.map((product) => ({
-    category: product.category,
+  const categorySlugs = new Set<string>();
+
+  products.forEach((product) => {
+    if (product.associations && product.associations.length > 0) {
+      product.associations.forEach((assoc) => {
+        if (assoc.navCategorySlug === "le-mobilier" && assoc.categoryName) {
+          categorySlugs.add(slugify(assoc.categoryName));
+        }
+      });
+    }
+  });
+
+  return Array.from(categorySlugs).map((slug) => ({
+    category: slug,
   }));
-
-  const uniquePaths = Array.from(
-    new Set(paths.map((p) => JSON.stringify(p)))
-  ).map((s) => JSON.parse(s));
-
-  return uniquePaths;
 }
 
 export async function generateMetadata(context: {
-  params: { category: string };
+  params: Promise<{ category: string }>; // Assurer que c'est Promise
 }) {
-  const { category } = context.params;
-  const navCategory = "le-mobilier";
-  const decodedNavCategory = decodeURIComponent(navCategory);
-  const decodedCategory = decodeURIComponent(category);
+  const { category: resolvedCategory } = await context.params; // Utiliser await
+  // const navCategory = "le-mobilier"; // Pas nécessaire pour le titre/description ici
+  // const decodedNavCategory = decodeURIComponent(navCategory);
+  const decodedCategory = decodeURIComponent(resolvedCategory);
 
   return {
     title: `${decodedCategory} | NDS EVENTS`,
@@ -85,46 +132,58 @@ export async function generateMetadata(context: {
 export default async function CategoryPage({
   params,
 }: {
-  params: { category: string };
+  params: Promise<{ category: string }>; // Assurer que c'est Promise
 }) {
+  const { category: resolvedCategory } = await params; // Utiliser await
   const navCategory = "le-mobilier";
-  const category = params.category;
-  const decodedNavCategory = decodeURIComponent(navCategory);
-  const decodedCategory = decodeURIComponent(category);
+  // const category = params.category; // Ancienne méthode
+  // const decodedNavCategory = decodeURIComponent(navCategory); // navCategory est déjà un slug propre
+  const decodedCategory = decodeURIComponent(resolvedCategory);
 
   const products: Product[] = await fetchProducts();
 
-  // Extraction des catégories uniques en excluant "Tentes"
-  const categories = Array.from(
-    new Set(
-      products
-        .filter(
-          (product) =>
-            product.navCategory.trim() === decodedNavCategory.trim() &&
-            product.category !== "Tentes"
-        )
-        .map((product) => product.category)
-    )
-  );
+  // Extraction des catégories uniques pour le filtre, spécifiques à "le-mobilier"
+  const uniqueCategoryNamesForFilter = new Set<string>();
+  products.forEach((product) => {
+    if (product.associations) {
+      product.associations.forEach((assoc) => {
+        if (
+          assoc.navCategorySlug === navCategory &&
+          assoc.categoryName &&
+          assoc.categoryName.toLowerCase() !== "tentes"
+        ) {
+          uniqueCategoryNamesForFilter.add(assoc.categoryName);
+        }
+      });
+    }
+  });
+  const categoriesForFilterDisplay = Array.from(uniqueCategoryNamesForFilter);
 
-  // Trouver la catégorie originale correspondant au slug
-  const originalCategory = categories.find(
-    (cat) => slugify(cat) === decodedCategory
-  );
+  // Trouver la catégorie originale correspondant au slug de l'URL parmi celles extraites
+  const originalCategory =
+    categoriesForFilterDisplay.find(
+      (catName) => slugify(catName) === decodedCategory
+    ) || decodedCategory; // Fallback au decodedCategory
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.navCategory.trim() === decodedNavCategory.trim() &&
-      product.category.trim() === originalCategory?.trim()
-  );
+  const filteredProducts = products.filter((product) => {
+    if (!product.associations || product.associations.length === 0)
+      return false;
+    return product.associations.some(
+      (assoc) =>
+        assoc.navCategorySlug === navCategory &&
+        assoc.categoryName && // Vérifier que categoryName existe avant de le slugifier
+        slugify(assoc.categoryName) === decodedCategory
+    );
+  });
 
   return (
     <div className="products">
       <div className="products__header">
-        <h1>{originalCategory || decodedCategory}</h1>
+        <h1>{originalCategory}</h1>{" "}
+        {/* Utiliser originalCategory directement */}
         <p>
-          Découvrez tous les produits dans la catégorie{" "}
-          {originalCategory || decodedCategory}.
+          Découvrez tous les produits dans la catégorie {originalCategory}.{" "}
+          {/* Utiliser originalCategory directement */}
         </p>
         <Typography mt={5}>
           Choisissez vos produits directement en ligne et payez par Carte
@@ -139,9 +198,9 @@ export default async function CategoryPage({
         <div className="products__section">
           <div className="products__filters">
             <CategoryFilterWrapper
-              categories={categories}
-              selectedCategory={originalCategory || null}
-              navCategory={decodedNavCategory}
+              categories={categoriesForFilterDisplay}
+              selectedCategory={originalCategory}
+              navCategory={navCategory} // Passer navCategory (qui est "le-mobilier")
             />
           </div>
 
@@ -153,9 +212,9 @@ export default async function CategoryPage({
         </div>
       </Container>
       <Container className="bottom-info">
-        <button className="button-contacez-nous">
-          <a href="/contact">Plus de produits - contactez nous</a>
-        </button>
+        <Link href="/contact" className="button-contacez-nous">
+          Plus de produits - contactez nous
+        </Link>
         <p>
           <span>
             NDS Event&apos;s, spécialiste de la location de matériel

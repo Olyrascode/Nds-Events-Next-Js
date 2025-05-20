@@ -17,6 +17,7 @@ export interface CartItem {
   imageUrl?: string;
   type?: "pack" | "product";
   lotSize?: number; // Taille du lot pour les produits vendus par lot
+  deliveryMandatory?: boolean; // Indique si le produit lui-même impose la livraison
   selectedOptions?: {
     deliveryMandatory?: boolean;
     [key: string]: unknown;

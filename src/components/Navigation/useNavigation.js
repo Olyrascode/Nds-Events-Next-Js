@@ -1,7 +1,7 @@
 // Exemple de hook pour Next.js
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useNavigation() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -26,9 +26,9 @@ export function useNavigation() {
     try {
       await logout();
       handleClose();
-      router.push('/login');
+      router.push("/Login");
     } catch (error) {
-      console.error('Failed to log out:', error);
+      console.error("Failed to log out:", error);
     }
   };
 

@@ -24,6 +24,7 @@ interface Product {
   price: number;
   minQuantity: number;
   type?: "pack" | "product";
+  deliveryMandatory?: boolean;
   // Ajoutez d'autres champs si nécessaire (imageUrl, etc.)
 }
 
@@ -90,6 +91,7 @@ export default function RentalDialog({
       startDate: startDate,
       endDate: endDate,
       type: isPack ? "pack" : product.type || "product",
+      deliveryMandatory: product.deliveryMandatory,
       // Ajoutez d'autres champs si nécessaire
     };
 

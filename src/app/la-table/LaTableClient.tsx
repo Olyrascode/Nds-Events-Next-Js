@@ -13,110 +13,131 @@ import { Product } from "../../type/Product";
 import { slugify } from "@/utils/slugify";
 
 // Interface pour les données brutes provenant de l'API
-interface RawProduct {
+interface RawShared {
+  // Interface partagée pour les champs communs
   _id: string;
   title: string;
   description?: string;
   imageUrl?: string;
   price?: number;
   minQuantity?: number;
+  lotSize?: number;
   discountPercentage?: number;
-  navCategory: string;
-  category: string;
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>;
+  options?: Array<{ name: string; price: number }>;
+  carouselImages?: Array<{ url: string; fileName?: string }>;
+  deliveryMandatory?: boolean;
+  slug?: string; // Slug peut être sur le produit ou le pack
 }
 
-interface RawPack {
-  _id: string;
-  title: string;
-  description?: string;
-  imageUrl?: string;
-  price?: number;
-  minQuantity?: number;
-  discountPercentage?: number;
-  navCategory: string;
-  category: string;
-  slug: string;
+interface RawProduct extends RawShared {
+  // Champs spécifiques aux produits simples si nécessaire à l'avenir
+}
+
+interface RawPack extends RawShared {
+  isPack: true; // Marqueur pour identifier les packs
+  products: {
+    // Champs spécifiques aux packs
+    product: {
+      _id: string;
+      title: string;
+      imageUrl?: string;
+      price: number;
+    };
+    quantity: number;
+  }[];
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 export default function LaTableClient() {
-  const { navCategory, category } = useParams();
+  const { category: paramCategory } = useParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
-  // Si aucune catégorie n'est sélectionnée, affichez tous les produits déjà filtrés par navCategory 'la-table'
-  const filteredProducts = category
-    ? products.filter((product) => product.category === category)
-    : products;
-
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const doFetchProducts = async () => {
+      try {
+        const productsResponse = await fetch(`${API_URL}/api/products`);
+        const packsResponse = await fetch(`${API_URL}/api/packs`);
 
-  const fetchProducts = async () => {
-    try {
-      const productsResponse = await fetch(`${API_URL}/api/products`);
-      const packsResponse = await fetch(`${API_URL}/api/packs`);
+        if (!productsResponse.ok) {
+          throw new Error(
+            `Failed to fetch products: ${productsResponse.status} ${productsResponse.statusText}`
+          );
+        }
+        if (!packsResponse.ok) {
+          throw new Error(
+            `Failed to fetch packs: ${packsResponse.status} ${packsResponse.statusText}`
+          );
+        }
 
-      if (!productsResponse.ok || !packsResponse.ok) {
-        throw new Error("Erreur lors de la récupération des données");
+        const productsData: RawProduct[] = await productsResponse.json();
+        const packsData: RawPack[] = await packsResponse.json();
+
+        const allRawItems: (RawProduct | RawPack)[] = [
+          ...productsData,
+          ...packsData.map((p) => ({ ...p, isPack: true as const })), // Marquer les packs
+        ];
+
+        const convertedItems: Product[] = allRawItems
+          .filter(
+            (item) =>
+              item.associations &&
+              item.associations.some(
+                (assoc) => assoc.navCategorySlug === "la-table"
+              )
+          )
+          .map((item) => ({
+            _id: item._id,
+            id: item._id,
+            title: item.title,
+            name: item.title,
+            description: item.description || "",
+            imageUrl: item.imageUrl || "",
+            price: item.price || 0,
+            minQuantity: item.minQuantity || 1,
+            lotSize: item.lotSize,
+            discountPercentage: item.discountPercentage || 0,
+            associations: item.associations || [],
+            options: item.options || [],
+            carouselImages: item.carouselImages || [],
+            deliveryMandatory: item.deliveryMandatory || false,
+            slug: item.slug || slugify(item.title),
+            isPack: "isPack" in item && item.isPack, // Vérifier si c'est un pack
+            products: "products" in item && item.isPack ? item.products : [], // Ajouter les produits du pack
+          }));
+
+        setProducts(convertedItems);
+
+        const uniqueCategories = Array.from(
+          new Set(
+            convertedItems.flatMap((p) =>
+              p.associations
+                ? p.associations
+                    .filter(
+                      (assoc) =>
+                        assoc.navCategorySlug === "la-table" &&
+                        assoc.categoryName
+                    )
+                    .map((assoc) => assoc.categoryName)
+                : []
+            )
+          )
+        );
+        setCategories(uniqueCategories);
+      } catch (error) {
+        console.error("Erreur fetching products/packs pour La Table:", error);
       }
-
-      const productsData: RawProduct[] = await productsResponse.json();
-      const packsData: RawPack[] = await packsResponse.json();
-
-      // Filtrer les produits pour ne garder que ceux de la catégorie "la-table"
-      const tableProducts = productsData
-        .filter((product: RawProduct) => product.navCategory === "la-table")
-        .map((product: RawProduct) => ({
-          _id: product._id,
-          id: product._id,
-          title: product.title,
-          name: product.title,
-          description: product.description || "",
-          imageUrl: product.imageUrl || "",
-          price: product.price || 0,
-          minQuantity: product.minQuantity || 1,
-          discountPercentage: product.discountPercentage || 0,
-          navCategory: product.navCategory,
-          category: product.category,
-          slug: slugify(product.title),
-        }));
-
-      // Filtrer les packs pour ne garder que ceux de la catégorie "la-table"
-      const tablePacks = packsData
-        .filter((pack: RawPack) => pack.navCategory === "la-table")
-        .map((pack: RawPack) => ({
-          _id: pack._id,
-          id: pack._id,
-          title: pack.title,
-          name: pack.title,
-          description: pack.description || "",
-          imageUrl: pack.imageUrl || "",
-          price: pack.price || 0,
-          minQuantity: pack.minQuantity || 1,
-          discountPercentage: pack.discountPercentage || 0,
-          navCategory: pack.navCategory,
-          category: pack.category,
-          slug: pack.slug,
-          isPack: true,
-        }));
-
-      // Combiner les produits et les packs
-      const allProducts = [...tableProducts, ...tablePacks];
-      setProducts(allProducts);
-
-      const uniqueCategories = [
-        ...new Set(allProducts.map((product) => product.category)),
-      ];
-      setCategories(uniqueCategories);
-    } catch (error) {
-      console.error("Erreur:", error);
-    }
-  };
+    };
+    doFetchProducts();
+  }, []);
 
   const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
@@ -139,17 +160,17 @@ export default function LaTableClient() {
           </Typography>
         </div>
         <div className="products__section">
-          {!category && (
+          {!paramCategory && (
             <div className="products__filters">
               <CategoryLinkFilter
                 categories={categories}
                 selectedCategory={null}
-                navCategory={navCategory ?? "la-table"}
+                navCategory={"la-table"}
               />
             </div>
           )}
           <div className="products__grid">
-            {filteredProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard
                 key={product._id}
                 product={product}
@@ -169,9 +190,9 @@ export default function LaTableClient() {
         </div>
       </Container>
       <Container className="bottom-info">
-        <button className="button-contacez-nous">
-          <Link href="/contact">Plus de produits - contactez nous</Link>
-        </button>
+        <Link href="/contact" className="button-contacez-nous">
+          Plus de produits - contactez nous
+        </Link>
         <p>
           <span>
             NDS Event&apos;s, spécialiste de la location de matériel

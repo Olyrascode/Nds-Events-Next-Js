@@ -13,7 +13,18 @@ import {
   Checkbox,
   Select,
   MenuItem,
+  Autocomplete,
 } from "@mui/material";
+
+// Options pour les catégories de navigation
+const NAV_CATEGORIES_OPTIONS = [
+  { slug: "la-table", name: "La Table" },
+  { slug: "le-mobilier", name: "Le Mobilier" },
+  { slug: "decorations", name: "Décorations" },
+  { slug: "autres-produits", name: "Autres Produits" },
+  { slug: "tentes", name: "Tentes" },
+  // TODO: S'assurer que cette liste est exhaustive et correcte
+];
 
 export default function ProductForm({
   initialData = {},
@@ -27,10 +38,7 @@ export default function ProductForm({
     price: initialData.price || "",
     minQuantity: initialData.minQuantity || "",
     stock: initialData.stock || "",
-    // Pour la catégorie détaillée (ex. "Tables", "Chaises", etc.)
-    category: initialData.category || "",
-    // Pour le groupe de menu (ex. "la-table", "mobilier", etc.)
-    navCategory: initialData.navCategory || "",
+    associations: initialData.associations || [],
     lotSize: initialData.lotSize || "",
     image: null,
     carouselImages: initialData.carouselImages || Array(3).fill(null),
@@ -44,12 +52,14 @@ export default function ProductForm({
   });
   const [error, setError] = useState("");
 
+  // États pour la gestion d'une nouvelle association
+  const [currentCategoryName, setCurrentCategoryName] = useState("");
+  const [currentCategoryInputValue, setCurrentCategoryInputValue] =
+    useState(""); // Pour la saisie libre dans Autocomplete
+  const [currentNavCategorySlug, setCurrentNavCategorySlug] = useState("");
+
   // Liste des catégories existantes récupérées depuis l'API
   const [categories, setCategories] = useState([]);
-  // État pour savoir si on crée une nouvelle catégorie
-  const [creatingNewCategory, setCreatingNewCategory] = useState(false);
-  // Valeur saisie pour la nouvelle catégorie
-  const [newCategory, setNewCategory] = useState("");
 
   // Chargement des catégories existantes au montage du composant
   useEffect(() => {
@@ -69,58 +79,12 @@ export default function ProductForm({
     e.preventDefault();
     setError("");
 
-    // Détermine la catégorie à enregistrer :
-    // Si l'utilisateur a choisi de créer une nouvelle catégorie,
-    // on utilisera la valeur saisie dans newCategory.
-    const finalCategory = creatingNewCategory ? newCategory : product.category;
-
     const productToSubmit = {
       ...product,
-      category: finalCategory,
     };
 
     try {
       await onSubmit(productToSubmit);
-      // Optionnel : si on vient de créer une nouvelle catégorie, l'ajouter dans la liste (et l'envoyer au backend)
-      if (creatingNewCategory && newCategory) {
-        fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL || "https://82.29.170.25"
-          }/api/categories`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: newCategory }),
-          }
-        )
-          .then((res) => res.json())
-          .then((cat) => {
-            setCategories((prev) => [...prev, cat]);
-          })
-          .catch((err) => console.error(err));
-      }
-
-      // Réinitialisation du formulaire avec carouselImages
-      setProduct({
-        title: "",
-        description: "",
-        price: "",
-        minQuantity: "",
-        stock: "",
-        category: "",
-        navCategory: "",
-        lotSize: "",
-        image: null,
-        carouselImages: Array(3).fill(null), // Réinitialisation explicite
-        options: [],
-        deliveryMandatory: false,
-        seo: {
-          title: "",
-          metaDescription: "",
-        },
-      });
-      setNewCategory("");
-      setCreatingNewCategory(false);
     } catch (error) {
       setError(error.message || "Erreur lors de la création du produit");
     }
@@ -146,6 +110,52 @@ export default function ProductForm({
 
   const handleOptionsChange = (newOptions) => {
     setProduct({ ...product, options: newOptions });
+  };
+
+  const handleAddAssociation = () => {
+    if (!currentCategoryName.trim() || !currentNavCategorySlug) {
+      // Optionnel: Afficher une erreur à l'utilisateur
+      console.warn(
+        "Veuillez sélectionner une catégorie et une catégorie de navigation."
+      );
+      return;
+    }
+    const newAssociation = {
+      categoryName: currentCategoryName.trim(),
+      navCategorySlug: currentNavCategorySlug,
+    };
+
+    // Vérifier si l'association existe déjà
+    const associationExists = product.associations.some(
+      (assoc) =>
+        assoc.categoryName === newAssociation.categoryName &&
+        assoc.navCategorySlug === newAssociation.navCategorySlug
+    );
+
+    if (associationExists) {
+      // Optionnel: Afficher une erreur à l'utilisateur
+      console.warn("Cette association existe déjà.");
+      return;
+    }
+
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      associations: [...prevProduct.associations, newAssociation],
+    }));
+
+    // Réinitialiser les champs
+    setCurrentCategoryName("");
+    setCurrentCategoryInputValue("");
+    setCurrentNavCategorySlug("");
+  };
+
+  const handleRemoveAssociation = (indexToRemove) => {
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      associations: prevProduct.associations.filter(
+        (_, index) => index !== indexToRemove
+      ),
+    }));
   };
 
   return (
@@ -261,62 +271,16 @@ export default function ProductForm({
         disabled={loading}
       />
 
-      {/* Champ pour choisir la catégorie détaillée */}
-      <FormControl fullWidth margin="normal" required disabled={loading}>
-        <InputLabel>Catégorie du produit</InputLabel>
-        <Select
-          value={creatingNewCategory ? "__new__" : product.category}
-          label="Catégorie du produit"
-          onChange={(e) => {
-            if (e.target.value === "__new__") {
-              // On passe en mode création d'une nouvelle catégorie
-              setCreatingNewCategory(true);
-              setProduct({ ...product, category: "" });
-            } else {
-              setCreatingNewCategory(false);
-              setProduct({ ...product, category: e.target.value });
-            }
-          }}
-        >
-          {categories.map((cat) => (
-            <MenuItem key={cat._id} value={cat.name}>
-              {cat.name}
-            </MenuItem>
-          ))}
-          <MenuItem value="__new__">Créer une nouvelle catégorie</MenuItem>
-        </Select>
-      </FormControl>
-
-      {/* Afficher le champ de saisie pour la nouvelle catégorie si besoin */}
-      {creatingNewCategory && (
-        <TextField
-          fullWidth
-          label="Nouvelle catégorie"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-          margin="normal"
-          required
-          disabled={loading}
-        />
-      )}
-
-      {/* Champ pour choisir le groupe de menu (options fixes) */}
-      <FormControl fullWidth margin="normal" required disabled={loading}>
-        <InputLabel>Groupe de menu</InputLabel>
-        <Select
-          value={product.navCategory}
-          label="Groupe de menu"
-          onChange={(e) =>
-            setProduct({ ...product, navCategory: e.target.value })
-          }
-        >
-          <MenuItem value="la-table">La table</MenuItem>
-          <MenuItem value="le-mobilier">Le Mobilier</MenuItem>
-          <MenuItem value="tentes">Tentes</MenuItem>
-          <MenuItem value="decorations">Décorations</MenuItem>
-          <MenuItem value="autres-produits">Autres produits</MenuItem>
-        </Select>
-      </FormControl>
+      {/* Le champ SKU suivant va être supprimé
+      <TextField
+        fullWidth
+        label="Référence / SKU (optionnel)"
+        value={product.stock} 
+        onChange={(e) => setProduct({ ...product, stock: e.target.value })}
+        margin="normal"
+        disabled={loading}
+      />
+      */}
 
       <OptionsManager
         options={product.options}
@@ -335,9 +299,112 @@ export default function ProductForm({
             disabled={loading}
           />
         }
-        label="Livraison obligatoire"
-        sx={{ mt: 2 }}
+        label="Livraison obligatoire pour ce produit"
+        disabled={loading}
       />
+
+      {/* Gestion des Associations Catégorie/Navigation */}
+      <Box
+        sx={{
+          mt: 2,
+          mb: 2,
+          p: 2,
+          border: "1px solid grey",
+          borderRadius: "4px",
+        }}
+      >
+        <h3>Associations Catégorie / Catégorie de Navigation</h3>
+        {product.associations.map((assoc, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1,
+              p: 1,
+              border: "1px dashed #ccc",
+              borderRadius: "4px",
+            }}
+          >
+            <span>
+              {assoc.categoryName} (
+              {
+                NAV_CATEGORIES_OPTIONS.find(
+                  (opt) => opt.slug === assoc.navCategorySlug
+                )?.name
+              }
+              )
+            </span>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              onClick={() => handleRemoveAssociation(index)}
+              disabled={loading}
+            >
+              Supprimer
+            </Button>
+          </Box>
+        ))}
+
+        <Box sx={{ display: "flex", gap: 2, alignItems: "flex-end", mt: 2 }}>
+          <Autocomplete
+            freeSolo
+            options={categories.map((cat) => cat.name)} // Supposant que l'API retourne {id, name} ou similaire
+            value={currentCategoryName}
+            inputValue={currentCategoryInputValue}
+            onInputChange={(event, newInputValue) => {
+              setCurrentCategoryInputValue(newInputValue);
+            }}
+            onChange={(event, newValue) => {
+              setCurrentCategoryName(newValue || "");
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Nom de la catégorie (sous-catégorie)"
+                variant="outlined"
+                sx={{ flexGrow: 1 }}
+                disabled={loading}
+              />
+            )}
+            sx={{ flexGrow: 1 }}
+          />
+
+          <FormControl sx={{ minWidth: 200, flexGrow: 1 }}>
+            <InputLabel id="nav-category-select-label">
+              Catégorie de Navigation Principale
+            </InputLabel>
+            <Select
+              labelId="nav-category-select-label"
+              value={currentNavCategorySlug}
+              label="Catégorie de Navigation Principale"
+              onChange={(e) => setCurrentNavCategorySlug(e.target.value)}
+              disabled={loading}
+            >
+              <MenuItem value="">
+                <em>Sélectionner...</em>
+              </MenuItem>
+              {NAV_CATEGORIES_OPTIONS.map((option) => (
+                <MenuItem key={option.slug} value={option.slug}>
+                  {option.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+        <Button
+          variant="contained"
+          onClick={handleAddAssociation}
+          sx={{ mt: 1 }}
+          disabled={
+            loading || !currentCategoryName.trim() || !currentNavCategorySlug
+          }
+        >
+          Ajouter l'association
+        </Button>
+      </Box>
 
       {/* Champs SEO */}
       <Box sx={{ mt: 3, mb: 2 }}>

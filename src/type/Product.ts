@@ -5,11 +5,24 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  minQuantity: number;
-  imageUrl: string;
-  discountPercentage: number;
-  navCategory: string;
-  category: string;
+  minQuantity?: number;
+  lotSize?: number;
+  imageUrl?: string;
+  discountPercentage?: number;
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>;
+  options?: Array<{
+    name: string;
+    price: number;
+  }>;
+  carouselImages?: Array<{
+    url: string;
+    fileName?: string;
+  }>;
+  deliveryMandatory?: boolean;
   isPack?: boolean;
   slug?: string;
   products?: {

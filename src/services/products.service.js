@@ -8,8 +8,24 @@ export const createProduct = async (productData) => {
     formData.append("description", productData.description);
     formData.append("price", productData.price);
     formData.append("minQuantity", productData.minQuantity);
-    formData.append("category", productData.category);
+    /* Ancien code pour category et navCategory - commenté
+    // Envoyer category comme une chaîne JSON si c'est un tableau
+    if (Array.isArray(productData.category)) {
+      formData.append("category", JSON.stringify(productData.category));
+    } else {
+      // Fallback pour une chaîne simple ou undefined/null (le backend le mettra dans un tableau si besoin)
+      formData.append("category", productData.category || JSON.stringify([]));
+    }
     formData.append("navCategory", productData.navCategory);
+    */
+
+    // Nouvelle gestion pour associations
+    if (productData.associations && Array.isArray(productData.associations)) {
+      formData.append("associations", JSON.stringify(productData.associations));
+    } else {
+      formData.append("associations", JSON.stringify([])); // Envoyer un tableau vide par défaut si non défini ou pas un tableau
+    }
+
     formData.append("stock", productData.stock || 0);
     formData.append("options", JSON.stringify(productData.options || []));
     formData.append("lotSize", productData.lotSize || 1);
@@ -60,6 +76,16 @@ export const fetchProductById = async (productId) => {
     throw new Error("Product not found");
   }
   const product = await response.json();
+  console.log(
+    "[Service fetchProductById] Product data received from API:",
+    product
+  );
+  console.log(
+    "[Service fetchProductById] Type of product.category:",
+    typeof product.category,
+    "Is Array?",
+    Array.isArray(product.category)
+  );
 
   // Normaliser
   return {
@@ -91,11 +117,35 @@ export const updateProduct = async (productId, productData) => {
     formData.append("description", productData.description);
     formData.append("price", productData.price);
     formData.append("minQuantity", productData.minQuantity);
-    formData.append("category", productData.category);
+    /* Ancien code pour category et navCategory - commenté
+    // Envoyer category comme une chaîne JSON si c'est un tableau
+    if (Array.isArray(productData.category)) {
+      formData.append("category", JSON.stringify(productData.category));
+    } else {
+      // Fallback pour une chaîne simple ou undefined/null
+      formData.append("category", productData.category || JSON.stringify([]));
+    }
     formData.append("navCategory", productData.navCategory);
+    */
+
+    // Nouvelle gestion pour associations
+    if (productData.associations && Array.isArray(productData.associations)) {
+      formData.append("associations", JSON.stringify(productData.associations));
+    } else {
+      formData.append("associations", JSON.stringify([])); // Envoyer un tableau vide par défaut si non défini ou pas un tableau
+    }
+
     formData.append("stock", productData.stock || 0);
     formData.append("lotSize", productData.lotSize || 1);
     formData.append("options", JSON.stringify(productData.options || []));
+
+    // Log pour vérifier la valeur avant de l'ajouter au FormData
+    console.log(
+      "[Frontend Service] productData.deliveryMandatory:",
+      productData.deliveryMandatory
+    );
+    formData.append("deliveryMandatory", productData.deliveryMandatory);
+
     // Ajouter les champs SEO
     if (productData.seo) {
       formData.append("seoTitle", productData.seo.title);
@@ -112,6 +162,12 @@ export const updateProduct = async (productId, productData) => {
           formData.append(`carouselImage${index}`, img);
         }
       });
+    }
+
+    // Log pour inspecter le contenu du FormData avant l'envoi
+    console.log("[Frontend Service] FormData content before sending:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`[FormData] ${key}:`, value);
     }
 
     const response = await fetch(`${API_URL}/api/products/${productId}`, {

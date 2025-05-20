@@ -16,9 +16,9 @@ export default function CategoryFilter({
         variant={selectedCategory === null ? "filled" : "outlined"}
         className="category-filter__chip"
       />
-      {categories.map((category) => (
+      {categories.map((category, index) => (
         <Chip
-          key={category}
+          key={`${category}-${index}`}
           label={category}
           onClick={() => onSelectCategory(category)}
           color={selectedCategory === category ? "primary" : "default"}

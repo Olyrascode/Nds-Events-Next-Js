@@ -11,7 +11,7 @@ interface Product {
   title: string;
   slug?: string;
   navCategory?: string;
-  category?: string;
+  category?: string[];
   description?: string;
   imageUrl?: string;
   price?: number;
@@ -53,89 +53,76 @@ function slugify(text: string): string {
     .replace(/\-\-+/g, "-");
 }
 
-// Fonction pour formater les noms de catégories (première lettre en majuscule et tirets remplacés par des espaces)
-function formatCategoryName(name: string): string {
-  if (!name) return "";
-
-  // Remplacer les tirets par des espaces et mettre la première lettre de chaque mot en majuscule
-  return name
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 export default async function ProductDetailsPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   // Récupérer le slug du produit
-  const { slug } = params;
+  const { slug: resolvedSlug } = await params;
 
   // Récupérer les informations du produit pour le fil d'Ariane
-  const product = await fetchProductByCriteria(slug);
+  const product = await fetchProductByCriteria(resolvedSlug);
 
   if (!product) {
     notFound();
   }
 
   // Formatage des noms de catégories pour l'affichage
-  const navCategory = product.navCategory?.toLowerCase() || "produits";
-  const category = product.category?.toLowerCase() || "";
+  // const navCategory = product.navCategory?.toLowerCase() || "produits";
+  // Adapter pour prendre la première catégorie du tableau, ou une chaîne vide si non défini
+  // const category = (product.category && product.category.length > 0 && product.category[0]) ? product.category[0].toLowerCase() : "";
 
   // Formatage des noms pour les URLs et l'affichage
-  const navCategorySlug = navCategory.replace(/\s+/g, "-");
-  const categorySlug = category.replace(/\s+/g, "-");
+  // const navCategorySlug = navCategory.replace(/\s+/g, "-");
+  // const categorySlug = category.replace(/\s+/g, "-");
 
   // Obtenir le titre du produit pour l'affichage
-  const productTitle = product.title;
+  // const productTitle = product.title;
 
   // Générer les noms d'affichage avec espaces au lieu de tirets
-  const navCategoryDisplay = formatCategoryName(navCategory);
-  const categoryDisplay = formatCategoryName(category);
+  // const navCategoryDisplay = formatCategoryName(navCategory);
+  // const categoryDisplay = formatCategoryName(category);
 
   // Génération des éléments pour le fil d'Ariane
-  let breadcrumbItems = [];
+  // let breadcrumbItems = [];
 
   // Cas spécial pour les tentes - fil d'ariane sans catégorie
-  if (navCategory === "tentes") {
-    breadcrumbItems = [
-      {
-        label: "Tentes",
-        href: "/tentes",
-      },
-      {
-        label: productTitle,
-        href: `/produits/${slug}`,
-        active: true,
-      },
-    ];
-  } else {
-    // Cas normal avec catégorie et sous-catégorie
-    breadcrumbItems = [
-      {
-        label: navCategoryDisplay,
-        href: `/${navCategorySlug}`,
-      },
-      {
-        label: categoryDisplay,
-        href: `/${navCategorySlug}/${categorySlug}`,
-      },
-      {
-        label: productTitle,
-        href: `/produits/${slug}`,
-        active: true,
-      },
-    ];
-  }
+  // if (navCategory === "tentes") {
+  //   breadcrumbItems = [
+  //     {
+  //       label: "Tentes",
+  //       href: "/tentes",
+  //     },
+  //     {
+  //       label: productTitle,
+  //       href: `/produits/${slug}`,
+  //       active: true,
+  //     },
+  //   ];
+  // } else {
+  //   // Cas normal avec catégorie et sous-catégorie
+  //   breadcrumbItems = [
+  //     {
+  //       label: navCategoryDisplay,
+  //       href: `/${navCategorySlug}`,
+  //     },
+  //     {
+  //       label: categoryDisplay,
+  //       href: `/${navCategorySlug}/${categorySlug}`,
+  //     },
+  //     {
+  //       label: productTitle,
+  //       href: `/produits/${slug}`,
+  //       active: true,
+  //     },
+  //   ];
+  // }
 
   // Transmettre les infos de breadcrumb via SearchParams
   return (
     <>
-      <ProductDetailsClient
-        productId={slug}
-        breadcrumbItems={breadcrumbItems}
-      />
+      <ProductDetailsClient productId={product._id} />
     </>
   );
 }

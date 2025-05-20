@@ -37,10 +37,10 @@ async function getProductData(productId: string): Promise<Product | null> {
 export async function generateMetadata({
   params,
 }: {
-  params: { productId: string };
+  params: Promise<{ productId: string }>;
 }) {
-  const { productId } = params;
-  const product = await getProductData(productId);
+  const { productId: resolvedProductId } = await params;
+  const product = await getProductData(resolvedProductId);
 
   if (!product) {
     return {
@@ -66,7 +66,7 @@ export async function generateMetadata({
       type: "website",
       url: `${
         process.env.NEXT_PUBLIC_SITE_URL || "https://nds-events.fr"
-      }/tentes/${params.productId}`,
+      }/tentes/${resolvedProductId}`,
       images: [
         {
           url: product.imageUrl || "/images/logo.png",
@@ -82,15 +82,15 @@ export async function generateMetadata({
 export default async function TentesProductPage({
   params,
 }: {
-  params: { productId: string };
+  params: Promise<{ productId: string }>;
 }) {
-  const { productId } = params;
-  const product = await getProductData(productId);
+  const { productId: resolvedProductId } = await params;
+  const product = await getProductData(resolvedProductId);
 
   if (!product) {
     notFound();
   }
 
   // Le SEO est géré par generateMetadata, nous pouvons simplement afficher le composant client
-  return <ProductDetailsClient productId={productId} />;
+  return <ProductDetailsClient productId={resolvedProductId} />;
 }

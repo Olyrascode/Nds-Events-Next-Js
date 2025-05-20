@@ -8,18 +8,43 @@ import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
 import "@/app/produits/_Products.scss";
 import { Product } from "../../type/Product";
+import { slugify } from "@/utils/slugify";
+import Link from "next/link";
 
-// Interface pour le produit brut provenant de l'API
-interface RawProduct {
+// Interfaces pour les données brutes provenant de l'API
+interface RawShared {
   _id: string;
   title: string;
   description?: string;
   imageUrl?: string;
   price?: number;
   minQuantity?: number;
+  lotSize?: number;
   discountPercentage?: number;
-  navCategory: string;
-  category: string;
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>;
+  options?: Array<{ name: string; price: number }>;
+  carouselImages?: Array<{ url: string; fileName?: string }>;
+  deliveryMandatory?: boolean;
+  slug?: string;
+}
+
+interface RawProduct extends RawShared {}
+
+interface RawPack extends RawShared {
+  isPack: true;
+  products: {
+    product: {
+      _id: string;
+      title: string;
+      imageUrl?: string;
+      price: number;
+    };
+    quantity: number;
+  }[];
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
@@ -31,9 +56,8 @@ interface LeMobilierClientProps {
 export default function LeMobilierClient({
   selectedCategory = null,
 }: LeMobilierClientProps) {
-  // On récupère à la fois navCategory et category (si présent dans l'URL)
-  const { navCategory, category } = useParams();
-  const router = useRouter();
+  const { category } = useParams();
+  const router = useRouter(); // 'router' is assigned a value but never used - Linter
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -41,52 +65,97 @@ export default function LeMobilierClient({
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const doFetchProducts = async () => {
+      console.log("[LeMobilierClient] Fetching products and packs...");
+      try {
+        const productResponse = await fetch(`${API_URL}/api/products`);
+        const packResponse = await fetch(`${API_URL}/api/packs`);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch products");
+        if (!productResponse.ok) {
+          throw new Error(
+            `Failed to fetch products: ${productResponse.status} ${productResponse.statusText}`
+          );
+        }
+        if (!packResponse.ok) {
+          throw new Error(
+            `Failed to fetch packs: ${packResponse.status} ${packResponse.statusText}`
+          );
+        }
+
+        const productsData: RawProduct[] = await productResponse.json();
+        const packsData: RawPack[] = await packResponse.json();
+        console.log("[LeMobilierClient] Raw productsData:", productsData);
+        console.log("[LeMobilierClient] Raw packsData:", packsData);
+
+        const allRawData: (RawProduct | RawPack)[] = [
+          ...productsData,
+          ...packsData.map((p) => ({ ...p, isPack: true as const })),
+        ];
+        console.log(
+          "[LeMobilierClient] All raw data (products + packs merged):",
+          allRawData
+        );
+
+        const convertedItems: Product[] = allRawData
+          .filter(
+            (item) =>
+              item.associations &&
+              item.associations.some(
+                (assoc) => assoc.navCategorySlug === "le-mobilier"
+              )
+          )
+          .map((item) => ({
+            _id: item._id,
+            id: item._id,
+            title: item.title,
+            name: item.title,
+            description: item.description || "",
+            imageUrl: item.imageUrl || "",
+            price: item.price || 0,
+            minQuantity: item.minQuantity || 1,
+            lotSize: item.lotSize,
+            discountPercentage: item.discountPercentage || 0,
+            associations: item.associations || [],
+            options: item.options || [],
+            carouselImages: item.carouselImages || [],
+            deliveryMandatory: item.deliveryMandatory || false,
+            isPack: "isPack" in item && item.isPack,
+            products: "products" in item && item.isPack ? item.products : [],
+            slug: item.slug || slugify(item.title),
+          }));
+        console.log(
+          "[LeMobilierClient] Converted items (after filter and map for 'le-mobilier'):",
+          convertedItems
+        );
+        setProducts(convertedItems);
+
+        const uniqueCategories = Array.from(
+          new Set(
+            convertedItems.flatMap((p) =>
+              p.associations
+                ? p.associations
+                    .filter(
+                      (assoc) =>
+                        assoc.navCategorySlug === "le-mobilier" && // Filtre par navCategorySlug pour les catégories aussi
+                        assoc.categoryName
+                    )
+                    .map((assoc) => assoc.categoryName)
+                : []
+            )
+          )
+        );
+        setCategories(uniqueCategories);
+      } catch (error) {
+        console.error("Error fetching products or packs:", error);
       }
-      const productsData: RawProduct[] = await response.json();
+    };
 
-      // On ne conserve que les produits du groupe "le-mobilier"
-      const convertedProducts: Product[] = productsData
-        .filter((product: RawProduct) => product.navCategory === "le-mobilier")
-        .map((product: RawProduct) => ({
-          _id: product._id,
-          id: product._id, // On assigne _id à id
-          title: product.title,
-          name: product.title,
-          description: product.description || "",
-          imageUrl: product.imageUrl || "",
-          price: product.price || 0,
-          minQuantity: product.minQuantity || 1,
-          discountPercentage: product.discountPercentage || 0,
-          navCategory: product.navCategory,
-          category: product.category,
-        }));
-      setProducts(convertedProducts);
-
-      const uniqueCategories = [
-        ...new Set(convertedProducts.map((product) => product.category)),
-      ];
-      setCategories(uniqueCategories);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
+    doFetchProducts();
+  }, []); // useEffect dépendances vides pour charger une seule fois
 
   const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
     setOpenRentalDialog(true);
-  };
-
-  // Exemple d'une redirection si besoin (pour un clic sur une catégorie via un callback)
-  const handleCategoryClick = (cat: string) => {
-    router.push(`/${navCategory ?? "le-mobilier"}/${cat}`);
   };
 
   return (
@@ -120,19 +189,26 @@ export default function LeMobilierClient({
               <CategoryLinkFilter
                 categories={categories}
                 selectedCategory={selectedCategory}
-                navCategory={navCategory ?? "le-mobilier"}
+                navCategory="le-mobilier"
               />
             </div>
           )}
 
           <div className="products__grid">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onRent={handleRentClick}
-              />
-            ))}
+            {products.length > 0 ? (
+              products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onRent={handleRentClick}
+                  isPack={product.isPack}
+                />
+              ))
+            ) : (
+              <Typography>
+                Aucun produit trouvé pour cette catégorie.
+              </Typography>
+            )}
           </div>
 
           {selectedProduct && (
@@ -140,14 +216,15 @@ export default function LeMobilierClient({
               open={openRentalDialog}
               onClose={() => setOpenRentalDialog(false)}
               product={selectedProduct}
+              isPack={selectedProduct.isPack}
             />
           )}
         </div>
       </Container>
       <Container className="bottom-info">
-        <button className="button-contacez-nous">
-          <a href="/contact">Plus de produits - contactez nous</a>
-        </button>
+        <Link href="/contact" className="button-contacez-nous">
+          Plus de produits - contactez nous
+        </Link>
         <p>
           <span>
             NDS Event&apos;s, spécialiste de la location de matériel

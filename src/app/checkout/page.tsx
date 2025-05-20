@@ -72,14 +72,15 @@ export default function Checkout() {
 
   const cartRequiresDelivery = cart.some(
     (item) =>
-      item.selectedOptions &&
-      Object.values(item.selectedOptions).some(
-        (opt) =>
-          typeof opt === "object" &&
-          opt !== null &&
-          "deliveryMandatory" in opt &&
-          opt.deliveryMandatory === true
-      )
+      item.deliveryMandatory === true || // Vérifier la propriété directe sur l'item
+      (item.selectedOptions &&
+        Object.values(item.selectedOptions).some(
+          (opt) =>
+            typeof opt === "object" &&
+            opt !== null &&
+            "deliveryMandatory" in opt &&
+            opt.deliveryMandatory === true
+        ))
   );
 
   useEffect(() => {

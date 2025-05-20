@@ -9,57 +9,133 @@ import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
 import "@/app/produits/_Products.scss";
-import { Product } from "@/type/Product"; // Assurez-vous que le chemin est correct
+import { Product } from "@/type/Product";
+import { slugify } from "@/utils/slugify"; // Ajout de slugify
+
+// Définition des types bruts pour la réponse API
+interface RawShared {
+  _id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  minQuantity?: number;
+  lotSize?: number;
+  discountPercentage?: number;
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>;
+  options?: Array<{ name: string; price: number }>;
+  carouselImages?: Array<{ url: string; fileName?: string }>;
+  deliveryMandatory?: boolean;
+  slug?: string;
+}
+
+interface RawProduct extends RawShared {}
+
+interface RawPack extends RawShared {
+  isPack: true;
+  products: {
+    product: {
+      _id: string;
+      title: string;
+      imageUrl?: string;
+      price: number;
+    };
+    quantity: number;
+  }[];
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
 export default function DecorationsClient() {
-  const { navCategory, category } = useParams();
+  // Pour la page /decorations, category de useParams sera undefined.
+  const { category: paramCategory } = useParams();
 
-  // Typage explicite
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const doFetchProducts = async () => {
+      try {
+        const productsResponse = await fetch(`${API_URL}/api/products`);
+        const packsResponse = await fetch(`${API_URL}/api/packs`);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch products");
+        if (!productsResponse.ok) {
+          throw new Error(
+            `Failed to fetch products: ${productsResponse.status} ${productsResponse.statusText}`
+          );
+        }
+        if (!packsResponse.ok) {
+          throw new Error(
+            `Failed to fetch packs: ${packsResponse.status} ${packsResponse.statusText}`
+          );
+        }
+
+        const productsData: RawProduct[] = await productsResponse.json();
+        const packsData: RawPack[] = await packsResponse.json();
+
+        const allRawItems: (RawProduct | RawPack)[] = [
+          ...productsData,
+          ...packsData.map((p) => ({ ...p, isPack: true as const })),
+        ];
+
+        const convertedItems: Product[] = allRawItems
+          .filter(
+            (item) =>
+              item.associations &&
+              item.associations.some(
+                (assoc) => assoc.navCategorySlug === "decorations"
+              ) // Filtre pour 'decorations'
+          )
+          .map((item) => ({
+            _id: item._id,
+            id: item._id, // Assurer que id est présent
+            title: item.title,
+            name: item.title, // Assurer que name est présent
+            description: item.description || "",
+            imageUrl: item.imageUrl || "",
+            price: item.price || 0,
+            minQuantity: item.minQuantity || 1,
+            lotSize: item.lotSize,
+            discountPercentage: item.discountPercentage || 0,
+            associations: item.associations || [],
+            options: item.options || [],
+            carouselImages: item.carouselImages || [],
+            deliveryMandatory: item.deliveryMandatory || false,
+            slug: item.slug || slugify(item.title), // slugify ajouté
+            isPack: "isPack" in item && item.isPack,
+            products: "products" in item && item.isPack ? item.products : [],
+          }));
+
+        setProducts(convertedItems);
+
+        const uniqueCategories = Array.from(
+          new Set(
+            convertedItems.flatMap((p) =>
+              p.associations
+                ? p.associations
+                    .filter(
+                      (assoc) =>
+                        assoc.navCategorySlug === "decorations" &&
+                        assoc.categoryName // Filtre pour 'decorations'
+                    )
+                    .map((assoc) => assoc.categoryName)
+                : []
+            )
+          )
+        );
+        setCategories(uniqueCategories);
+      } catch (error) {
+        console.error("Error fetching products/packs pour Decorations:", error);
       }
-      const productsData: Product[] = await response.json();
-
-      // Filtrer pour ne conserver que les produits du groupe "decorations"
-      const filteredProducts = productsData.filter(
-        (product: Product) => product.navCategory === "decorations"
-      );
-
-      // Ajouter la propriété "id" si elle est manquante (par exemple, id = _id)
-      const mappedProducts = filteredProducts.map((product) => ({
-        ...product,
-        id: product.id || product._id,
-      }));
-
-      setProducts(mappedProducts);
-
-      // Créer un tableau de catégories uniques en filtrant les valeurs undefined
-      const uniqueCategories = [
-        ...new Set(
-          mappedProducts
-            .map((product: Product) => product.category)
-            .filter((cat): cat is string => !!cat)
-        ),
-      ];
-      setCategories(uniqueCategories);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
+    };
+    doFetchProducts();
+  }, []);
 
   const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
@@ -75,13 +151,12 @@ export default function DecorationsClient() {
           </Typography>
         </div>
         <div className="products__section">
-          {/* Afficher le filtre par catégorie seulement si aucun paramètre navCategory n'est présent */}
-          {!category && (
+          {!paramCategory && (
             <div className="products__filters">
               <CategoryLinkFilter
                 categories={categories}
                 selectedCategory={null}
-                navCategory={navCategory ?? "decorations"}
+                navCategory={"decorations"} // navCategory fixe
               />
             </div>
           )}
@@ -89,8 +164,9 @@ export default function DecorationsClient() {
           <div className="products__grid">
             {products.map((product: Product) => (
               <ProductCard
-                key={product._id}
+                key={product._id} // Utiliser _id ou id, en s'assurant de sa présence
                 product={product}
+                isPack={product.isPack} // Passer isPack
                 onRent={handleRentClick}
               />
             ))}
@@ -101,14 +177,16 @@ export default function DecorationsClient() {
               open={openRentalDialog}
               onClose={() => setOpenRentalDialog(false)}
               product={selectedProduct}
+              isPack={selectedProduct.isPack} // Passer isPack au dialog
             />
           )}
         </div>
       </Container>
       <Container className="bottom-info">
-        <button className="button-contacez-nous">
-          <Link href="/contact">Plus de produits - contactez nous</Link>
-        </button>
+        {/* Remplacer button par Link */}
+        <Link href="/contact" className="button-contacez-nous">
+          Plus de produits - contactez nous
+        </Link>
         <p>
           <span>
             Ne perdez plus de temps ou d&Apos;argent pour votre décoration de
