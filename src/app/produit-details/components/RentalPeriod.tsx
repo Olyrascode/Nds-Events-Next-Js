@@ -238,7 +238,7 @@ export default function RentalPeriod({
     return (
       <Box sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Période de location
+          Sélectionner votre jour de début et votre jour de fin de location
         </Typography>
         <Box sx={{ display: "flex", gap: 2 }}>
           <Box
@@ -265,7 +265,7 @@ export default function RentalPeriod({
   return (
     <Box sx={{ mb: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Période de location
+        Sélectionner votre jour de début et votre jour de fin de location
       </Typography>
       <Box
         sx={{

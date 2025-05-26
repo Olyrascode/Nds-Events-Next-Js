@@ -11,7 +11,13 @@ const formatCurrency = (amount) => {
     .replace(/\s/g, " "); // Remplace tous les types d'espaces (y compris insécables) par un espace standard
 };
 
-export const generateInvoicePDF = async (order) => {
+export const generateInvoicePDF = async (order, isDelivery) => {
+  console.log(
+    "[invoiceGenerator] Called with isDelivery:",
+    isDelivery,
+    "Order ID:",
+    order?._id
+  ); // Log pour débogage
   if (!order) {
     console.error("No order data provided.");
     return;
@@ -33,10 +39,10 @@ export const generateInvoicePDF = async (order) => {
     try {
       // Tentative d'ajout du logo. Si l'image n'est pas trouvée, affiche un avertissement.
       // Il est préférable de gérer le chargement de l'image de manière asynchrone ou de l'intégrer en base64.
-      doc.addImage(logo, "PNG", margin, yPosition, 40, 20);
+      doc.addImage(logo, "PNG", margin, yPosition, 20, 20);
     } catch (e) {
       console.warn("Logo introuvable au chemin:", logo, e);
-      doc.text("NDS Event's Logo", margin, yPosition + 10);
+      doc.text("NDS Event's Logo", margin, yPosition + 5);
     }
 
     // Coordonnées de l'entreprise à droite
@@ -58,10 +64,19 @@ export const generateInvoicePDF = async (order) => {
 
     yPosition += 30; // Espace après les coordonnées de l'entreprise
 
-    // Encadré Facture à gauche
+    // Encadré (Titre du document) à gauche
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text(`Facture N° : ${order._id || "N/A"}`, margin, yPosition);
+    const documentTitleText = isDelivery ? "Bon de livraison" : "Facture";
+    // Log pour vérifier la valeur juste avant l'écriture dans le PDF
+    console.log(
+      `[invoiceGenerator] Determined documentTitleText: ${documentTitleText} for Order ID: ${order._id}`
+    );
+    doc.text(
+      `${documentTitleText} N° : ${order._id || "N/A"}`,
+      margin,
+      yPosition
+    );
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(
@@ -114,6 +129,18 @@ export const generateInvoicePDF = async (order) => {
       clientInfoY + 20,
       { align: "right" }
     );
+    doc.text(
+      order.billingInfo?.phone || "",
+      pageWidth - margin,
+      clientInfoY + 25,
+      { align: "right" }
+    );
+    doc.text(
+      order.billingInfo?.email || order.user?.email || "",
+      pageWidth - margin,
+      clientInfoY + 30,
+      { align: "right" }
+    );
 
     yPosition += 20; // Espace après les coordonnées bancaires
 
@@ -147,16 +174,36 @@ export const generateInvoicePDF = async (order) => {
     doc.setFont("helvetica", "bold");
     doc.text("Mode de réception :", margin, yPosition);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      order.deliveryMethod === "pickup"
-        ? "Récupération au dépôt"
-        : order.deliveryMethod === "delivery"
-        ? "Livraison à l'adresse indiquée"
-        : "N/A",
-      margin + 45, // Ajuster l'indentation si nécessaire
-      yPosition
-    );
-    yPosition += 5;
+
+    if (order.deliveryMethod === "pickup") {
+      doc.text("Récupération au dépôt", margin + 45, yPosition);
+      yPosition += 5;
+    } else if (order.deliveryMethod === "delivery") {
+      doc.text("Livraison à l'adresse suivante :", margin + 45, yPosition);
+      yPosition += 5;
+      if (order.shippingInfo) {
+        doc.text(order.shippingInfo.address || "", margin + 45, yPosition);
+        yPosition += 5;
+        doc.text(
+          `${order.shippingInfo.zipCode || ""} ${
+            order.shippingInfo.city || ""
+          }`,
+          margin + 45,
+          yPosition
+        );
+        yPosition += 5;
+      } else {
+        doc.text(
+          "(Adresse de livraison non spécifiée)",
+          margin + 45,
+          yPosition
+        );
+        yPosition += 5;
+      }
+    } else {
+      doc.text("N/A", margin + 45, yPosition);
+      yPosition += 5;
+    }
 
     let shippingFeeHT = 0;
     let shippingFeeTVAAmount = 0;
@@ -211,27 +258,21 @@ export const generateInvoicePDF = async (order) => {
       "Réf.",
       "Désignation",
       "Qté",
-      "Remise",
       "PU HT",
       "%TVA",
       "Mtt HT",
       "Mtt TTC",
+      "Livré",
+      "Récupéré",
     ];
     const tableBody = [];
 
     // Calcul des totaux
-    let totalHT = 0;
-    const tvaDetails = {}; // Pour stocker les montants par taux de TVA
+    let totalHT_products = 0; // Modifié: Total HT pour les produits uniquement
+    const tvaDetails_products = {}; // Modifié: Détails TVA pour les produits uniquement
 
-    // Ajouter les frais de port aux totaux HT et TVA s'ils existent
-    if (shippingFeeHT > 0) {
-      totalHT += shippingFeeHT;
-      if (!tvaDetails[shippingFeeTvaRate]) {
-        tvaDetails[shippingFeeTvaRate] = { base: 0, amount: 0 };
-      }
-      tvaDetails[shippingFeeTvaRate].base += shippingFeeHT;
-      tvaDetails[shippingFeeTvaRate].amount += shippingFeeTVAAmount;
-    }
+    // NOTE: Les frais de port (shippingFeeHT, shippingFeeTVAAmount) sont calculés plus haut
+    // et seront ajoutés séparément dans la section des totaux.
 
     // Définir l'ORDRE d'affichage des sections souhaitées dans le PDF
     const displaySectionsOrder = [
@@ -243,15 +284,13 @@ export const generateInvoicePDF = async (order) => {
     ];
 
     displaySectionsOrder.forEach((sectionTitle) => {
-      // Vérifier si ce groupe de produits existe et contient des éléments
       if (
         groupedProducts[sectionTitle] &&
         groupedProducts[sectionTitle].length > 0
       ) {
-        // Ajouter une ligne de titre de section
         tableBody.push([
           {
-            content: sectionTitle, // Utiliser le titre de la section défini dans displaySectionsOrder
+            content: sectionTitle,
             colSpan: tableColumns.length,
             styles: { fontStyle: "bold", fillColor: [230, 230, 230] },
           },
@@ -262,9 +301,7 @@ export const generateInvoicePDF = async (order) => {
           const sizeOfLot = product.lotSize || 1;
           const actualItemQuantity = nbLots * sizeOfLot;
 
-          const unitPriceTTC_perItem = product.price || 0; // Prix TTC d'un item individuel DE BASE
-
-          // Calculer le total des options pour ce produit
+          const unitPriceTTC_perItem = product.price || 0;
           let optionsTotalTTC = 0;
           if (
             product.selectedOptions &&
@@ -276,16 +313,10 @@ export const generateInvoicePDF = async (order) => {
               }
             });
           }
-
           const itemsBaseTotalTTC = actualItemQuantity * unitPriceTTC_perItem;
-          const lineTotalTTC = itemsBaseTotalTTC + optionsTotalTTC; // Total TTC pour la ligne (articles de base + options)
-
-          const remise = product.discountPercentage || 0;
+          const lineTotalTTC = itemsBaseTotalTTC + optionsTotalTTC;
           const tvaRate = product.taxRate || 20;
-
           const mttHT = lineTotalTTC / (1 + tvaRate / 100);
-          const tvaAmount = lineTotalTTC - mttHT;
-
           const puHT_calculated_from_unit =
             unitPriceTTC_perItem / (1 + tvaRate / 100);
 
@@ -296,11 +327,12 @@ export const generateInvoicePDF = async (order) => {
               "N/A",
             product.name || product.title || "N/A",
             actualItemQuantity,
-            remise > 0 ? `${remise}%` : "",
             formatCurrency(puHT_calculated_from_unit),
             `${tvaRate}%`,
             formatCurrency(mttHT),
             formatCurrency(lineTotalTTC),
+            "",
+            "",
           ]);
 
           // Ajout des lignes pour les options sélectionnées (FRONTEND)
@@ -309,21 +341,18 @@ export const generateInvoicePDF = async (order) => {
             typeof product.selectedOptions === "object"
           ) {
             Object.values(product.selectedOptions).forEach((optionValue) => {
-              // On s'attend à ce que optionValue soit un objet avec potentiellement name, value, price
               if (
                 optionValue &&
                 (typeof optionValue.value === "string" ||
                   typeof optionValue.price === "number")
               ) {
-                let optionDisplayText = "  - "; // Indentation pour l'option
-
+                let optionDisplayText = "  - ";
                 if (
                   typeof optionValue.value === "string" &&
                   optionValue.value
                 ) {
                   optionDisplayText += `${optionValue.value}`;
                 }
-
                 if (
                   typeof optionValue.price === "number" &&
                   optionValue.price > 0
@@ -334,13 +363,11 @@ export const generateInvoicePDF = async (order) => {
                   ) {
                     optionDisplayText += ` (${formatCurrency(
                       optionValue.price
-                    )})`; // Prix entre parenthèses si la valeur est aussi affichée
+                    )})`;
                   } else {
-                    optionDisplayText += `${formatCurrency(optionValue.price)}`; // Juste le prix si pas de valeur textuelle
+                    optionDisplayText += `${formatCurrency(optionValue.price)}`;
                   }
                 }
-
-                // N'afficher la ligne que si on a quelque chose à montrer (valeur ou prix)
                 if (optionDisplayText.trim() !== "-") {
                   tableBody.push([
                     { content: "", styles: { cellWidth: "wrap" } },
@@ -354,19 +381,21 @@ export const generateInvoicePDF = async (order) => {
                     "",
                     "",
                     "",
+                    "",
                   ]);
                 }
               }
             });
           }
 
-          totalHT += mttHT;
+          totalHT_products += mttHT; // Modifié: Accumuler dans totalHT_products
           // Agrégation par taux de TVA
-          if (!tvaDetails[tvaRate]) {
-            tvaDetails[tvaRate] = { base: 0, amount: 0 };
+          if (!tvaDetails_products[tvaRate]) {
+            // Modifié: Utiliser tvaDetails_products
+            tvaDetails_products[tvaRate] = { base: 0, amount: 0 };
           }
-          tvaDetails[tvaRate].base += mttHT;
-          tvaDetails[tvaRate].amount += tvaAmount;
+          tvaDetails_products[tvaRate].base += mttHT; // Modifié
+          tvaDetails_products[tvaRate].amount += lineTotalTTC - mttHT; // Modifié
         });
       }
     });
@@ -400,80 +429,145 @@ export const generateInvoicePDF = async (order) => {
     yPosition = doc.lastAutoTable.finalY + 10;
 
     // --- Section Totaux ---
-    const totalBoxWidth = 80;
+    const totalBoxWidth = 90; // Augmenté pour plus d'espace
     const totalBoxX = pageWidth - margin - totalBoxWidth;
 
     doc.setFontSize(10);
+
+    // --- TOTAUX PRODUITS ---
     doc.setFont("helvetica", "bold");
-    doc.text("Base HT", totalBoxX, yPosition); // Modifié pour correspondre à la demande
-    doc.text(formatCurrency(totalHT), totalBoxX + totalBoxWidth, yPosition, {
-      align: "right",
-    });
+    doc.text("Sous-total Produits HT", totalBoxX, yPosition);
+    doc.text(
+      formatCurrency(totalHT_products),
+      totalBoxX + totalBoxWidth,
+      yPosition,
+      {
+        align: "right",
+      }
+    );
     yPosition += 6;
 
-    let totalTVA = 0;
+    let totalTVA_products = 0;
     doc.setFont("helvetica", "normal");
-    Object.keys(tvaDetails)
+    Object.keys(tvaDetails_products) // Modifié
       .sort()
       .forEach((rate) => {
-        const detail = tvaDetails[rate];
-        doc.text(
-          `TVA ${rate}% sur ${formatCurrency(detail.base)}`,
-          totalBoxX,
-          yPosition
-        );
-        doc.text(
-          formatCurrency(detail.amount),
-          totalBoxX + totalBoxWidth,
-          yPosition,
-          { align: "right" }
-        );
-        totalTVA += detail.amount;
-        yPosition += 5;
+        const detail = tvaDetails_products[rate]; // Modifié
+        totalTVA_products += detail.amount; // Modifié
       });
 
-    yPosition += 2; // Petit espace
+    yPosition += 2;
     doc.setFont("helvetica", "bold");
-    doc.text("Cumul TVA", totalBoxX, yPosition); // Modifié
-    doc.text(formatCurrency(totalTVA), totalBoxX + totalBoxWidth, yPosition, {
-      align: "right",
-    });
+    doc.text("Sous-total TVA Produits", totalBoxX, yPosition);
+    doc.text(
+      formatCurrency(totalTVA_products),
+      totalBoxX + totalBoxWidth,
+      yPosition,
+      {
+        // Modifié
+        align: "right",
+      }
+    );
     yPosition += 6;
 
-    // Ajout Total HT (redondant mais demandé)
-    doc.text("Total HT", totalBoxX, yPosition);
-    doc.text(formatCurrency(totalHT), totalBoxX + totalBoxWidth, yPosition, {
-      align: "right",
-    });
+    const totalTTC_products = totalHT_products + totalTVA_products; // Modifié
+    doc.setFontSize(11); // Un peu plus grand pour le sous-total TTC produits
+    doc.setFont("helvetica", "bold");
+    doc.text("Sous-total Produits TTC", totalBoxX, yPosition);
+    doc.text(
+      formatCurrency(totalTTC_products),
+      totalBoxX + totalBoxWidth,
+      yPosition,
+      {
+        // Modifié
+        align: "right",
+      }
+    );
+    yPosition += 8; // Espace
+
+    // --- TOTAUX LIVRAISON (si applicable) ---
+    doc.setFontSize(10);
+    if (
+      order.deliveryMethod === "delivery" &&
+      order.shippingFee &&
+      order.shippingFee > 0
+    ) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Livraison HT", totalBoxX, yPosition);
+      doc.text(
+        formatCurrency(shippingFeeHT),
+        totalBoxX + totalBoxWidth,
+        yPosition,
+        {
+          align: "right",
+        }
+      );
+      yPosition += 6;
+
+      doc.setFont("helvetica", "normal");
+      doc.text(`TVA Livraison ${shippingFeeTvaRate}%`, totalBoxX, yPosition);
+      doc.text(
+        formatCurrency(shippingFeeTVAAmount),
+        totalBoxX + totalBoxWidth,
+        yPosition,
+        { align: "right" }
+      );
+      yPosition += 5;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("Total Livraison TTC", totalBoxX, yPosition);
+      doc.text(
+        formatCurrency(order.shippingFee),
+        totalBoxX + totalBoxWidth,
+        yPosition,
+        {
+          align: "right",
+        }
+      );
+      yPosition += 8; // Espace
+    }
+
+    // --- GRAND TOTAL ---
+    const grandTotalHT = totalHT_products + shippingFeeHT;
+    const grandTotalTVA = totalTVA_products + shippingFeeTVAAmount;
+    const grandTotalTTC = totalTTC_products + (order.shippingFee || 0);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL HT GÉNÉRAL", totalBoxX, yPosition);
+    doc.text(
+      formatCurrency(grandTotalHT),
+      totalBoxX + totalBoxWidth,
+      yPosition,
+      {
+        align: "right",
+      }
+    );
     yPosition += 6;
 
-    // Ajout Total TVA (redondant mais demandé)
-    doc.text("Total TVA", totalBoxX, yPosition);
-    doc.text(formatCurrency(totalTVA), totalBoxX + totalBoxWidth, yPosition, {
-      align: "right",
-    });
+    doc.text("TOTAL TVA GÉNÉRAL", totalBoxX, yPosition);
+    doc.text(
+      formatCurrency(grandTotalTVA),
+      totalBoxX + totalBoxWidth,
+      yPosition,
+      {
+        align: "right",
+      }
+    );
     yPosition += 6;
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text("Total TTC", totalBoxX, yPosition);
-    const totalTTC = totalHT + totalTVA;
-
-    console.log("[Frontend Invoice Debug] totalHT:", totalHT);
-    console.log("[Frontend Invoice Debug] totalTVA:", totalTVA);
-    console.log(
-      "[Frontend Invoice Debug] totalTTC before formatting:",
-      totalTTC
+    doc.text("TOTAL TTC GÉNÉRAL", totalBoxX, yPosition);
+    doc.text(
+      formatCurrency(grandTotalTTC),
+      totalBoxX + totalBoxWidth,
+      yPosition,
+      {
+        align: "right",
+      }
     );
-    const formattedTotalTTC = formatCurrency(totalTTC);
-    console.log(
-      "[Frontend Invoice Debug] totalTTC after formatting (by formatCurrency):",
-      formattedTotalTTC
-    );
-
-    doc.text(formattedTotalTTC, totalBoxX + totalBoxWidth, yPosition, {
-      align: "right",
-    });
     yPosition += 10;
 
     // Montant en lettres (omise pour l'instant car complexe)
@@ -499,21 +593,21 @@ export const generateInvoicePDF = async (order) => {
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.text("PIÈCES ORIGINE : DVS 7064 (04/04/24)", margin, yPosition); // Exemple statique, adapter si nécessaire
-    yPosition += 4;
+    yPosition += 6; // Augmentation de l'espacement
     doc.text(
       "- Les ventes sont conclues avec réserve de propriété et le transfert de propriété n'intervient qu'après complet paiement du prix, (loi 80.335 du 10 mai 1980).",
       margin,
       yPosition,
       { maxWidth: pageWidth - margin * 2 }
     );
-    yPosition += 4; // Réduit l'espace
+    yPosition += 6; // Augmentation de l'espacement
     doc.text(
       "- L'acceptation des livraisons ou des documents afférents à cette livraison vaut acceptation de la présente clause. Le paiement du prix s'entend de l'encaissement effectif du paiement.",
       margin,
       yPosition,
       { maxWidth: pageWidth - margin * 2 }
     );
-    yPosition += 4; // Réduit l'espace
+    yPosition += 6; // Augmentation de l'espacement
     doc.text(
       "- En cas de retard de paiement, il sera appliqué des pénalités de retard égales au taux de refinancement de la BCE + 10% sans qu'un rappel soit nécessaire (article L 441-6 du Code de commerce). Conformément au décret n° 2012-1115 du 2 octobre 2012, lemontant de l'indemnité forfaitaire pour frais de recouvrement due au créancier en cas de retard de paiement est fixé à 40 euros.",
       margin,
@@ -525,7 +619,10 @@ export const generateInvoicePDF = async (order) => {
     // doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
 
     // --- Téléchargement ---
-    doc.save(`Facture_${order._id || "N_A"}.pdf`);
+    const fileName = isDelivery
+      ? `Bon_de_livraison_${order._id || "N_A"}.pdf`
+      : `Facture_${order._id || "N_A"}.pdf`;
+    doc.save(fileName);
   } catch (error) {
     console.error("Error generating invoice:", error);
   }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { generateInvoicePDF } from "../../../utils/invoiceGenerator";
 import DownloadIcon from "@mui/icons-material/Download";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -29,6 +30,7 @@ import {
   MenuItem,
   Tabs,
   Tab,
+  Tooltip,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import OrderDetailsModal from "../calendar/OrderDetailsModal";
@@ -125,13 +127,15 @@ export default function OrdersTab() {
     });
   };
 
-  const handleDownloadInvoice = async (order) => {
+  const handleDownloadInvoice = async (order, isDelivery) => {
     console.log(
       "Order data for frontend invoice (admin tab):",
-      JSON.stringify(order, null, 2)
+      JSON.stringify(order, null, 2),
+      "Calling with isDelivery:",
+      isDelivery
     );
     try {
-      await generateInvoicePDF(order);
+      await generateInvoicePDF(order, isDelivery);
     } catch (error) {
       console.error("Erreur génération facture:", error);
       alert("Impossible de télécharger la facture.");
@@ -340,12 +344,24 @@ export default function OrdersTab() {
                     )}
                   </TableCell>
                   <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleDownloadInvoice(order)}
-                    >
-                      <DownloadIcon />
-                    </IconButton>
+                    {order.deliveryMethod === "delivery" && (
+                      <Tooltip title="Télécharger le bon de livraison">
+                        <IconButton
+                          color="secondary"
+                          onClick={() => handleDownloadInvoice(order, true)}
+                        >
+                          <LocalShippingIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <Tooltip title="Télécharger la facture">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleDownloadInvoice(order, false)}
+                      >
+                        <DownloadIcon />
+                      </IconButton>
+                    </Tooltip>
                     <IconButton
                       color="error"
                       onClick={() => handleDelete(order._id)}
