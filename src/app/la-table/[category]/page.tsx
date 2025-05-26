@@ -214,6 +214,9 @@ export default async function CategoryPage({
         </div>
       </Container>
       <Container className="bottom-info">
+        <button className="button-contacez-nous">
+          <Link href="/contact">Plus de produits - contactez nous</Link>
+        </button>
         <p>
           <span>
             NDS Event&apos;s, spécialiste de la location de matériel
@@ -233,9 +236,6 @@ export default async function CategoryPage({
           service de blanchisserie est compris !<br />
           <br /> Une offre au meilleur prix garanti dans la région !
         </p>
-        <button className="button-contacez-nous">
-          <Link href="/contact">Plus de produits - contactez nous</Link>
-        </button>
       </Container>
       <div className="listIconContainer">
         <div className="listIcon">

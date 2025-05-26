@@ -3,20 +3,98 @@
 }
 .image-upload__container {
   display: flex;
-  align-items: flex-start;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 1rem;
 }
 .image-upload__button {
-  min-width: 150px;
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.image-upload__button:hover {
+  border-color: #999;
+  background-color: #f5f5f5;
 }
 .image-upload__preview-container {
-  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.image-upload__preview-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 250px;
+  min-height: 150px;
+}
+.image-upload__delete-button {
+  position: relative;
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+.image-upload__delete-button:hover {
+  background-color: rgb(255, 255, 255);
 }
 .image-upload__preview {
-  max-width: 200px;
-  max-height: 200px;
-  -o-object-fit: cover;
-     object-fit: cover;
+  width: 100%;
+  height: 100%;
+  min-width: 250px;
+  min-height: 150px;
+  max-width: 500px;
+  max-height: 400px;
+  -o-object-fit: contain;
+     object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.image-upload--carousel {
+  margin-bottom: 0;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 10px;
+  height: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.image-upload--carousel .image-upload__button {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  background-color: #f9f9f9;
+}
+.image-upload--carousel .image-upload__preview-wrapper {
+  min-width: 100%;
+  min-height: 150px;
+  max-height: 200px;
+}
+.image-upload--carousel .image-upload__preview {
+  min-width: 100%;
+  min-height: 150px;
+  max-width: 100%;
+  max-height: 200px;
+}
+.image-upload--carousel .image-upload__delete-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+  .image-upload--carousel .image-upload__preview-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+  .image-upload--carousel .image-upload__preview {
+    width: 100%;
+    max-width: 100%;
+  }
 }/*# sourceMappingURL=ImageUpload.css.map */

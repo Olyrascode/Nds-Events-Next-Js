@@ -1,6 +1,17 @@
+.navigation__logoLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+.navigation__logoLink:hover {
+  opacity: 0.8;
+}
 .navigation__logo {
   height: 40px;
-  margin-right: 1rem;
+  width: auto;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 .navigation__link {
   color: #ffffff;

@@ -103,7 +103,7 @@ export default function PriceCalculation({
       </Typography>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-        <Typography>Prix unitaire (par jour) :</Typography>
+        <Typography>Prix unitaire (de 1 à 4 jours) :</Typography>
         <Typography>{formatPriceWithEuroAtEnd(effectiveUnitPrice)}</Typography>
       </Box>
 

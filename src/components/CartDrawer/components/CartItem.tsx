@@ -1,7 +1,6 @@
 import {
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   ListItemAvatar,
   IconButton,
   Avatar,
@@ -39,11 +38,9 @@ export default function CartItem({ item, onRemove }: CartItemProps) {
           </>
         }
       />
-      <ListItemSecondaryAction>
-        <IconButton edge="end" onClick={onRemove}>
-          <DeleteIcon />
-        </IconButton>
-      </ListItemSecondaryAction>
+      <IconButton edge="end" onClick={onRemove} sx={{ alignSelf: "center" }}>
+        <DeleteIcon />
+      </IconButton>
     </ListItem>
   );
 }

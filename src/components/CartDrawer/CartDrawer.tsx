@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   Drawer,
   List,
@@ -25,15 +26,31 @@ import { calculateTotalPrice } from "../../utils/cartUtils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import "./cartDrawer.module.scss";
+import { formatPrice } from "../../utils/priceUtils";
 
-interface CartDrawerProps {
-  open: boolean;
-  onClose: () => void;
+interface BaseProductData {
+  title?: string;
+  _id?: string;
+  imageUrl?: string;
+  lotSize?: number;
 }
+
+interface ProductInPack {
+  product: BaseProductData;
+  quantity?: number;
+}
+type PackProductInCart =
+  | (BaseProductData & { quantity?: number })
+  | ProductInPack;
 
 interface OptionValue {
   value?: string;
   price?: number;
+}
+
+interface CartDrawerProps {
+  open: boolean;
+  onClose: () => void;
 }
 
 export default function CartDrawer({ open, onClose }: CartDrawerProps) {
@@ -69,18 +86,20 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                   <Box sx={{ display: "flex", width: "100%" }}>
                     <ListItemAvatar>
                       {item.imageUrl ? (
-                        <img
+                        <Image
                           src={item.imageUrl}
-                          alt={item.title}
+                          alt={item.title ?? "Image du produit"}
+                          width={50}
+                          height={50}
                           style={{
-                            width: 50,
-                            height: 50,
                             objectFit: "cover",
                             borderRadius: "50%",
                           }}
                         />
                       ) : (
-                        <Avatar>{item.title.charAt(0)}</Avatar>
+                        <Avatar>
+                          {item.title ? item.title.charAt(0) : "P"}
+                        </Avatar>
                       )}
                     </ListItemAvatar>
                     <ListItemText
@@ -99,7 +118,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                             )}
                           </Typography>
                           <Typography variant="body2" component="div">
-                            Prix: {item.price}€
+                            Prix: {formatPrice(item.price)}
                           </Typography>
                           {item.selectedOptions &&
                             Object.entries(item.selectedOptions).map(
@@ -117,7 +136,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                                     >
                                       {optionName}: {typedValue.value || ""}
                                       {typedValue.price
-                                        ? ` (${typedValue.price}€)`
+                                        ? ` (${formatPrice(typedValue.price)})`
                                         : ""}
                                     </Typography>
                                   );
@@ -171,82 +190,82 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                         </AccordionSummary>
                         <AccordionDetails sx={{ p: 0 }}>
                           <List sx={{ p: 0 }}>
-                            {item.products.map((packProduct, idx) => {
-                              // Extraire les données du produit selon la structure de l'objet
-                              const productData =
-                                "product" in packProduct
-                                  ? (packProduct.product as Record<
-                                      string,
-                                      any
-                                    >) || packProduct
-                                  : packProduct;
+                            {item.products.map(
+                              (packProduct: PackProductInCart, idx: number) => {
+                                const productData: BaseProductData =
+                                  "product" in packProduct
+                                    ? packProduct.product
+                                    : packProduct;
 
-                              const productTitle =
-                                productData.title ||
-                                productData._id ||
-                                "Produit";
-                              const productImage = productData.imageUrl || "";
-                              const productQuantity = packProduct.quantity || 1;
-                              const lotSize = packProduct.lotSize || 1;
+                                const productTitle =
+                                  productData?.title ||
+                                  productData?._id ||
+                                  "Produit";
+                                const productImage =
+                                  productData?.imageUrl || "";
+                                const productQuantity =
+                                  packProduct?.quantity || 1;
+                                const lotSize = productData?.lotSize || 1;
 
-                              return (
-                                <ListItem
-                                  key={idx}
-                                  sx={{
-                                    py: 1,
-                                    pl: 2,
-                                    bgcolor: "rgba(0,0,0,0.02)",
-                                    borderRadius: 1,
-                                    mb: 0.5,
-                                  }}
-                                >
-                                  <ListItemAvatar>
-                                    {productImage ? (
-                                      <Avatar
-                                        src={productImage}
-                                        alt={productTitle}
-                                        sx={{ width: 32, height: 32 }}
-                                      />
-                                    ) : (
-                                      <Avatar sx={{ width: 32, height: 32 }}>
-                                        {productTitle.charAt(0)}
-                                      </Avatar>
-                                    )}
-                                  </ListItemAvatar>
-                                  <ListItemText
-                                    primary={
-                                      <Typography variant="body2">
-                                        {productTitle}
-                                      </Typography>
-                                    }
-                                    secondary={
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                      >
-                                        Quantité totale:{" "}
-                                        {productQuantity * item.quantity}
-                                        {lotSize > 1
-                                          ? ` (${Math.ceil(
-                                              (productQuantity *
-                                                item.quantity) /
-                                                lotSize
-                                            )} lot${
-                                              Math.ceil(
+                                return (
+                                  <ListItem
+                                    key={idx}
+                                    sx={{
+                                      py: 1,
+                                      pl: 2,
+                                      bgcolor: "rgba(0,0,0,0.02)",
+                                      borderRadius: 1,
+                                      mb: 0.5,
+                                    }}
+                                  >
+                                    <ListItemAvatar>
+                                      {productImage ? (
+                                        <Avatar
+                                          src={productImage}
+                                          alt={productTitle}
+                                          sx={{ width: 32, height: 32 }}
+                                        />
+                                      ) : (
+                                        <Avatar sx={{ width: 32, height: 32 }}>
+                                          {productTitle.charAt(0)}
+                                        </Avatar>
+                                      )}
+                                    </ListItemAvatar>
+                                    <ListItemText
+                                      primary={
+                                        <Typography variant="body2">
+                                          {productTitle}
+                                        </Typography>
+                                      }
+                                      secondary={
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                        >
+                                          Quantité totale:{" "}
+                                          {productQuantity * item.quantity}
+                                          {lotSize > 1
+                                            ? ` (${Math.ceil(
                                                 (productQuantity *
                                                   item.quantity) /
                                                   lotSize
-                                              ) > 1
-                                                ? "s"
-                                                : ""
-                                            })`
-                                          : ""}
-                                      </Typography>
-                                    }
-                                  />
-                                </ListItem>
-                              );
-                            })}
+                                              )} lot${
+                                                Math.ceil(
+                                                  (productQuantity *
+                                                    item.quantity) /
+                                                    lotSize
+                                                ) > 1
+                                                  ? "s"
+                                                  : ""
+                                              })`
+                                            : ""}
+                                        </Typography>
+                                      }
+                                    />
+                                  </ListItem>
+                                );
+                              }
+                            )}
                           </List>
                         </AccordionDetails>
                       </Accordion>

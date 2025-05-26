@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogTitle,
@@ -8,11 +7,11 @@ import {
   Typography,
   Box,
   Grid,
-  Divider
-} from '@mui/material';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { formatPrice } from '../../../utils/priceUtils';
+  Divider,
+} from "@mui/material";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { formatPrice } from "../../../utils/priceUtils";
 
 export default function OrderDetailsModal({ order, onClose }) {
   if (!order) return null;
@@ -20,12 +19,14 @@ export default function OrderDetailsModal({ order, onClose }) {
   return (
     <Dialog open={Boolean(order)} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        <Typography variant="div">Détail de votre commande</Typography>
-        <Typography variant="subtitle2" color="text.secondary">
+        <Typography component="div" variant="h6">
+          Détail de votre commande
+        </Typography>
+        <Typography component="p" variant="subtitle2" color="text.secondary">
           ID de Commande : {order._id}
         </Typography>
       </DialogTitle>
-      
+
       <DialogContent>
         <Grid container spacing={3}>
           {/* 🏷 Infos client */}
@@ -50,29 +51,29 @@ export default function OrderDetailsModal({ order, onClose }) {
               Période de location
             </Typography>
             <Typography>
-              Du: {format(new Date(order.startDate), 'PPP', { locale: fr })}
+              Du: {format(new Date(order.startDate), "PPP", { locale: fr })}
             </Typography>
             <Typography>
-              Au: {format(new Date(order.endDate), 'PPP', { locale: fr })}
+              Au: {format(new Date(order.endDate), "PPP", { locale: fr })}
             </Typography>
             <Typography sx={{ mt: 2 }}>
-              Méthode de réception: {order.deliveryMethod === 'delivery' ? 'Livraison' : 'Retrait'}
+              Méthode de réception:{" "}
+              {order.deliveryMethod === "delivery" ? "Livraison" : "Retrait"}
             </Typography>
-          {/* 🏷 Informations de livraison si la commande est en livraison */}
-          {order.deliveryMethod === 'delivery' && order.shippingInfo && (
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Informations de livraison
-              </Typography>
-              <Typography>{order.shippingInfo.address}</Typography>
-              <Typography>
-                {order.shippingInfo.city}, {order.shippingInfo.zipCode}
-              </Typography>
-            </Grid>
-          )}
+            {/* 🏷 Informations de livraison si la commande est en livraison */}
+            {order.deliveryMethod === "delivery" && order.shippingInfo && (
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Informations de livraison
+                </Typography>
+                <Typography>{order.shippingInfo.address}</Typography>
+                <Typography>
+                  {order.shippingInfo.city}, {order.shippingInfo.zipCode}
+                </Typography>
+              </Grid>
+            )}
           </Grid>
-
 
           {/* 🏷 Produits commandés */}
           <Grid item xs={12}>
@@ -87,7 +88,7 @@ export default function OrderDetailsModal({ order, onClose }) {
                     <img
                       src={item.imageUrl}
                       alt={item.title}
-                      style={{ width: 60, height: 60, objectFit: 'cover' }}
+                      style={{ width: 60, height: 60, objectFit: "cover" }}
                     />
                   </Grid>
                   <Grid item xs>
@@ -97,8 +98,13 @@ export default function OrderDetailsModal({ order, onClose }) {
                     </Typography>
                     {Array.isArray(item.selectedOptions) &&
                       item.selectedOptions.map((option, idx) => (
-                        <Typography key={idx} variant="body2" color="text.secondary">
-                          {option.name}: {option.value} ({formatPrice(option.price)})
+                        <Typography
+                          key={idx}
+                          variant="body2"
+                          color="text.secondary"
+                        >
+                          {option.name}: {option.value} (
+                          {formatPrice(option.price)})
                         </Typography>
                       ))}
                   </Grid>
@@ -109,19 +115,26 @@ export default function OrderDetailsModal({ order, onClose }) {
 
           {/* 🏷 Total */}
           <Grid item xs={12}>
-  <Divider sx={{ my: 2 }} />
-  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-    <Typography variant="body1" mb={1}>
-      Prix des produits: {formatPrice(order.total - order.shippingFee)}
-    </Typography>
-    <Typography variant="body1" mb={1}>
-      Frais de livraison: {formatPrice(order.shippingFee)}
-    </Typography>
-    <Typography variant="h6">
-      Total: {formatPrice(order.total)}
-    </Typography>
-  </Box>
-</Grid>
+            <Divider sx={{ my: 2 }} />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+              }}
+            >
+              <Typography variant="body1" mb={1}>
+                Prix des produits:{" "}
+                {formatPrice(order.total - order.shippingFee)}
+              </Typography>
+              <Typography variant="body1" mb={1}>
+                Frais de livraison: {formatPrice(order.shippingFee)}
+              </Typography>
+              <Typography variant="h6">
+                Total: {formatPrice(order.total)}
+              </Typography>
+            </Box>
+          </Grid>
         </Grid>
       </DialogContent>
 

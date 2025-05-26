@@ -76,15 +76,6 @@
     perspective: 1000;
   }
 
-  .ctaLink {
-    text-decoration: none;
-    margin-top: 20px;
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000;
-  }
-
   .homeCta {
     color: white;
     max-width: 300px;

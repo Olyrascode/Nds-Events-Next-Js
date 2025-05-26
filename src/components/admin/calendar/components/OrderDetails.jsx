@@ -1,12 +1,12 @@
-
-import { Grid, Typography, Box, Divider } from '@mui/material';
-import { format } from 'date-fns';
-import { formatPrice } from '../../../../utils/priceUtils';
+import { Typography, Box, Divider } from "@mui/material";
+import { format } from "date-fns";
+import { formatPrice } from "../../../../utils/priceUtils";
 
 export default function OrderDetails({ order }) {
+  const itemPadding = 1.5;
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
+    <Box sx={{ display: "flex", flexWrap: "wrap", mx: -itemPadding }}>
+      <Box sx={{ width: { xs: "100%", md: "50%" }, p: itemPadding }}>
         <Typography variant="h6" gutterBottom>
           Customer Information
         </Typography>
@@ -19,25 +19,22 @@ export default function OrderDetails({ order }) {
         <Typography>
           {order.billingInfo.city}, {order.billingInfo.zipCode}
         </Typography>
-      </Grid>
+      </Box>
 
-      <Grid item xs={12} md={6}>
+      <Box sx={{ width: { xs: "100%", md: "50%" }, p: itemPadding }}>
         <Typography variant="h6" gutterBottom>
           Période de location
         </Typography>
-        <Typography>
-  Du: {format(new Date(order.startDate), 'PPP')}
-</Typography>
-<Typography>
-  Au: {format(new Date(order.endDate), 'PPP')}
-</Typography>
+        <Typography>Du: {format(new Date(order.startDate), "PPP")}</Typography>
+        <Typography>Au: {format(new Date(order.endDate), "PPP")}</Typography>
 
         <Typography sx={{ mt: 2 }}>
-          Methode de réception: {order.deliveryMethod === 'delivery' ? 'Delivery' : 'Pickup'}
+          Methode de réception:{" "}
+          {order.deliveryMethod === "delivery" ? "Delivery" : "Pickup"}
         </Typography>
-      </Grid>
+      </Box>
 
-      <Grid item xs={12}>
+      <Box sx={{ width: "100%", p: itemPadding }}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           Produit de la commande
@@ -45,42 +42,43 @@ export default function OrderDetails({ order }) {
         {order.products.map((item) => (
           <OrderItem key={item.id} item={item} />
         ))}
-      </Grid>
+      </Box>
 
-      <Grid item xs={12}>
+      <Box sx={{ width: "100%", p: itemPadding }}>
         <Divider sx={{ my: 2 }} />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Typography variant="h6">Total:</Typography>
           <Typography variant="h6">{formatPrice(order.total)}</Typography>
         </Box>
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 }
 
 function OrderItem({ item }) {
   return (
     <Box sx={{ mb: 2 }}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box>
           <img
             src={item.imageUrl}
             alt={item.title}
-            style={{ width: 60, height: 60, objectFit: 'cover' }}
+            style={{ width: 60, height: 60, objectFit: "cover" }}
           />
-        </Grid>
-        <Grid item xs>
+        </Box>
+        <Box sx={{ flexGrow: 1 }}>
           <Typography variant="subtitle1">{item.title}</Typography>
           <Typography variant="body2" color="text.secondary">
             Quantités: {item.quantity} | {formatPrice(item.price)}/day
           </Typography>
-          {item.selectedOptions && Object.entries(item.selectedOptions).map(([key, value]) => (
-            <Typography key={key} variant="body2" color="text.secondary">
-              {key}: {value}
-            </Typography>
-          ))}
-        </Grid>
-      </Grid>
+          {item.selectedOptions &&
+            Object.entries(item.selectedOptions).map(([key, value]) => (
+              <Typography key={key} variant="body2" color="text.secondary">
+                {key}: {value}
+              </Typography>
+            ))}
+        </Box>
+      </Box>
     </Box>
   );
 }

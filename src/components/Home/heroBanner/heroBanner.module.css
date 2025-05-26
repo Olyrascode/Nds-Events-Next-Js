@@ -2,65 +2,103 @@
   background-image: url("/img/home/evenementielle.jpg");
   background-size: cover;
   background-position: center;
+  min-height: 70vh;
+  position: relative;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
 }
 
 .heroBanner {
-  background-color: rgba(0, 0, 0, 0.2666666667);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-top: 50px;
-  padding-bottom: 50px;
-  height: 70vh;
+  padding: 50px 20px;
+  min-height: 70vh;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
 }
-.heroBanner h2 {
-  color: #FFFFFF;
-  font-family: "Montserrat", serif;
-  font-weight: 600;
-  text-shadow: 1px 2px 1px #000000;
-}
-.heroBanner h2 img {
-  height: 250px;
-}
-.heroBanner h3 {
-  color: #FFFFFF;
-  font-family: "Montserrat", Montserrat;
-  font-weight: 600;
-  text-shadow: 1px 2px 1px #000000;
-  font-size: 40px;
-  line-height: 1.2em;
+.heroBanner .homeTitle {
+  margin: 0;
+  padding: 0;
   text-align: center;
+  position: relative;
+  width: 500px;
+  max-width: 100%;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+.heroBanner .homeTitle .srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.heroBanner .homeTitle .logoImage {
+  width: 100%;
+  height: auto;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+.heroBanner .homeSubtitle {
+  color: #ffffff;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  text-shadow: 1px 2px 1px #000000;
+  font-size: clamp(24px, 5vw, 40px);
+  line-height: 1.2;
+  text-align: center;
+  margin: 20px 0;
+  max-width: 800px;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
 }
 .heroBanner .homeCta {
   color: white;
   max-width: 300px;
-  padding: 15px;
-  background-color: #FF6226;
+  padding: 15px 30px;
+  background-color: #ff6226;
   border-radius: 5px;
-  font-weight: 400;
-  font-size: 1rem;
-  border-style: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
 }
 .heroBanner .homeCta:hover {
-  background-color: black;
-}
-.heroBanner a {
-  color: #FFFFFF;
-  text-decoration: none;
-  font-family: "Montserrat", Montserrat;
-  font-size: 16px;
-  font-weight: 600;
-  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+  background-color: #000000;
+  transform: translateY(-2px);
 }
 
-@media screen and (max-width: 400px) {
-  .heroLocation p {
-    text-align: center;
-    padding: 10px 30px 10px 30px;
+@media screen and (max-width: 768px) {
+  .heroBanner {
+    padding: 30px 15px;
   }
-  .heroBanner h3 {
-    font-size: 30px;
+  .heroBanner .homeTitle {
+    width: 300px;
   }
 }/*# sourceMappingURL=heroBanner.module.css.map */

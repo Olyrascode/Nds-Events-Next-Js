@@ -144,6 +144,7 @@ export default function ShippingForm({
             if (status === window.google.maps.places.PlacesServiceStatus.OK) {
               setAddressSuggestions(
                 predictions.map((prediction) => ({
+                  key: prediction.place_id,
                   label: prediction.description,
                   value: prediction.place_id,
                 }))
@@ -284,10 +285,12 @@ export default function ShippingForm({
           }
         >
           <Typography variant="subtitle1">
-            Forfait agglomération (25 km maximum) : 50€ HT (60€ TTC).
+            Forfait agglomération (De 0 à 25 km maximum depuis le dépôt NDS) :
+            50€ HT (60€ TTC).
           </Typography>
           <Typography variant="subtitle1">
-            Au-delà de 25 km : 2,40 € TTC (2€ HT) par km.
+            Au-delà de 25 km : 0.60€ par km. (correspond à 2 allers-retours,
+            soit 2,40€ TTC (2€ HT) par km)
           </Typography>
           <Box
             sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
@@ -307,36 +310,41 @@ export default function ShippingForm({
           <Autocomplete
             freeSolo
             options={addressSuggestions}
-            loading={isLoading}
-            value={shippingInfo.address}
+            getOptionLabel={(option) =>
+              typeof option === "string" ? option : option.label
+            }
+            onInputChange={(event, newInputValue) => {
+              // Simuler un événement 'target' pour handleAddressChange
+              handleAddressChange({ target: { value: newInputValue } });
+            }}
             onChange={handleAddressSelect}
-            disabled={!isGoogleMapsLoaded}
+            loading={isLoading}
             renderInput={(params) => (
               <TextField
                 {...params}
                 required
                 name="address"
-                label="Adresse"
+                label="Adresse de livraison"
                 fullWidth
-                onChange={handleAddressChange}
-                placeholder={
-                  isGoogleMapsLoaded
-                    ? "Commencez à taper votre adresse..."
-                    : "Chargement de l'API Google Maps..."
-                }
-                error={!isGoogleMapsLoaded}
-                helperText={
-                  !isGoogleMapsLoaded
-                    ? "Veuillez patienter pendant le chargement de l'API"
-                    : ""
-                }
+                value={shippingInfo.address} // Assurez-vous que cela est toujours contrôlé
+                InputProps={{
+                  ...params.InputProps,
+                  type: "search",
+                }}
               />
             )}
-            renderOption={(props, option) => <li {...props}>{option.label}</li>}
-            getOptionLabel={(option) => {
-              if (typeof option === "string") return option;
-              return option.label;
+            renderOption={(props, option) => {
+              // Extraire la key avant de spread les autres props
+              const { key, ...restProps } = props;
+              return (
+                <li key={option.key || option.value} {...restProps}>
+                  {option.label}
+                </li>
+              );
             }}
+            // Assurez-vous que les options ont une key unique si elles sont des objets
+            // Normalement géré par getOptionLabel et la structure de vos options
+            // Mais si vous avez des erreurs de key, vérifiez la structure de addressSuggestions
           />
         </Grid>
         <Grid item xs={12} sm={6}>

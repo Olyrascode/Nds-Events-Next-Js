@@ -221,6 +221,8 @@ export default function Checkout() {
             <BillingForm
               billingInfo={billingInfo}
               setBillingInfo={setBillingInfo}
+              shippingInfo={shippingInfo}
+              deliveryMethod={deliveryMethod}
             />
             <Divider sx={{ my: 3 }} />
             <OrderSummary

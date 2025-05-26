@@ -4,40 +4,93 @@
 }
 .mainContainer .product-details {
   margin-bottom: 80px;
+  max-width: 1200px !important;
 }
-.mainContainer .product-details .product-details__header {
-  margin-top: 80px;
+.mainContainer .product-details__header {
   display: flex;
-  justify-content: left;
-  flex-direction: row-reverse;
-  margin-bottom: 50px;
+  flex-direction: row;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  align-items: flex-start;
 }
-.mainContainer
-  .product-details
-  .product-details__header
-  .product-details__image {
-  border-radius: 10px;
+.mainContainer .product-details__left-column {
+  flex: 0 0 50%;
+  display: flex;
+  flex-direction: column;
 }
-.mainContainer
-  .product-details
-  .product-details__header
-  .product-details__text {
-  max-width: 50%;
+.mainContainer .product-details__right-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
-.mainContainer
-  .product-details
-  .product-details__header
-  .product-details__text
-  h1 {
-  font-size: 2.2rem;
+.mainContainer .product-details__text {
+  flex: 1;
+}
+.mainContainer .product-details h1 {
+  font-size: 3rem;
   margin-bottom: 20px;
 }
-.mainContainer
-  .product-details
-  .product-details__header
-  .product-details__text
-  p {
-  font-size: 1.5rem;
+.mainContainer .product-details h2 {
+  font-size: 1.3rem;
+}
+.mainContainer .product-details__image {
+  width: 100%;
+  max-width: 500px;
+  height: 400px;
+  -o-object-fit: contain;
+     object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+.mainContainer .product-details__carousel {
+  width: 100%;
+  margin-top: 1rem;
+}
+.mainContainer .product-details__carousel-container {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+.mainContainer .product-details__carousel-container::-webkit-scrollbar {
+  height: 8px;
+}
+.mainContainer .product-details__carousel-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.mainContainer .product-details__carousel-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+.mainContainer .product-details__carousel-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.mainContainer .product-details__carousel-item {
+  flex: 0 0 120px;
+  height: 90px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, border 0.2s;
+  cursor: pointer;
+}
+.mainContainer .product-details__carousel-item:hover {
+  transform: scale(1.05);
+}
+.mainContainer .product-details__carousel-item.active {
+  border: 3px solid #ff9101;
+  transform: scale(1.05);
+}
+.mainContainer .product-details__carousel-item img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 .mainContainer .listIconContainer .listIcon {
   padding-left: 30px;
@@ -53,7 +106,7 @@
 }
 .mainContainer .listIconContainer .listIcon ul {
   list-style: none;
-
+  max-width: 1200px;
   display: flex;
   flex-direction: row;
   gap: 50px;
@@ -117,24 +170,21 @@
 
 @media screen and (max-width: 800px) {
   .mainContainer .product-details .product-details__header {
-    flex-direction: column;
+    flex-direction: column-reverse;
     justify-content: center;
     align-items: center;
     margin-bottom: 30px;
   }
-  .mainContainer
-    .product-details
-    .product-details__header
-    .product-details__image {
+  .mainContainer .product-details .product-details__header .product-details__image {
     margin-top: 30px;
     height: 200px;
     width: 100%;
   }
-  .mainContainer
-    .product-details
-    .product-details__header
-    .product-details__text {
+  .mainContainer .product-details .product-details__header .product-details__text {
     max-width: 100%;
+  }
+  .mainContainer .product-details .product-details__header h1 {
+    font-size: 2rem;
   }
   .mainContainer .listIconContainer {
     flex-direction: column;
@@ -151,4 +201,4 @@
   .mainContainer .listIconContainer .listIcon .cardBottom .cardRight {
     width: 100%;
   }
-} /*# sourceMappingURL=ProductDetails.css.map */
+}/*# sourceMappingURL=ProductDetails.css.map */

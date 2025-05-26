@@ -201,6 +201,17 @@ export default function Navigation() {
             <Badge badgeContent={cartItemCount} color="error">
               <ShoppingCartIcon />
             </Badge>
+            <Box
+              component="span"
+              sx={{
+                marginLeft: "8px",
+                color: "#ffffff",
+                fontSize: "18px",
+                display: { xs: "none", md: "inline" },
+              }}
+            >
+              Panier
+            </Box>
           </IconButton>
           {currentUser ? (
             <IconButton
@@ -209,17 +220,50 @@ export default function Navigation() {
               aria-label="Compte utilisateur"
             >
               <AccountCircleIcon />
+              <Box
+                component="span"
+                sx={{
+                  marginLeft: "8px",
+                  color: "#ffffff",
+                  fontSize: "18px",
+                  display: { xs: "none", md: "inline" },
+                }}
+              >
+                Compte
+              </Box>
             </IconButton>
           ) : (
             <>
               <Link key="login" href="/Login" passHref>
                 <IconButton sx={{ color: "#ffffff" }} aria-label="Se connecter">
                   <LoginIcon />
+                  <Box
+                    component="span"
+                    sx={{
+                      marginLeft: "8px",
+                      fontSize: "18px",
+                      color: "#ffffff",
+                      display: { xs: "none", md: "inline" },
+                    }}
+                  >
+                    Connexion
+                  </Box>
                 </IconButton>
               </Link>
               <Link key="signup" href="/Signup" passHref>
                 <IconButton sx={{ color: "#ffffff" }} aria-label="S'inscrire">
                   <PersonAddIcon />
+                  <Box
+                    component="span"
+                    sx={{
+                      marginLeft: "8px",
+                      fontSize: "18px",
+                      color: "#ffffff",
+                      display: { xs: "none", md: "inline" },
+                    }}
+                  >
+                    S&apos;inscrire
+                  </Box>
                 </IconButton>
               </Link>
             </>
