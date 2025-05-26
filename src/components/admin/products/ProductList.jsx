@@ -18,9 +18,12 @@ import {
   TextField,
   Tabs,
   Tab,
+  Chip,
+  InputAdornment,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ClearIcon from "@mui/icons-material/Clear";
 import { fetchProducts } from "../../../features/productSlice";
 import { fetchPacks } from "@/services/packs.service";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
@@ -76,13 +79,41 @@ export default function ProductList() {
   const filteredItems = products.filter(
     (item) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category?.toLowerCase().includes(searchTerm.toLowerCase())
+      (item.associations &&
+        Array.isArray(item.associations) &&
+        item.associations.some((assoc) =>
+          assoc.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
+        )) ||
+      (item.category &&
+        typeof item.category === "string" &&
+        item.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Séparer les produits individuels
   const productsList = filteredItems.filter(
     (item) => !item.type || item.type !== "pack"
   );
+
+  // Trier productsList par la première categoryName de item.associations
+  productsList.sort((a, b) => {
+    const getFirstCategoryName = (item) => {
+      if (
+        item.associations &&
+        Array.isArray(item.associations) &&
+        item.associations.length > 0 &&
+        item.associations[0].categoryName
+      ) {
+        return item.associations[0].categoryName.toLowerCase();
+      }
+      // Les produits sans catégorie ou sans nom de catégorie valide sont placés à la fin
+      return "\uffff"; // Caractère Unicode élevé pour trier à la fin
+    };
+
+    const categoryA = getFirstCategoryName(a);
+    const categoryB = getFirstCategoryName(b);
+
+    return categoryA.localeCompare(categoryB);
+  });
 
   const handleEditClick = (item) => {
     setSelectedItem(item);
@@ -115,6 +146,20 @@ export default function ProductList() {
         onChange={(e) => setSearchTerm(e.target.value)}
         fullWidth
         style={{ marginBottom: "16px" }}
+        InputProps={{
+          endAdornment: searchTerm && (
+            <InputAdornment position="end">
+              <IconButton
+                aria-label="clear search"
+                onClick={() => setSearchTerm("")}
+                edge="end"
+                size="small"
+              >
+                <ClearIcon />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
 
       {/* Onglets pour basculer entre Produits individuels et Packs */}
@@ -149,7 +194,30 @@ export default function ProductList() {
                     )}
                   </TableCell>
                   <TableCell>{item.title}</TableCell>
-                  <TableCell>{item.category}</TableCell>
+                  <TableCell>
+                    {item.associations && Array.isArray(item.associations) ? (
+                      item.associations.map((assoc, index) => (
+                        <Chip
+                          key={index}
+                          label={assoc.categoryName}
+                          size="small"
+                          sx={{ mr: 0.5, mb: 0.5, cursor: "pointer" }}
+                          onClick={() =>
+                            setSearchTerm(assoc.categoryName || "")
+                          }
+                        />
+                      ))
+                    ) : item.category ? (
+                      <Chip
+                        label={item.category}
+                        size="small"
+                        sx={{ cursor: "pointer" }}
+                        onClick={() => setSearchTerm(item.category || "")}
+                      />
+                    ) : (
+                      "N/A"
+                    )}
+                  </TableCell>
                   <TableCell align="right">
                     {formatCurrency(item.price)}
                   </TableCell>
@@ -211,7 +279,18 @@ export default function ProductList() {
                         )}
                       </TableCell>
                       <TableCell>{item.title}</TableCell>
-                      <TableCell>{item.category}</TableCell>
+                      <TableCell>
+                        {item.category ? (
+                          <Chip
+                            label={item.category}
+                            size="small"
+                            sx={{ cursor: "pointer" }}
+                            onClick={() => setSearchTerm(item.category || "")}
+                          />
+                        ) : (
+                          "N/A"
+                        )}
+                      </TableCell>
                       <TableCell align="right">
                         {formatCurrency(item.price)}
                       </TableCell>

@@ -32,7 +32,22 @@ export default function ProductListItem({ item, onEdit, onDelete }) {
           size="small"
         />
       </TableCell>
-      <TableCell>{item.category}</TableCell>
+      <TableCell>
+        {item.associations && Array.isArray(item.associations) ? (
+          item.associations.map((assoc, index) => (
+            <Chip
+              key={index}
+              label={assoc.categoryName}
+              size="small"
+              sx={{ mr: 0.5, mb: 0.5 }}
+            />
+          ))
+        ) : item.category ? (
+          <Chip label={item.category} size="small" />
+        ) : (
+          "N/A"
+        )}
+      </TableCell>
       <TableCell align="right">
         {formatCurrency(item.price)}
         {item.type === "pack" && (

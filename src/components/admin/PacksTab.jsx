@@ -30,6 +30,14 @@ import ImageUpload from "./common/ImageUpload/ImageUpload";
 import CarouselImageUpload from "./common/ImageUpload/CarouselImageUpload";
 import { slugify } from "@/utils/slugify";
 
+// Ajout de la constante pour l'URL de l'API et de la fonction fixImageUrl
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+const fixImageUrl = (url) => {
+  if (!url) return "";
+  return url.replace("http://localhost:5000", API_URL);
+};
+
 export default function PacksTab() {
   const [pack, setPack] = useState({
     title: "",
@@ -69,7 +77,12 @@ export default function PacksTab() {
   const loadProducts = async () => {
     try {
       const products = await fetchProducts();
-      setAvailableProducts(products);
+      // Corriger les URLs des images des produits
+      const correctedProducts = products.map((product) => ({
+        ...product,
+        imageUrl: fixImageUrl(product.imageUrl),
+      }));
+      setAvailableProducts(correctedProducts);
     } catch (error) {
       console.error("Error loading products:", error);
       setGlobalError("Failed to load products");
