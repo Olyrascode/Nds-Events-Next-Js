@@ -1,8 +1,4 @@
-import {
-  TableHead,
-  TableRow,
-  TableCell
-} from '@mui/material';
+import { TableHead, TableRow, TableCell } from "@mui/material";
 
 export default function ProductListHeader() {
   return (

@@ -19,9 +19,15 @@ import {
   Typography,
   IconButton,
   Chip,
+  Paper,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  calculateAllPrices,
+  formatPrice,
+  formatVATRate,
+} from "../../../utils/vatCalculations";
 
 // Options pour les catégories de navigation
 const NAV_CATEGORIES_OPTIONS = [
@@ -43,6 +49,7 @@ export default function ProductForm({
     title: initialData.title || "",
     description: initialData.description || "",
     price: initialData.price || "",
+    vatRate: initialData.vatRate || 20, // TVA par défaut à 20%
     minQuantity: initialData.minQuantity || "",
     stock: initialData.stock || "",
     associations: initialData.associations || [],
@@ -271,7 +278,7 @@ export default function ProductForm({
       {/* … autres champs (prix, stock, etc.) … */}
       <TextField
         fullWidth
-        label="Prix par jours"
+        label="Prix par jours (TTC)"
         type="number"
         value={product.price}
         onChange={(e) => setProduct({ ...product, price: e.target.value })}
@@ -280,6 +287,73 @@ export default function ProductForm({
         inputProps={{ min: 0, step: "0.01" }}
         disabled={loading}
       />
+
+      {/* Sélecteur de taux de TVA */}
+      <FormControl fullWidth margin="normal" required>
+        <InputLabel id="vat-rate-select-label">Taux de TVA</InputLabel>
+        <Select
+          labelId="vat-rate-select-label"
+          value={product.vatRate}
+          label="Taux de TVA"
+          onChange={(e) => setProduct({ ...product, vatRate: e.target.value })}
+          disabled={loading}
+        >
+          <MenuItem value={20}>20% (Taux normal)</MenuItem>
+          <MenuItem value={5.5}>5,5% (Produits alimentaires)</MenuItem>
+        </Select>
+      </FormControl>
+
+      {/* Aperçu des calculs de prix */}
+      {product.price && product.price > 0 && (
+        <Paper
+          elevation={1}
+          sx={{
+            p: 2,
+            mt: 1,
+            mb: 2,
+            bgcolor: "grey.50",
+            border: "1px solid",
+            borderColor: "grey.200",
+          }}
+        >
+          <Typography variant="subtitle2" gutterBottom color="primary">
+            💡 Aperçu des calculs de prix :
+          </Typography>
+          {(() => {
+            const calculations = calculateAllPrices(
+              parseFloat(product.price) || 0,
+              product.vatRate
+            );
+            return (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                <Typography variant="body2">
+                  <strong>Prix HT :</strong> {formatPrice(calculations.priceHT)}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>TVA ({formatVATRate(calculations.vatRate)}) :</strong>{" "}
+                  {formatPrice(calculations.vatAmount)}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: "bold", color: "primary.main" }}
+                >
+                  <strong>Prix TTC :</strong>{" "}
+                  {formatPrice(calculations.priceTTC)}
+                </Typography>
+
+                {/* Vérification du calcul */}
+                <Box sx={{ mt: 1, pt: 1, borderTop: "1px dashed #ccc" }}>
+                  <Typography variant="caption" color="text.secondary">
+                    ✓ Vérification : {formatPrice(calculations.priceHT)} +{" "}
+                    {formatPrice(calculations.vatAmount)} ={" "}
+                    {formatPrice(calculations.priceTTC)}
+                  </Typography>
+                </Box>
+              </Box>
+            );
+          })()}
+        </Paper>
+      )}
 
       <TextField
         fullWidth
@@ -398,6 +472,8 @@ export default function ProductForm({
         <Box sx={{ display: "flex", gap: 2, alignItems: "flex-end", mt: 2 }}>
           <Autocomplete
             freeSolo
+            clearOnEscape
+            clearOnBlur={false}
             options={[
               "➕ Créer une nouvelle catégorie...",
               ...categories.map((cat, idx) => ({
@@ -422,13 +498,19 @@ export default function ProductForm({
                 setIsCreateCategoryDialogOpen(true);
                 // Ne pas changer la valeur actuelle
                 return;
+              } else if (newValue === null) {
+                // Gérer l'effacement via la croix
+                setCurrentCategoryName("");
+                setCurrentCategoryInputValue("");
               } else if (
                 typeof newValue === "object" &&
                 newValue?.displayName
               ) {
                 setCurrentCategoryName(newValue.displayName);
+                setCurrentCategoryInputValue(newValue.displayName);
               } else {
                 setCurrentCategoryName(newValue || "");
+                setCurrentCategoryInputValue(newValue || "");
               }
             }}
             getOptionLabel={(option) => {

@@ -7,6 +7,7 @@ export const createProduct = async (productData) => {
     formData.append("title", productData.title);
     formData.append("description", productData.description);
     formData.append("price", productData.price);
+    formData.append("vatRate", productData.vatRate || 20);
     formData.append("minQuantity", productData.minQuantity);
     /* Ancien code pour category et navCategory - commenté
     // Envoyer category comme une chaîne JSON si c'est un tableau
@@ -116,6 +117,7 @@ export const updateProduct = async (productId, productData) => {
     formData.append("title", productData.title);
     formData.append("description", productData.description);
     formData.append("price", productData.price);
+    formData.append("vatRate", productData.vatRate || 20);
     formData.append("minQuantity", productData.minQuantity);
     /* Ancien code pour category et navCategory - commenté
     // Envoyer category comme une chaîne JSON si c'est un tableau
