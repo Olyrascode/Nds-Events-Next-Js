@@ -13,7 +13,7 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 interface BreadcrumbItem {
   label: string;
   href: string;
-  // Si true, ce lien sera affiché comme texte (élément actuel)
+
   active?: boolean;
 }
 
@@ -23,22 +23,6 @@ interface BreadcrumbProps {
   containerMaxWidth?: "xs" | "sm" | "md" | "lg" | "xl" | false;
 }
 
-/**
- * Composant de fil d'Ariane (Breadcrumb) réutilisable
- *
- * @example
- * // Utilisation basique avec détection automatique du chemin
- * <Breadcrumb />
- *
- * @example
- * // Utilisation avec items personnalisés
- * <Breadcrumb
- *   items={[
- *     { label: 'Produits', href: '/produits' },
- *     { label: 'Chaises', href: '/produits/chaises', active: true }
- *   ]}
- * />
- */
 const Breadcrumb: React.FC<BreadcrumbProps> = ({
   items,
   showHomeLink = true,
@@ -46,10 +30,8 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 }) => {
   const pathname = usePathname();
 
-  // Si aucun item n'est fourni, générer automatiquement à partir du chemin
   const breadcrumbItems = items || generateBreadcrumbItems(pathname);
 
-  // Ajouter le lien d'accueil en premier si demandé
   const displayItems = showHomeLink
     ? [{ label: "Accueil", href: "/" }, ...breadcrumbItems]
     : breadcrumbItems;
@@ -69,7 +51,6 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
         {displayItems.map((item, index) => {
           const isLast = index === displayItems.length - 1;
 
-          // Si c'est le premier élément et qu'il s'agit de l'accueil, afficher une icône
           if (index === 0 && item.href === "/" && showHomeLink) {
             return (
               <MuiLink
@@ -91,7 +72,6 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
             );
           }
 
-          // Si c'est le dernier élément ou marqué comme actif, afficher en texte
           if (isLast || item.active) {
             return (
               <Typography
@@ -108,7 +88,6 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
             );
           }
 
-          // Sinon, afficher comme lien
           return (
             <MuiLink
               key={item.href}

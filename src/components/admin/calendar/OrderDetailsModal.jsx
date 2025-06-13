@@ -13,6 +13,15 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { formatPrice } from "../../../utils/priceUtils";
 
+// Fonction utilitaire pour corriger les URLs d'images
+const fixImageUrl = (imageUrl) => {
+  if (!imageUrl) return "";
+  if (imageUrl.includes("localhost:5000")) {
+    return imageUrl.replace("localhost:5000", "api-nds-events.fr");
+  }
+  return imageUrl;
+};
+
 export default function OrderDetailsModal({ order, onClose }) {
   if (!order) return null;
 
@@ -82,17 +91,28 @@ export default function OrderDetailsModal({ order, onClose }) {
               Produits de votre commande
             </Typography>
             {order.products.map((item, index) => (
-              <Box key={item.id || index} sx={{ mb: 2 }}>
+              <Box key={item.id || index} sx={{ mb: 3 }}>
                 <Grid container spacing={2} alignItems="center">
                   <Grid item>
                     <img
-                      src={item.imageUrl}
+                      src={fixImageUrl(item.imageUrl)}
                       alt={item.title}
                       style={{ width: 60, height: 60, objectFit: "cover" }}
                     />
                   </Grid>
                   <Grid item xs>
-                    <Typography variant="subtitle1">{item.title}</Typography>
+                    <Typography variant="subtitle1">
+                      {item.title}
+                      {item.type === "pack" && (
+                        <Typography
+                          component="span"
+                          color="primary"
+                          sx={{ ml: 1, fontWeight: "bold" }}
+                        >
+                          (Pack)
+                        </Typography>
+                      )}
+                    </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Quantité: {item.quantity} | {formatPrice(item.price)}
                     </Typography>
@@ -109,6 +129,71 @@ export default function OrderDetailsModal({ order, onClose }) {
                       ))}
                   </Grid>
                 </Grid>
+
+                {/* Affichage des produits inclus dans le pack */}
+                {item.type === "pack" &&
+                  item.products &&
+                  item.products.length > 0 && (
+                    <Box
+                      sx={{
+                        mt: 2,
+                        ml: 4,
+                        p: 2,
+                        backgroundColor: "#f5f5f5",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        color="primary"
+                        gutterBottom
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        Produits inclus dans ce pack :
+                      </Typography>
+                      {item.products.map((packProduct, packIdx) => {
+                        // Gestion de la structure de données (ancien vs nouveau format)
+                        const product = packProduct.product || packProduct;
+                        const quantityInPack = packProduct.quantity || 1;
+                        const totalQuantity = quantityInPack * item.quantity;
+
+                        return (
+                          <Grid
+                            container
+                            spacing={1}
+                            alignItems="center"
+                            key={packIdx}
+                            sx={{ mb: 1 }}
+                          >
+                            <Grid item>
+                              <img
+                                src={fixImageUrl(product.imageUrl)}
+                                alt={product.title}
+                                style={{
+                                  width: 30,
+                                  height: 30,
+                                  objectFit: "cover",
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs>
+                              <Typography variant="body2">
+                                {product.title}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Quantité par pack: {quantityInPack} | Total:{" "}
+                                {totalQuantity} |{" "}
+                                {formatPrice(product.price || 0)}/jour
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                        );
+                      })}
+                    </Box>
+                  )}
               </Box>
             ))}
           </Grid>
@@ -125,10 +210,10 @@ export default function OrderDetailsModal({ order, onClose }) {
             >
               <Typography variant="body1" mb={1}>
                 Prix des produits:{" "}
-                {formatPrice(order.total - order.shippingFee)}
+                {formatPrice(order.total - (order.shippingFee || 0))}
               </Typography>
               <Typography variant="body1" mb={1}>
-                Frais de livraison: {formatPrice(order.shippingFee)}
+                Frais de livraison: {formatPrice(order.shippingFee || 0)}
               </Typography>
               <Typography variant="h6">
                 Total: {formatPrice(order.total)}

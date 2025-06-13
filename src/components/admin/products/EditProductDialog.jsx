@@ -160,21 +160,7 @@ export default function EditProductDialog({
       description: initialData?.description || "",
       category: "packs-complets",
       navCategory: initialData?.navCategory || "",
-      products:
-        initialData?.products?.map((item) => {
-          // Les données du produit sont imbriquées dans un objet product
-          const productData = item.product || {};
-          return {
-            id: item._id,
-            product_id: productData._id,
-            title: productData.title || "Sans titre",
-            description: productData.description || "",
-            price: productData.price || 0,
-            imageUrl: fixImageUrl(productData.imageUrl || ""),
-            quantity: item.quantity || 1,
-            originalItem: item, // Garder l'élément original pour référence
-          };
-        }) || [],
+      products: [],
       discountPercentage: initialData?.discountPercentage || "0",
       minRentalDays: initialData?.minRentalDays || "1",
       minQuantity: initialData?.minQuantity || "1",
@@ -187,23 +173,114 @@ export default function EditProductDialog({
       seoMetaDescription: initialData?.seoMetaDescription || "",
     });
 
+    // Log pour l'image principale du pack
+    console.log("[PackForm] Initial Data for Pack Image:", initialData);
+    console.log(
+      "[PackForm] Initial Pack State imageUrl (for main image):",
+      pack.imageUrl
+    );
+
     const [availableProducts, setAvailableProducts] = useState([]);
     const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
+    const [formLoading, setFormLoading] = useState(false);
 
     useEffect(() => {
       loadProducts();
-
-      // Log pour déboguer les produits chargés
-      console.log("Products in pack:", initialData?.products);
     }, []);
+
+    useEffect(() => {
+      if (initialData?.products && availableProducts.length > 0) {
+        const populatedProducts = initialData.products
+          .map((itemInPack) => {
+            const productId =
+              typeof itemInPack.product === "string"
+                ? itemInPack.product
+                : itemInPack.product?._id;
+            const fullProductDetails = availableProducts.find(
+              (p) => p._id === productId
+            );
+
+            // Log pour les détails du produit et son image
+            console.log(
+              "[PackForm] Populating product in pack - Full details from availableProducts:",
+              fullProductDetails
+            );
+
+            if (fullProductDetails) {
+              console.log(
+                "[PackForm] Product image URL from fullProductDetails:",
+                fullProductDetails.imageUrl
+              );
+              const fixedImgUrl = fixImageUrl(fullProductDetails.imageUrl);
+              console.log(
+                "[PackForm] Fixed product image URL for pack table:",
+                fixedImgUrl
+              );
+              return {
+                id: itemInPack._id,
+                product_id: fullProductDetails._id,
+                title: fullProductDetails.title,
+                imageUrl: fixedImgUrl, // Utiliser l'URL corrigée
+                price: fullProductDetails.price,
+                category: fullProductDetails.category,
+                quantity: itemInPack.quantity || 1,
+              };
+            }
+            const productData =
+              typeof itemInPack.product === "object" ? itemInPack.product : {};
+            return {
+              id: itemInPack._id,
+              product_id: productId || "unknown",
+              title: productData.title || "Produit inconnu",
+              imageUrl: fixImageUrl(productData.imageUrl),
+              price: productData.price || 0,
+              category: productData.category || "Inconnue",
+              quantity: itemInPack.quantity || 1,
+            };
+          })
+          .filter((p) => p.product_id !== "unknown");
+
+        setPack((prevPack) => ({ ...prevPack, products: populatedProducts }));
+      } else if (initialData?.products) {
+        const basicProducts = initialData.products.map((itemInPack) => {
+          const productRef = itemInPack.product;
+          const productId =
+            typeof productRef === "string" ? productRef : productRef?._id;
+          return {
+            id: itemInPack._id,
+            product_id: productId,
+            title:
+              typeof productRef === "object" && productRef.title
+                ? productRef.title
+                : "Chargement...",
+            imageUrl: fixImageUrl(
+              typeof productRef === "object" ? productRef.imageUrl : ""
+            ),
+            price:
+              typeof productRef === "object" && productRef.price
+                ? productRef.price
+                : 0,
+            category:
+              typeof productRef === "object" && productRef.category
+                ? productRef.category
+                : "...",
+            quantity: itemInPack.quantity || 1,
+          };
+        });
+        setPack((prevPack) => ({ ...prevPack, products: basicProducts }));
+      }
+    }, [initialData, availableProducts]);
 
     const loadProducts = async () => {
       try {
-        const products = await fetchProducts();
-        setAvailableProducts(products);
+        const productsData = await fetchProducts();
+        const correctedProducts = productsData.map((p) => ({
+          ...p,
+          imageUrl: fixImageUrl(p.imageUrl),
+        }));
+        setAvailableProducts(correctedProducts);
       } catch (error) {
-        console.error("Error loading products:", error);
+        console.error("Error loading products for PackForm:", error);
       }
     };
 
@@ -223,35 +300,31 @@ export default function EditProductDialog({
       setPack({ ...pack, carouselImages: newCarouselImages });
     };
 
-    const handleProductSelect = (event, product) => {
-      if (!product) return;
+    const handleProductSelect = (event, productToAdd) => {
+      if (!productToAdd) return;
 
-      // Vérifier si le produit est déjà dans le pack
-      if (pack.products.some((p) => p.product_id === product._id)) {
+      if (pack.products.some((p) => p.product_id === productToAdd._id)) {
+        console.warn("Produit déjà dans le pack:", productToAdd.title);
         return;
       }
 
-      // Créer un nouvel élément de produit au format attendu
-      const newProduct = {
-        id: generateUniqueId(), // ID temporaire pour l'interface
-        product_id: product._id, // ID du produit pour le backend
-        product: product._id, // Ajouter également une propriété 'product' pour compatibilité
-        title: product.title || "Sans titre",
-        description: product.description || "",
-        price: product.price || 0,
-        imageUrl: product.imageUrl || "",
+      const newProductInPack = {
+        id: generateUniqueId(),
+        product_id: productToAdd._id,
+        title: productToAdd.title,
+        imageUrl: productToAdd.imageUrl,
+        price: productToAdd.price,
+        category: productToAdd.category,
         quantity: 1,
       };
 
-      console.log("Ajout du produit au pack:", newProduct);
-
       setPack((prev) => ({
         ...prev,
-        products: [...prev.products, newProduct],
+        products: [...prev.products, newProductInPack],
       }));
+      setErrors((prev) => ({ ...prev, products: "" }));
     };
 
-    // Génère un ID unique pour un nouveau produit
     const generateUniqueId = () => {
       return (
         "temp_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
@@ -276,8 +349,8 @@ export default function EditProductDialog({
 
     const handleFormSubmit = (e) => {
       e.preventDefault();
+      setFormLoading(true);
 
-      // Simplifier la validation : plus besoin de vérifier la catégorie
       const newErrors = {};
       if (!pack.title) newErrors.title = "Le titre est requis";
       if (!pack.navCategory)
@@ -287,22 +360,19 @@ export default function EditProductDialog({
 
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
+        setFormLoading(false);
         return;
       }
 
-      // Filtrer les images null du carrousel
       const filteredCarouselImages = pack.carouselImages.filter(Boolean);
 
-      // Préparer l'objet à soumettre avec la catégorie fixée
       const packToSubmit = {
         ...pack,
         category: "packs-complets",
-        // Format attendu par l'API : { product: id, quantity: number }
-        products: pack.products.map((product) => {
-          console.log("Préparation produit pour soumission:", product);
+        products: pack.products.map((p) => {
           return {
-            product: product.product_id,
-            quantity: parseInt(product.quantity) || 1,
+            product: p.product_id,
+            quantity: parseInt(p.quantity) || 1,
           };
         }),
         carouselImages: filteredCarouselImages,
@@ -315,8 +385,8 @@ export default function EditProductDialog({
       console.log("Pack à soumettre:", packToSubmit);
       console.log("Produits formatés pour API:", packToSubmit.products);
 
-      // Soumettre directement sans vérifier la création de catégorie
       onSubmit(packToSubmit);
+      setFormLoading(false);
     };
 
     return (
@@ -326,7 +396,7 @@ export default function EditProductDialog({
             Image principale
           </Typography>
           <ImageUpload
-            existingImageUrl={pack.imageUrl}
+            currentImage={pack.imageUrl}
             onFileChange={handleImageChange}
           />
         </Box>
@@ -414,18 +484,21 @@ export default function EditProductDialog({
 
         <Box sx={{ mt: 3, mb: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Ajouter des produits
+            Produits inclus dans le pack
           </Typography>
-
           <Autocomplete
-            options={availableProducts}
-            getOptionLabel={(option) => option.title}
+            options={availableProducts.filter(
+              (option) =>
+                !pack.products.some((p) => p.product_id === option._id)
+            )}
+            getOptionLabel={(option) => option.title || ""}
+            isOptionEqualToValue={(option, value) => option._id === value._id}
             onChange={handleProductSelect}
             renderOption={(props, option) => {
               const { key, ...otherProps } = props;
               return (
                 <Box
-                  key={key}
+                  key={option._id}
                   component="li"
                   sx={{ display: "flex", alignItems: "center", gap: 2 }}
                   {...otherProps}
@@ -440,7 +513,7 @@ export default function EditProductDialog({
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Rechercher des produits"
+                label="Rechercher et ajouter des produits"
                 variant="outlined"
                 fullWidth
                 error={Boolean(errors.products)}
@@ -457,34 +530,34 @@ export default function EditProductDialog({
                 <TableRow>
                   <TableCell>Image</TableCell>
                   <TableCell>Produit</TableCell>
-                  <TableCell align="right">Prix</TableCell>
+                  <TableCell>Catégorie</TableCell>
+                  <TableCell align="right">Prix/jour</TableCell>
+                  <TableCell align="right">Conditionnement</TableCell>
                   <TableCell align="right">Quantité</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {pack.products.map((product) => (
-                  <TableRow key={product.id}>
+                {pack.products.map((p) => (
+                  <TableRow key={p.id || p.product_id}>
                     <TableCell>
-                      {product.imageUrl ? (
-                        <Avatar
-                          alt={product.title}
-                          src={fixImageUrl(product.imageUrl)}
-                        />
-                      ) : (
-                        <Avatar sx={{ width: 40, height: 40 }}>?</Avatar>
-                      )}
+                      {p.imageUrl && <Avatar src={p.imageUrl} alt={p.title} />}
                     </TableCell>
-                    <TableCell>{product.title || "Sans titre"}</TableCell>
+                    <TableCell>{p.title}</TableCell>
+                    <TableCell>{p.category}</TableCell>
                     <TableCell align="right">
-                      {(product.price || 0).toFixed(2)}€
+                      {p.price ? `${p.price.toFixed(2)}€` : "N/A"}
                     </TableCell>
+                    <TableCell align="right">{"Unité"}</TableCell>
                     <TableCell align="right">
                       <TextField
                         type="number"
-                        value={product.quantity || 1}
+                        value={p.quantity}
                         onChange={(e) =>
-                          handleQuantityChange(product.id, e.target.value)
+                          handleQuantityChange(
+                            p.id || p.product_id,
+                            e.target.value
+                          )
                         }
                         inputProps={{ min: 1 }}
                         size="small"
@@ -494,7 +567,9 @@ export default function EditProductDialog({
                     <TableCell align="right">
                       <IconButton
                         color="error"
-                        onClick={() => handleRemoveProduct(product.id)}
+                        onClick={() =>
+                          handleRemoveProduct(p.id || p.product_id)
+                        }
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -583,9 +658,9 @@ export default function EditProductDialog({
           variant="contained"
           fullWidth
           sx={{ mt: 2 }}
-          disabled={loading}
+          disabled={formLoading}
         >
-          {submitLabel}
+          {formLoading ? <CircularProgress size={24} /> : submitLabel}
         </Button>
       </Box>
     );

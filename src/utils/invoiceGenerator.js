@@ -313,8 +313,18 @@ export const generateInvoicePDF = async (order, isDelivery) => {
               }
             });
           }
-          const itemsBaseTotalTTC = actualItemQuantity * unitPriceTTC_perItem;
-          const lineTotalTTC = itemsBaseTotalTTC + optionsTotalTTC;
+
+          // Calcul différent selon le type de produit
+          let lineTotalTTC;
+          if (product.type === "pack") {
+            // Pour les packs, product.price est déjà le prix total
+            lineTotalTTC = unitPriceTTC_perItem + optionsTotalTTC;
+          } else {
+            // Pour les produits normaux, calculer comme avant
+            const itemsBaseTotalTTC = actualItemQuantity * unitPriceTTC_perItem;
+            lineTotalTTC = itemsBaseTotalTTC + optionsTotalTTC;
+          }
+
           const tvaRate = product.taxRate || 20;
           const mttHT = lineTotalTTC / (1 + tvaRate / 100);
           const puHT_calculated_from_unit =
@@ -326,7 +336,7 @@ export const generateInvoicePDF = async (order, isDelivery) => {
               product._id?.toString() ||
               "N/A",
             product.name || product.title || "N/A",
-            actualItemQuantity,
+            product.type === "pack" ? product.quantity : actualItemQuantity, // Afficher la bonne quantité
             formatCurrency(puHT_calculated_from_unit),
             `${tvaRate}%`,
             formatCurrency(mttHT),
@@ -334,6 +344,51 @@ export const generateInvoicePDF = async (order, isDelivery) => {
             "",
             "",
           ]);
+
+          // Affichage des produits inclus dans le pack
+          if (
+            product.type === "pack" &&
+            product.products &&
+            product.products.length > 0
+          ) {
+            product.products.forEach((packProduct) => {
+              // Gestion de la structure de données (ancien vs nouveau format)
+              const productDetails = packProduct.product || packProduct;
+              const quantityInPack = packProduct.quantity || 1;
+              const totalQuantity = quantityInPack * product.quantity;
+
+              tableBody.push([
+                { content: "", styles: { cellWidth: "wrap" } },
+                {
+                  content: `   ${productDetails.title || "Produit inconnu"}`,
+                  styles: {
+                    fontStyle: "italic",
+                    cellWidth: "wrap",
+                    fontSize: 7,
+                    overflow: "linebreak",
+                    cellPadding: 1,
+                    halign: "left",
+                    minCellWidth: 30,
+                    maxCellWidth: 80,
+                  },
+                },
+                {
+                  content: `${totalQuantity}`,
+                  styles: {
+                    fontStyle: "italic",
+                    fontSize: 8,
+                    halign: "center",
+                  },
+                },
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+              ]);
+            });
+          }
 
           // Ajout des lignes pour les options sélectionnées (FRONTEND)
           if (

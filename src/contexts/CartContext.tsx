@@ -2,6 +2,20 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+// Définition de fixImageUrl
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+const fixImageUrl = (url: string | undefined | null): string => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const apiURL = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
+  const imagePath = url.startsWith("/") ? url.slice(1) : url;
+  if (!imagePath) return "";
+  return `${apiURL}/api/files/${imagePath}`;
+};
+
 // Fonction simple pour générer un identifiant unique
 const generateId = () =>
   Date.now().toString() + Math.random().toString(36).substring(2, 9);
@@ -73,25 +87,43 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart]);
 
   function addToCart(item: CartItem) {
+    const processedItem = { ...item };
+
+    // Corriger l'URL de l'image principale de l'item
+    if (processedItem.imageUrl) {
+      processedItem.imageUrl = fixImageUrl(processedItem.imageUrl);
+    }
+
+    // Si c'est un pack et qu'il a des produits, corriger leurs URLs d'image aussi
+    if (
+      processedItem.isPack &&
+      processedItem.products &&
+      processedItem.products.length > 0
+    ) {
+      processedItem.products = processedItem.products.map((subProduct) => {
+        if (subProduct.imageUrl) {
+          return { ...subProduct, imageUrl: fixImageUrl(subProduct.imageUrl) };
+        }
+        return subProduct;
+      });
+    }
+
     setCart((prevCart) => {
-      // On considère deux items identiques si leur id et leurs options (stringifiées) sont identiques
       const existingItemIndex = prevCart.findIndex(
         (cartItem) =>
-          cartItem.id === item.id &&
+          cartItem.id === processedItem.id &&
           JSON.stringify(cartItem.selectedOptions || {}) ===
-            JSON.stringify(item.selectedOptions || {})
+            JSON.stringify(processedItem.selectedOptions || {})
       );
       if (existingItemIndex !== -1) {
-        // Remplacer complètement l'item existant par le nouvel item
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex] = {
-          ...item,
+          ...processedItem,
           cartItemId: updatedCart[existingItemIndex].cartItemId || generateId(),
         };
         return updatedCart;
       } else {
-        // Ajouter le produit s'il n'existe pas encore dans le panier
-        return [...prevCart, { ...item, cartItemId: generateId() }];
+        return [...prevCart, { ...processedItem, cartItemId: generateId() }];
       }
     });
     setIsCartOpen(true);

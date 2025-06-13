@@ -33,7 +33,7 @@ export const createPack = async (packData) => {
 
     // Ajouter les produits
     const convertedProducts = packData.products.map((item) => ({
-      product: item.id || item._id,
+      product: item.product,
       quantity: item.quantity,
     }));
     formData.append("products", JSON.stringify(convertedProducts));

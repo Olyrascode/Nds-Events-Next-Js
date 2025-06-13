@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import OptionsManager from "./OptionsManager";
 import ImageUpload from "../common/ImageUpload/ImageUpload";
+import CreateCategoryDialog from "./CreateCategoryDialog";
+import DeleteCategoryDialog from "./DeleteCategoryDialog";
 import {
   TextField,
   Button,
@@ -14,7 +16,12 @@ import {
   Select,
   MenuItem,
   Autocomplete,
+  Typography,
+  IconButton,
+  Chip,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 // Options pour les catégories de navigation
 const NAV_CATEGORIES_OPTIONS = [
@@ -60,6 +67,15 @@ export default function ProductForm({
 
   // Liste des catégories existantes récupérées depuis l'API
   const [categories, setCategories] = useState([]);
+
+  // État pour le dialogue de création de catégorie
+  const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] =
+    useState(false);
+
+  // État pour le dialogue de suppression de catégorie
+  const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] =
+    useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   // Chargement des catégories existantes au montage du composant
   useEffect(() => {
@@ -156,6 +172,37 @@ export default function ProductForm({
         (_, index) => index !== indexToRemove
       ),
     }));
+  };
+
+  // Fonction pour gérer la création d'une nouvelle catégorie
+  const handleCategoryCreated = (newCategory) => {
+    // Ajouter la nouvelle catégorie à la liste
+    setCategories((prevCategories) => [...prevCategories, newCategory]);
+
+    // Sélectionner automatiquement la nouvelle catégorie
+    setCurrentCategoryName(newCategory.name);
+    setCurrentCategoryInputValue(newCategory.name);
+  };
+
+  // Fonction pour gérer la suppression d'une catégorie
+  const handleDeleteCategory = (category, event) => {
+    event.stopPropagation(); // Empêcher la sélection de l'option
+    setCategoryToDelete(category);
+    setIsDeleteCategoryDialogOpen(true);
+  };
+
+  // Fonction appelée après suppression réussie
+  const handleCategoryDeleted = (deletedCategory) => {
+    // Retirer la catégorie de la liste
+    setCategories((prevCategories) =>
+      prevCategories.filter((cat) => cat._id !== deletedCategory._id)
+    );
+
+    // Si la catégorie supprimée était sélectionnée, réinitialiser la sélection
+    if (currentCategoryName === deletedCategory.name) {
+      setCurrentCategoryName("");
+      setCurrentCategoryInputValue("");
+    }
   };
 
   return (
@@ -351,21 +398,126 @@ export default function ProductForm({
         <Box sx={{ display: "flex", gap: 2, alignItems: "flex-end", mt: 2 }}>
           <Autocomplete
             freeSolo
-            options={categories.map((cat) => cat.name)} // Supposant que l'API retourne {id, name} ou similaire
+            options={[
+              "➕ Créer une nouvelle catégorie...",
+              ...categories.map((cat, idx) => ({
+                ...cat,
+                displayName: cat.name,
+                uniqueId: cat._id || `temp-${idx}`, // S'assurer qu'il y a toujours un ID
+              })),
+            ]}
             value={currentCategoryName}
             inputValue={currentCategoryInputValue}
             onInputChange={(event, newInputValue) => {
-              setCurrentCategoryInputValue(newInputValue);
+              // Ne pas permettre de taper l'option spéciale
+              if (
+                newInputValue &&
+                newInputValue !== "➕ Créer une nouvelle catégorie..."
+              ) {
+                setCurrentCategoryInputValue(newInputValue);
+              }
             }}
             onChange={(event, newValue) => {
-              setCurrentCategoryName(newValue || "");
+              if (newValue === "➕ Créer une nouvelle catégorie...") {
+                setIsCreateCategoryDialogOpen(true);
+                // Ne pas changer la valeur actuelle
+                return;
+              } else if (
+                typeof newValue === "object" &&
+                newValue?.displayName
+              ) {
+                setCurrentCategoryName(newValue.displayName);
+              } else {
+                setCurrentCategoryName(newValue || "");
+              }
+            }}
+            getOptionLabel={(option) => {
+              if (typeof option === "string") return option;
+              return option.displayName || option.name;
+            }}
+            renderOption={(props, option, { index }) => {
+              // Extraire la clé des props pour éviter l'erreur de React
+              const { key, ...otherProps } = props;
+
+              // Générer une clé unique pour chaque option
+              const uniqueKey =
+                option === "➕ Créer une nouvelle catégorie..."
+                  ? "create-new-category"
+                  : typeof option === "object" && option.uniqueId
+                  ? `category-${option.uniqueId}`
+                  : `option-${index}`;
+
+              return (
+                <Box key={uniqueKey}>
+                  <Box component="li" {...otherProps}>
+                    {option === "➕ Créer une nouvelle catégorie..." ? (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          color: "primary.main",
+                          fontWeight: "bold",
+                          py: 1,
+                        }}
+                      >
+                        <AddIcon fontSize="small" />
+                        <Typography>Créer une nouvelle catégorie...</Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "100%",
+                          py: 0.5,
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Typography>{option.name}</Typography>
+                          {typeof option.usageCount !== "undefined" && (
+                            <Chip
+                              label={`${option.usageCount} utilisé${
+                                option.usageCount > 1 ? "s" : ""
+                              }`}
+                              size="small"
+                              variant="outlined"
+                              color={
+                                option.usageCount > 0 ? "default" : "secondary"
+                              }
+                            />
+                          )}
+                        </Box>
+                        {typeof option.usageCount !== "undefined" &&
+                          option.usageCount === 0 && (
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={(e) => handleDeleteCategory(option, e)}
+                              sx={{ ml: 1 }}
+                              title="Supprimer cette catégorie"
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                      </Box>
+                    )}
+                  </Box>
+                  {index === 0 &&
+                    option === "➕ Créer une nouvelle catégorie..." && (
+                      <Box sx={{ borderBottom: "1px solid #e0e0e0", mx: 1 }} />
+                    )}
+                </Box>
+              );
             }}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label="Nom de la catégorie (sous-catégorie)"
                 variant="outlined"
-                sx={{ flexGrow: 1 }}
                 disabled={loading}
               />
             )}
@@ -448,6 +600,24 @@ export default function ProductForm({
       >
         {loading ? <CircularProgress size={24} color="inherit" /> : submitLabel}
       </Button>
+
+      {/* Dialogue pour créer une nouvelle catégorie */}
+      <CreateCategoryDialog
+        open={isCreateCategoryDialogOpen}
+        onClose={() => setIsCreateCategoryDialogOpen(false)}
+        onCategoryCreated={handleCategoryCreated}
+      />
+
+      {/* Dialogue pour supprimer une catégorie */}
+      <DeleteCategoryDialog
+        open={isDeleteCategoryDialogOpen}
+        onClose={() => {
+          setIsDeleteCategoryDialogOpen(false);
+          setCategoryToDelete(null);
+        }}
+        category={categoryToDelete}
+        onCategoryDeleted={handleCategoryDeleted}
+      />
     </Box>
   );
 }

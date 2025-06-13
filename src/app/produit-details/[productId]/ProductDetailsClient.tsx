@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, usePathname } from "next/navigation";
-import { useSelector } from "react-redux";
-import { fetchAvailableStock } from "../../../features/stockSlice";
 import { useCart } from "../../../contexts/CartContext";
 import { fetchProductById } from "../../../services/products.service";
 import { addDays, isSaturday, isSunday } from "date-fns";
@@ -20,7 +18,6 @@ import RentalPeriod from "../components/RentalPeriod";
 import QuantitySelector from "../components/QuantitySelector";
 import PriceCalculation from "../components/PriceCalculation";
 import Image from "next/image";
-import { useAppDispatch } from "../../../hooks/useAppDispatch";
 import "./ProductDetails.scss";
 import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
 import Breadcrumb from "@/components/common/Breadcrumb";
@@ -67,13 +64,6 @@ export interface Product {
 
 type SelectedOptions = Record<string, SelectedOption>;
 
-interface RootState {
-  stock: {
-    stockByProduct: { [key: string]: number };
-    loading: boolean;
-  };
-}
-
 interface BreadcrumbItem {
   label: string;
   href: string;
@@ -93,7 +83,6 @@ export default function ProductDetails({
 
   const { addToCart, setIsCartOpen, cart } = useCart();
 
-  const dispatch = useAppDispatch();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
@@ -134,17 +123,6 @@ export default function ProductDetails({
     ) || [];
   const shouldDisableWeekends =
     normalizedProductCategories.includes("bornes a selfie");
-
-  const availableStock = useSelector(
-    (state: RootState) => state.stock.stockByProduct[actualProductId]
-  );
-  const stockLoading = useSelector((state: RootState) => state.stock.loading);
-
-  // Calcul du nombre maximum de lots disponibles si le produit se loue en lots
-  const maxLotsAvailable =
-    product && product.lotSize && product.lotSize > 1
-      ? Math.floor(availableStock / product.lotSize)
-      : availableStock;
 
   const handleStartDateChange = (date: Date | null) => {
     setRentalPeriod({ ...rentalPeriod, startDate: date });
@@ -225,19 +203,62 @@ export default function ProductDetails({
   const effectiveStartDate = displayedStartDate;
   const effectiveEndDate = displayedEndDate;
 
-  useEffect(() => {
-    if (actualProductId && effectiveStartDate && effectiveEndDate) {
-      const params = {
-        productId: actualProductId,
-        startDate: effectiveStartDate.toISOString(),
-        endDate: effectiveEndDate.toISOString(),
-      };
+  // État local pour le stock (sans cache Redux)
+  const [availableStock, setAvailableStock] = useState<number | undefined>(
+    undefined
+  );
+  const [stockLoading, setStockLoading] = useState<boolean>(false);
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      dispatch(fetchAvailableStock(params));
+  // Calcul du nombre maximum de lots disponibles si le produit se loue en lots
+  const maxLotsAvailable =
+    product && product.lotSize && product.lotSize > 1
+      ? Math.floor((availableStock || 0) / product.lotSize)
+      : availableStock || 0;
+
+  // Requête directe du stock à chaque changement de dates
+  useEffect(() => {
+    async function fetchStock() {
+      if (!actualProductId || !effectiveStartDate || !effectiveEndDate) {
+        setAvailableStock(undefined);
+        return;
+      }
+
+      try {
+        setStockLoading(true);
+        const startDateStr = encodeURIComponent(
+          effectiveStartDate.toISOString()
+        );
+        const endDateStr = encodeURIComponent(effectiveEndDate.toISOString());
+        console.log(
+          `🔄 Récupération stock pour ${actualProductId} du ${effectiveStartDate.toISOString()} au ${effectiveEndDate.toISOString()}`
+        );
+
+        const response = await fetch(
+          `${API_URL}/api/stock/${actualProductId}?startDate=${startDateStr}&endDate=${endDateStr}`,
+          { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(
+            `Erreur récupération stock (status: ${response.status}): ${errorText}`
+          );
+          throw new Error(`Erreur récupération stock`);
+        }
+
+        const data = await response.json();
+        console.log(`✅ Stock récupéré: ${data.availableStock}`);
+        setAvailableStock(data.availableStock);
+      } catch (error) {
+        console.error("Erreur récupération stock:", error);
+        setAvailableStock(0);
+      } finally {
+        setStockLoading(false);
+      }
     }
-  }, [actualProductId, effectiveStartDate, effectiveEndDate, dispatch]);
+
+    fetchStock();
+  }, [actualProductId, effectiveStartDate, effectiveEndDate]);
 
   // useEffect pour vérifier les dates des bornes à selfie
   useEffect(() => {
@@ -264,7 +285,7 @@ export default function ProductDetails({
 
   // Validation de la quantité en tenant compte du lot
   useEffect(() => {
-    if (product) {
+    if (product && availableStock !== undefined) {
       if (product.lotSize && product.lotSize > 1) {
         const maxLots = Math.floor(availableStock / product.lotSize);
         if (quantity > maxLots) {
@@ -294,6 +315,8 @@ export default function ProductDetails({
   };
 
   const handleAddToCart = () => {
+    if (availableStock === undefined) return;
+
     if (product?.lotSize && product.lotSize > 1) {
       const maxLots = Math.floor(availableStock / product.lotSize);
       if (quantity > maxLots) {
@@ -337,6 +360,7 @@ export default function ProductDetails({
     effectiveStartDate !== null &&
     effectiveEndDate !== null &&
     quantity > 0 &&
+    availableStock !== undefined &&
     (product?.lotSize && product.lotSize > 1
       ? quantity <= Math.floor(availableStock / product.lotSize)
       : quantity <= availableStock) &&

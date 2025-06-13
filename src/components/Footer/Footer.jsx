@@ -1,5 +1,5 @@
-import Link from "next/link"; // 🔧 Utilisation de Next.js Link
-import Image from "next/image"; // Importation du composant Image de Next.js
+import Link from "next/link";
+import Image from "next/image";
 import "./_Footer.scss";
 
 function Footer() {
@@ -27,23 +27,18 @@ function Footer() {
           <ul>
             <li>
               <Link href="/a-propos">A propos</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/contact">Contact</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/mentions-legales">Mentions légales</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/conditions-generales-de-vente">CGVs</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/#faq">FAQ</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
           </ul>
         </div>
@@ -51,32 +46,25 @@ function Footer() {
           <ul>
             <li>
               <Link href="/produits">Nos Produits</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/packs-complets">Tous nos packs</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
 
             <li>
               <Link href="/la-table">La table</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/le-mobilier">Le mobilier</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/tentes">Tentes</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/decorations">Décoration</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
             <li>
               <Link href="/autres-produits">Autres produits</Link>{" "}
-              {/* 🔧 Remplacement de "to" par "href" */}
             </li>
           </ul>
         </div>

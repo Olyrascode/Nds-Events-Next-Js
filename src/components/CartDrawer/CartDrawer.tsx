@@ -28,6 +28,26 @@ import { fr } from "date-fns/locale";
 import "./cartDrawer.module.scss";
 import { formatPrice } from "../../utils/priceUtils";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+// Fonction utilitaire pour corriger les URLs d'images
+const fixImageUrl = (url: string | undefined | null): string => {
+  if (!url) return "";
+
+  // Remplacer localhost:5000 par l'API_URL correct
+  if (url.includes("localhost:5000")) {
+    return url.replace("http://localhost:5000", API_URL);
+  }
+
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const apiURL = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
+  const imagePath = url.startsWith("/") ? url.slice(1) : url;
+  if (!imagePath) return "";
+  return `${apiURL}/api/files/${imagePath}`;
+};
+
 interface BaseProductData {
   title?: string;
   _id?: string;
@@ -87,7 +107,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                     <ListItemAvatar>
                       {item.imageUrl ? (
                         <Image
-                          src={item.imageUrl}
+                          src={fixImageUrl(item.imageUrl)}
                           alt={item.title ?? "Image du produit"}
                           width={50}
                           height={50}
@@ -221,7 +241,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                                     <ListItemAvatar>
                                       {productImage ? (
                                         <Avatar
-                                          src={productImage}
+                                          src={fixImageUrl(productImage)}
                                           alt={productTitle}
                                           sx={{ width: 32, height: 32 }}
                                         />

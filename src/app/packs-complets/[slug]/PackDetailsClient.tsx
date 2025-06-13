@@ -18,6 +18,24 @@ import SimilarPacksCarousel from "../../../components/SimilarPacksCarousel";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
+// Fonction utilitaire pour corriger les URLs d'images
+const fixImageUrl = (url: string | undefined | null): string => {
+  if (!url) return "";
+
+  // Remplacer localhost:5000 par l'API_URL correct
+  if (url.includes("localhost:5000")) {
+    return url.replace("http://localhost:5000", API_URL);
+  }
+
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const apiURL = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
+  const imagePath = url.startsWith("/") ? url.slice(1) : url;
+  if (!imagePath) return ""; // Éviter de retourner juste API_URL/api/files/
+  return `${apiURL}/api/files/${imagePath}`;
+};
+
 // ─── INTERFACES ────────────────────────────────────────────────
 
 interface PackProduct {
@@ -50,6 +68,11 @@ interface Pack {
 // ─── COMPONENT ────────────────────────────────────────────────
 
 export default function PackDetails({ pack }: { pack: Pack }) {
+  console.log(
+    "[PackDetailsClient] Received pack data:",
+    JSON.parse(JSON.stringify(pack))
+  );
+
   const { addToCart, cart } = useCart()!;
   const { rentalPeriod, setRentalPeriod } = useRentalPeriod()!;
   const { startDate, endDate } = rentalPeriod;
@@ -67,7 +90,15 @@ export default function PackDetails({ pack }: { pack: Pack }) {
 
   useEffect(() => {
     if (pack && pack.imageUrl) {
-      setCurrentDisplayImage(pack.imageUrl);
+      setCurrentDisplayImage(fixImageUrl(pack.imageUrl));
+    } else if (
+      pack &&
+      pack.carouselImages &&
+      pack.carouselImages.length > 0 &&
+      pack.carouselImages[0].url
+    ) {
+      // Fallback to the first carousel image if main image is missing
+      setCurrentDisplayImage(fixImageUrl(pack.carouselImages[0].url));
     }
   }, [pack]);
 
@@ -80,7 +111,7 @@ export default function PackDetails({ pack }: { pack: Pack }) {
   };
 
   const handleImageClick = (imageUrl: string) => {
-    setCurrentDisplayImage(imageUrl);
+    setCurrentDisplayImage(fixImageUrl(imageUrl));
   };
 
   useEffect(() => {
@@ -148,10 +179,25 @@ export default function PackDetails({ pack }: { pack: Pack }) {
 
   const allImages = pack
     ? [
-        { url: pack.imageUrl || "", fileName: "main-image" },
-        ...(pack.carouselImages || []),
-      ].filter((img) => img.url)
+        ...(pack.imageUrl
+          ? [{ url: fixImageUrl(pack.imageUrl), fileName: "main-image" }]
+          : []),
+        ...(pack.carouselImages || []).map((img) => ({
+          ...img,
+          url: fixImageUrl(img.url),
+        })),
+      ].filter((img) => img.url && img.url !== fixImageUrl("")) // Filtrer les images avec URL vide après fixImageUrl
     : [];
+
+  // Préparer les produits pour le composant PackProducts avec les URLs d'image corrigées
+  const productsForDisplay =
+    pack?.products.map((item) => ({
+      ...item,
+      product: {
+        ...item.product,
+        imageUrl: fixImageUrl(item.product.imageUrl),
+      },
+    })) || [];
 
   const isFormValid =
     pack &&
@@ -211,7 +257,7 @@ export default function PackDetails({ pack }: { pack: Pack }) {
                   <Typography variant="h6">{pack?.description}</Typography>
                 </div>
 
-                <PackProducts products={pack?.products || []} />
+                <PackProducts products={productsForDisplay} />
               </div>
             </div>
 
@@ -267,7 +313,7 @@ export default function PackDetails({ pack }: { pack: Pack }) {
               quantity={quantity}
               onChange={setQuantity}
               minQuantity={pack?.minQuantity}
-              stock={maxPackQuantity}
+              stock={maxPackQuantity ?? undefined}
             />
             {error && <Alert severity="error">{error}</Alert>}
             <PriceCalculation

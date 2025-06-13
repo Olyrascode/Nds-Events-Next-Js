@@ -12,11 +12,36 @@ import {
   Grid,
   Button,
   Alert,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
 } from "@mui/material";
 import { format } from "date-fns";
 import { formatPrice } from "@/utils/priceUtils";
 import DownloadIcon from "@mui/icons-material/Download";
 import { generateInvoicePDF } from "@/utils/invoiceGenerator";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
+
+// Fonction utilitaire pour corriger les URLs d'images
+const fixImageUrl = (url: string | undefined | null): string => {
+  if (!url) return "";
+
+  // Remplacer localhost:5000 par l'API_URL correct
+  if (url.includes("localhost:5000")) {
+    return url.replace("http://localhost:5000", API_URL);
+  }
+
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const apiURL = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
+  const imagePath = url.startsWith("/") ? url.slice(1) : url;
+  if (!imagePath) return "";
+  return `${apiURL}/api/files/${imagePath}`;
+};
 
 // Define interfaces for your order data
 interface BillingInfo {
@@ -43,6 +68,17 @@ interface OptionValueObject {
   deliveryMandatory?: boolean;
 }
 
+interface PackProductDetail {
+  _id: string;
+  quantity: number;
+  product: {
+    _id: string;
+    title: string;
+    imageUrl?: string;
+    price: number;
+  };
+}
+
 interface OrderProduct {
   _id: string;
   imageUrl: string;
@@ -51,6 +87,8 @@ interface OrderProduct {
   price: number;
   selectedOptions?: Record<string, string | OptionValueObject>;
   lotSize?: number;
+  type?: "pack" | "product";
+  products?: PackProductDetail[]; // Pour les packs, liste des produits inclus
 }
 
 interface Order {
@@ -73,8 +111,6 @@ export default function OrderConfirmation() {
   // Define order state with proper type and error state as string | null
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://api-nds-events.fr";
 
   useEffect(() => {
     if (orderId) {
@@ -86,6 +122,7 @@ export default function OrderConfirmation() {
           }
           const data = await response.json();
           // Assume data.order is the order object
+          console.log("Order data fetched:", data.order); // Log pour débugger
           setOrder(data.order);
         } catch (err) {
           if (err instanceof Error) {
@@ -193,83 +230,171 @@ export default function OrderConfirmation() {
           Détail de votre commande
         </Typography>
 
-        {order.products.map((item: OrderProduct) => (
-          <Box key={item._id} sx={{ mb: 2 }}>
-            <Grid container alignItems="center" spacing={2}>
-              <Grid item>
-                <Image
-                  src={item.imageUrl}
-                  alt={item.title}
-                  width={60}
-                  height={60}
-                  style={{ objectFit: "cover" }}
-                />
-              </Grid>
-              <Grid item xs>
-                <Typography variant="subtitle1">{item.title}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.lotSize && item.lotSize > 1
-                    ? `Quantité: ${item.quantity * item.lotSize} articles (${
-                        item.quantity
-                      } lot(s) de ${item.lotSize})`
-                    : `Quantité: ${item.quantity}`}
-                  {" | "}Prix total ligne:{" "}
-                  {formatPrice(
-                    item.price * item.quantity * (item.lotSize || 1)
-                  )}
-                </Typography>
-                {item.selectedOptions &&
-                  Object.entries(item.selectedOptions).map(
-                    ([optionKey, optionValue]) => {
-                      let displayValue: string | number = "";
-                      let optionPriceString = "";
+        {order.products.map((item: OrderProduct) => {
+          // Log pour débugger chaque item
+          console.log("Order item:", item);
 
-                      if (typeof optionValue === "string") {
-                        displayValue = optionValue;
-                      } else if (typeof optionValue === "number") {
-                        displayValue = optionValue;
-                      } else if (
-                        typeof optionValue === "object" &&
-                        optionValue !== null
-                      ) {
-                        if (
-                          "name" in optionValue &&
-                          typeof optionValue.name === "string"
-                        ) {
-                          displayValue = optionValue.name;
-                        } else {
-                          displayValue = JSON.stringify(optionValue);
-                        }
-                        // Vérifier et formater le prix de l'option
-                        if (
-                          "price" in optionValue &&
-                          typeof optionValue.price === "number" &&
-                          optionValue.price > 0
-                        ) {
-                          optionPriceString = ` (+${formatPrice(
-                            optionValue.price
-                          )})`;
-                        }
-                      } else {
-                        displayValue = String(optionValue);
-                      }
-
-                      return (
-                        <Typography
-                          key={optionKey}
-                          variant="body2"
-                          color="text.secondary"
-                        >
-                          {optionKey}: {displayValue}
-                          {optionPriceString}
-                        </Typography>
-                      );
+          return (
+            <Box key={item._id} sx={{ mb: 2 }}>
+              <Grid container alignItems="center" spacing={2}>
+                <Grid item>
+                  <Image
+                    src={fixImageUrl(item.imageUrl)}
+                    alt={item.title}
+                    width={60}
+                    height={60}
+                    style={{ objectFit: "cover" }}
+                  />
+                </Grid>
+                <Grid item xs>
+                  <Typography variant="subtitle1">
+                    {item.title}
+                    {item.type === "pack" && (
+                      <Typography
+                        component="span"
+                        color="primary"
+                        sx={{ ml: 1 }}
+                      >
+                        (Pack)
+                      </Typography>
+                    )}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {item.lotSize && item.lotSize > 1
+                      ? `Quantité: ${item.quantity * item.lotSize} articles (${
+                          item.quantity
+                        } lot(s) de ${item.lotSize})`
+                      : `Quantité: ${item.quantity}`}
+                    {" | "}Prix total ligne:{" "}
+                    {
+                      item.type === "pack"
+                        ? formatPrice(item.price) // Pour les packs, item.price est déjà le prix total
+                        : formatPrice(
+                            item.price * item.quantity * (item.lotSize || 1)
+                          ) // Pour les produits, calculer le prix total
                     }
-                  )}
+                  </Typography>
+                  {item.selectedOptions &&
+                    Object.entries(item.selectedOptions).map(
+                      ([optionKey, optionValue]) => {
+                        let displayValue: string | number = "";
+                        let optionPriceString = "";
+
+                        if (typeof optionValue === "string") {
+                          displayValue = optionValue;
+                        } else if (typeof optionValue === "number") {
+                          displayValue = optionValue;
+                        } else if (
+                          typeof optionValue === "object" &&
+                          optionValue !== null
+                        ) {
+                          if (
+                            "name" in optionValue &&
+                            typeof optionValue.name === "string"
+                          ) {
+                            displayValue = optionValue.name;
+                          } else {
+                            displayValue = JSON.stringify(optionValue);
+                          }
+                          // Vérifier et formater le prix de l'option
+                          if (
+                            "price" in optionValue &&
+                            typeof optionValue.price === "number" &&
+                            optionValue.price > 0
+                          ) {
+                            optionPriceString = ` (+${formatPrice(
+                              optionValue.price
+                            )})`;
+                          }
+                        } else {
+                          displayValue = String(optionValue);
+                        }
+
+                        return (
+                          <Typography
+                            key={optionKey}
+                            variant="body2"
+                            color="text.secondary"
+                          >
+                            {optionKey}: {displayValue}
+                            {optionPriceString}
+                          </Typography>
+                        );
+                      }
+                    )}
+
+                  {/* Affichage des produits du pack si c'est un pack */}
+                  {item.type === "pack" &&
+                    item.products &&
+                    item.products.length > 0 && (
+                      <Box sx={{ mt: 2, ml: 2 }}>
+                        <Typography
+                          variant="body2"
+                          color="primary"
+                          gutterBottom
+                        >
+                          Produits inclus dans le pack :
+                        </Typography>
+                        <List dense sx={{ py: 0 }}>
+                          {item.products.map((packProduct, index) => {
+                            // Vérifications de sécurité pour éviter les erreurs
+                            // Support des deux formats : ancien (imbriqué) et nouveau (plat)
+                            const productData =
+                              packProduct?.product || packProduct || {};
+                            const productTitle =
+                              productData?.title || `Produit ${index + 1}`;
+                            const productId = packProduct?._id || index;
+                            const productQuantity = packProduct?.quantity || 0;
+                            const productImageUrl = productData?.imageUrl;
+
+                            console.log("Pack product data:", packProduct); // Log pour débugger
+                            console.log("Original image URL:", productImageUrl); // Log URL originale
+                            const fixedImageUrl = fixImageUrl(productImageUrl);
+                            console.log("Fixed image URL:", fixedImageUrl); // Log URL corrigée
+
+                            return (
+                              <ListItem key={productId} sx={{ py: 0.5, pl: 0 }}>
+                                <ListItemAvatar>
+                                  {fixedImageUrl ? (
+                                    <Avatar
+                                      src={fixedImageUrl}
+                                      alt={productTitle}
+                                      sx={{ width: 32, height: 32 }}
+                                    />
+                                  ) : (
+                                    <Avatar sx={{ width: 32, height: 32 }}>
+                                      {productTitle.charAt(0)}
+                                    </Avatar>
+                                  )}
+                                </ListItemAvatar>
+                                <ListItemText
+                                  primary={
+                                    <Typography variant="body2">
+                                      {productTitle}
+                                    </Typography>
+                                  }
+                                  secondary={
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      Quantité dans le pack: {productQuantity} ×{" "}
+                                      {item.quantity} ={" "}
+                                      {productQuantity * item.quantity} total
+                                    </Typography>
+                                  }
+                                />
+                              </ListItem>
+                            );
+                          })}
+                        </List>
+                      </Box>
+                    )}
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        ))}
+            </Box>
+          );
+        })}
 
         <Divider sx={{ my: 3 }} />
 

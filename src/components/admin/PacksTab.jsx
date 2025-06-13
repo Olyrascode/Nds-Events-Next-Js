@@ -116,8 +116,8 @@ export default function PacksTab() {
     const enhancedProduct = {
       ...product,
       quantity: 1,
-      lotSize: product.lotSize || 1,
-      isLotProduct: product.lotSize > 1,
+      lotSize: 1,
+      isLotProduct: false,
     };
 
     setPack((prev) => ({
@@ -430,11 +430,7 @@ export default function PacksTab() {
                   <TableCell>{product.title}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell align="right">${product.price}</TableCell>
-                  <TableCell align="right">
-                    {product.lotSize > 1
-                      ? `Lot de ${product.lotSize}`
-                      : "Unité"}
-                  </TableCell>
+                  <TableCell align="right">{"Unité"}</TableCell>
                   <TableCell align="right">
                     <TextField
                       type="number"
@@ -445,17 +441,6 @@ export default function PacksTab() {
                       inputProps={{ min: 1 }}
                       size="small"
                       sx={{ width: 80 }}
-                      helperText={
-                        product.isLotProduct
-                          ? `(${Math.ceil(
-                              product.quantity / product.lotSize
-                            )} lot${
-                              Math.ceil(product.quantity / product.lotSize) > 1
-                                ? "s"
-                                : ""
-                            })`
-                          : ""
-                      }
                     />
                   </TableCell>
                   <TableCell align="right">

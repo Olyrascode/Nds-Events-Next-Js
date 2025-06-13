@@ -10,6 +10,7 @@ import "@/app/produits/_Products.scss";
 import { Product } from "../../type/Product";
 import { slugify } from "@/utils/slugify";
 import Link from "next/link";
+import Image from "next/image";
 
 // Interfaces pour les données brutes provenant de l'API
 interface RawShared {
@@ -248,7 +249,12 @@ export default function LeMobilierClient({
         <div className="listIcon">
           <div className="cardBottom">
             <div className="cardLeft">
-              <img src="../../img/divers/visa.svg" alt="" />
+              <Image
+                src="/img/divers/visa.svg"
+                alt="Visa accepted"
+                width={50}
+                height={50}
+              />
               <p>
                 Choisissez vos produits directement en ligne et payez par Carte
                 Bancaire ou directement au depot NDS par chèque, virement ou
@@ -256,7 +262,12 @@ export default function LeMobilierClient({
               </p>
             </div>
             <div className="cardRight">
-              <img src="../../img/divers/truck.svg" alt="" />
+              <Image
+                src="/img/divers/truck.svg"
+                alt="Delivery truck"
+                width={50}
+                height={50}
+              />
               <p>
                 Divers modes de livraison à votre disposition : Retrait sur
                 place, ou livraison et récupération par nos équipes!
