@@ -6,6 +6,7 @@ export interface Product {
   description: string;
   price: number;
   vatRate?: number; // Taux de TVA (20 ou 5.5)
+  gamme?: string; // Gamme du produit (optionnel)
   minQuantity?: number;
   lotSize?: number;
   imageUrl?: string;

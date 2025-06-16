@@ -47,6 +47,7 @@ export interface Product {
   imageUrl?: string;
   description: string;
   price: number;
+  gamme?: string;
   minQuantity?: number;
   lotSize?: number;
   options?: ProductOption[];
@@ -653,6 +654,7 @@ export default function ProductDetails({
         {product && (
           <SimilarProductsCarousel
             currentProductId={product._id}
+            gamme={product.gamme} // Priorité à la gamme
             category={
               (product.associations && product.associations.length > 0
                 ? product.associations[0].categoryName

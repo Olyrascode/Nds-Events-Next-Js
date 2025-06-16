@@ -6,6 +6,7 @@ export const createProduct = async (productData) => {
     const formData = new FormData();
     formData.append("title", productData.title);
     formData.append("description", productData.description);
+    formData.append("gamme", productData.gamme || ""); // Gamme du produit (optionnel)
     formData.append("price", productData.price);
     formData.append("vatRate", productData.vatRate || 20);
     formData.append("minQuantity", productData.minQuantity);
@@ -116,6 +117,7 @@ export const updateProduct = async (productId, productData) => {
     const formData = new FormData();
     formData.append("title", productData.title);
     formData.append("description", productData.description);
+    formData.append("gamme", productData.gamme || ""); // Gamme du produit (optionnel)
     formData.append("price", productData.price);
     formData.append("vatRate", productData.vatRate || 20);
     formData.append("minQuantity", productData.minQuantity);
@@ -230,22 +232,98 @@ export const fetchProducts = async () => {
   return normalized;
 };
 
-export const getSimilarProducts = async (productId, category) => {
+export const getSimilarProducts = async (productId, category, gamme = null) => {
   try {
-    const response = await fetch(
-      `${API_URL}/api/products?category=${category}`
-    );
-    if (!response.ok) {
-      throw new Error("Erreur lors de la récupération des produits similaires");
-    }
-    const products = await response.json();
+    console.log(`🔍 [Service] Recherche de produits similaires:`, {
+      productId,
+      gamme,
+      category,
+    });
 
-    // Filtrer pour ne garder que les produits de la même catégorie et exclure le produit actuel
-    return products
-      .filter((product) => product._id !== productId)
-      .filter((product) => product.category === category);
+    // Temporairement, utiliser l'ancienne logique en attendant le déploiement
+    // 1. D'abord essayer de récupérer par gamme si elle est définie
+    if (gamme && gamme.trim() !== "") {
+      console.log(`🔍 [Service] Recherche par gamme: "${gamme}"`);
+
+      const responseByGamme = await fetch(`${API_URL}/api/products`);
+      if (responseByGamme.ok) {
+        const allProducts = await responseByGamme.json();
+        const productsByGamme = allProducts
+          .filter((product) => product._id !== productId)
+          .filter(
+            (product) => product.gamme && product.gamme.trim() === gamme.trim()
+          );
+
+        console.log(
+          `✅ [Service] ${productsByGamme.length} produits trouvés dans la gamme "${gamme}"`
+        );
+
+        if (productsByGamme.length >= 4) {
+          return productsByGamme.slice(0, 8); // Limiter à 8 produits max
+        }
+
+        // Si moins de 4 produits dans la gamme, compléter avec la catégorie
+        if (category && category.trim() !== "") {
+          console.log(
+            `🔍 [Service] Complément avec la catégorie "${category}"`
+          );
+          const productsByCategory = allProducts
+            .filter((product) => product._id !== productId)
+            .filter(
+              (product) =>
+                !product.gamme || product.gamme.trim() !== gamme.trim()
+            ) // Exclure ceux déjà dans la gamme
+            .filter(
+              (product) =>
+                product.associations &&
+                product.associations.some(
+                  (assoc) => assoc.categoryName === category.trim()
+                )
+            );
+
+          const combined = [...productsByGamme, ...productsByCategory].slice(
+            0,
+            8
+          );
+          console.log(
+            `✅ [Service] Total: ${combined.length} produits similaires (${productsByGamme.length} gamme + ${productsByCategory.length} catégorie)`
+          );
+          return combined;
+        }
+
+        return productsByGamme;
+      }
+    }
+
+    // 2. Fallback sur la catégorie uniquement
+    if (category && category.trim() !== "") {
+      console.log(
+        `🔍 [Service] Recherche par catégorie seulement: "${category}"`
+      );
+      const response = await fetch(`${API_URL}/api/products`);
+      if (response.ok) {
+        const allProducts = await response.json();
+        const productsByCategory = allProducts
+          .filter((product) => product._id !== productId)
+          .filter(
+            (product) =>
+              product.associations &&
+              product.associations.some(
+                (assoc) => assoc.categoryName === category.trim()
+              )
+          );
+
+        console.log(
+          `✅ [Service] ${productsByCategory.length} produits trouvés dans la catégorie "${category}"`
+        );
+        return productsByCategory.slice(0, 8);
+      }
+    }
+
+    console.log(`⚠️ [Service] Aucun paramètre valide fourni`);
+    return [];
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("❌ [Service] Erreur:", error);
     return [];
   }
 };

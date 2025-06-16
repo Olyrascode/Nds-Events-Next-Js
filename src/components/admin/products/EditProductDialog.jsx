@@ -397,7 +397,7 @@ export default function EditProductDialog({
           </Typography>
           <ImageUpload
             currentImage={pack.imageUrl}
-            onFileChange={handleImageChange}
+            onChange={handleImageChange}
           />
         </Box>
 
@@ -415,11 +415,9 @@ export default function EditProductDialog({
             {Array.from({ length: 10 }).map((_, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <CarouselImageUpload
-                  existingImageUrl={pack.carouselImages[index]}
-                  onFileChange={(file) =>
-                    handleCarouselImageChange(file, index)
-                  }
-                  onFileDelete={() => handleCarouselImageDelete(index)}
+                  currentImage={pack.carouselImages[index]}
+                  onChange={(file) => handleCarouselImageChange(file, index)}
+                  onDelete={() => handleCarouselImageDelete(index)}
                   index={index}
                 />
               </Grid>

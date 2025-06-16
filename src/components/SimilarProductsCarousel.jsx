@@ -6,7 +6,7 @@ import ProductCard from "./ProductCard/ProductCard";
 import { getSimilarProducts } from "../services/products.service";
 import "./SimilarProductsCarousel.scss";
 
-const SimilarProductsCarousel = ({ currentProductId, category }) => {
+const SimilarProductsCarousel = ({ currentProductId, category, gamme }) => {
   const [similarProducts, setSimilarProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,33 +17,41 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
     const fetchSimilarProducts = async () => {
       try {
         setLoading(true);
-        console.log("Récupération des produits similaires pour:", {
-          currentProductId,
-          category,
-        });
+        console.log(
+          "🔍 [Carrousel] Récupération des produits similaires pour:",
+          {
+            currentProductId,
+            gamme,
+            category,
+          }
+        );
 
-        if (!category) {
-          console.warn("Catégorie non définie ou vide");
+        if (!category && !gamme) {
+          console.warn("❌ [Carrousel] Ni catégorie ni gamme définies");
           setLoading(false);
           setSimilarProducts([]);
           return;
         }
 
-        const products = await getSimilarProducts(currentProductId, category);
+        const products = await getSimilarProducts(
+          currentProductId,
+          category,
+          gamme
+        );
         console.log(
-          `Produits similaires récupérés (${products.length}):`,
+          `✅ [Carrousel] ${products.length} produits similaires récupérés:`,
           products
         );
 
         if (products && products.length > 0) {
           setSimilarProducts(products);
         } else {
-          console.log("Aucun produit similaire trouvé");
+          console.log("⚠️ [Carrousel] Aucun produit similaire trouvé");
           setSimilarProducts([]);
         }
       } catch (err) {
         console.error(
-          "Erreur lors de la récupération des produits similaires:",
+          "❌ [Carrousel] Erreur lors de la récupération des produits similaires:",
           err
         );
         setError("Erreur lors du chargement des produits similaires");
@@ -53,10 +61,10 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
       }
     };
 
-    if (currentProductId && category) {
+    if (currentProductId && (category || gamme)) {
       fetchSimilarProducts();
     }
-  }, [currentProductId, category]);
+  }, [currentProductId, category, gamme]);
 
   const handleScroll = (direction) => {
     const container = document.querySelector(".similar-products__container");
@@ -84,10 +92,21 @@ const SimilarProductsCarousel = ({ currentProductId, category }) => {
   // Déterminer si nous devons afficher les boutons de navigation
   const shouldShowNavigation = similarProducts.length > 1;
 
+  // Titre dynamique selon le type de recherche effectuée
+  const getCarouselTitle = () => {
+    if (gamme && gamme.trim() !== "") {
+      return `Autres produits de la gamme "${gamme}"`;
+    } else if (category && category.trim() !== "") {
+      return "Produits similaires";
+    } else {
+      return "Produits similaires";
+    }
+  };
+
   return (
     <Box className="similar-products">
       <Typography variant="h4" gutterBottom>
-        Produits similaires
+        {getCarouselTitle()}
       </Typography>
       <Box className="similar-products__wrapper">
         {shouldShowNavigation && (

@@ -48,6 +48,7 @@ export default function ProductForm({
   const [product, setProduct] = useState({
     title: initialData.title || "",
     description: initialData.description || "",
+    gamme: initialData.gamme || "", // Gamme du produit (optionnel)
     price: initialData.price || "",
     vatRate: initialData.vatRate || 20, // TVA par défaut à 20%
     minQuantity: initialData.minQuantity || "",
@@ -275,7 +276,15 @@ export default function ProductForm({
         disabled={loading}
       />
 
-      {/* … autres champs (prix, stock, etc.) … */}
+      <TextField
+        fullWidth
+        label="Gamme (optionnel)"
+        value={product.gamme}
+        onChange={(e) => setProduct({ ...product, gamme: e.target.value })}
+        margin="normal"
+        disabled={loading}
+        helperText="Ex: Style, Élégance, Classique, etc."
+      />
       <TextField
         fullWidth
         label="Prix par jours (TTC)"
