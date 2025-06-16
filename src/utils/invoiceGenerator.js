@@ -325,7 +325,18 @@ export const generateInvoicePDF = async (order, isDelivery) => {
             lineTotalTTC = itemsBaseTotalTTC + optionsTotalTTC;
           }
 
-          const tvaRate = product.taxRate || 20;
+          const tvaRate = product.taxRate || product.vatRate || 20;
+
+          // DEBUG: Log des données de TVA dans la génération de facture frontend
+          console.log(
+            `🔍 [DEBUG FACTURE FRONTEND] Produit ${
+              product.name || product.title || "Unknown"
+            }:`
+          );
+          console.log(`   - product.taxRate: ${product.taxRate}`);
+          console.log(`   - product.vatRate: ${product.vatRate}`);
+          console.log(`   - tvaRate final utilisé: ${tvaRate}`);
+
           const mttHT = lineTotalTTC / (1 + tvaRate / 100);
           const puHT_calculated_from_unit =
             unitPriceTTC_perItem / (1 + tvaRate / 100);
@@ -338,7 +349,7 @@ export const generateInvoicePDF = async (order, isDelivery) => {
             product.name || product.title || "N/A",
             product.type === "pack" ? product.quantity : actualItemQuantity, // Afficher la bonne quantité
             formatCurrency(puHT_calculated_from_unit),
-            `${tvaRate}%`,
+            tvaRate === 5.5 ? "5,5%" : `${tvaRate}%`,
             formatCurrency(mttHT),
             formatCurrency(lineTotalTTC),
             "",
@@ -508,7 +519,16 @@ export const generateInvoicePDF = async (order, isDelivery) => {
       .sort()
       .forEach((rate) => {
         const detail = tvaDetails_products[rate]; // Modifié
+        const displayRate = parseFloat(rate) === 5.5 ? "5,5%" : `${rate}%`;
+        doc.text(`TVA ${displayRate}`, totalBoxX, yPosition);
+        doc.text(
+          formatCurrency(detail.amount),
+          totalBoxX + totalBoxWidth,
+          yPosition,
+          { align: "right" }
+        );
         totalTVA_products += detail.amount; // Modifié
+        yPosition += 5;
       });
 
     yPosition += 2;
