@@ -62,8 +62,8 @@ export default function RentalDialog({
       setError("Please select both start and end dates");
       return;
     }
-    if (endDate <= startDate) {
-      setError("End date must be after start date");
+    if (endDate < startDate) {
+      setError("End date must be after or equal to start date");
       return;
     }
     if (quantity < product.minQuantity) {
@@ -106,8 +106,8 @@ export default function RentalDialog({
   const handleStartDateChange = (newDate: Date | null) => {
     if (!newDate) return;
     setStartDate(newDate);
-    if (endDate && endDate <= newDate) {
-      setEndDate(addDays(newDate, 1));
+    if (endDate && endDate < newDate) {
+      setEndDate(newDate);
     }
     setError("");
   };
@@ -150,7 +150,7 @@ export default function RentalDialog({
               label="End Date"
               value={endDate}
               onChange={handleEndDateChange}
-              minDate={startDate ? addDays(startDate, 1) : new Date()}
+              minDate={startDate ? startDate : new Date()}
               slotProps={{
                 textField: { fullWidth: true },
               }}

@@ -1,4 +1,3 @@
-
 export const validateEmail = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
@@ -14,11 +13,11 @@ export const validateRentalDates = (startDate, endDate) => {
   const now = new Date();
 
   if (start < now) {
-    return 'Start date must be in the future';
+    return "Start date must be in the future";
   }
 
-  if (end <= start) {
-    return 'End date must be after start date';
+  if (end < start) {
+    return "End date must be after or equal to start date";
   }
 
   return null;

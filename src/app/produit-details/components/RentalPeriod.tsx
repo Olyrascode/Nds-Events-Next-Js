@@ -145,8 +145,8 @@ export default function RentalPeriod({
   const handleStartDateChange = (newDate: Date | null): void => {
     if (!disabled) {
       onStartDateChange(newDate);
-      // Réinitialiser la date de fin si la nouvelle date de début est supérieure ou égale à l'ancienne date de fin
-      if (endDate && newDate && newDate >= endDate) {
+      // Réinitialiser la date de fin si la nouvelle date de début est supérieure à l'ancienne date de fin
+      if (endDate && newDate && newDate > endDate) {
         onEndDateChange(null);
       }
     }
@@ -291,7 +291,7 @@ export default function RentalPeriod({
           onChange={(date: Date | null) => {
             if (!disabled) onEndDateChange(date);
           }}
-          minDate={startDate ? addDays(startDate, 1) : undefined}
+          minDate={startDate ? startDate : undefined}
           disabled={!startDate || disabled || loading}
           {...getDatePickerProps(false)}
         />

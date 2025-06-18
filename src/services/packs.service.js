@@ -42,7 +42,10 @@ export const createPack = async (packData) => {
     formData.append("discountPercentage", packData.discountPercentage);
     formData.append("minRentalDays", packData.minRentalDays);
     formData.append("category", packData.category);
-    formData.append("navCategory", packData.navCategory);
+    formData.append(
+      "navCategories",
+      JSON.stringify(packData.navCategories || [])
+    );
 
     if (packData.minQuantity) {
       formData.append("minQuantity", packData.minQuantity);
@@ -189,7 +192,10 @@ export const updatePack = async (packId, packData) => {
     formData.append("discountPercentage", packData.discountPercentage);
     formData.append("minRentalDays", packData.minRentalDays);
     formData.append("category", packData.category);
-    formData.append("navCategory", packData.navCategory);
+    formData.append(
+      "navCategories",
+      JSON.stringify(packData.navCategories || [])
+    );
 
     if (packData.minQuantity) {
       formData.append("minQuantity", packData.minQuantity);

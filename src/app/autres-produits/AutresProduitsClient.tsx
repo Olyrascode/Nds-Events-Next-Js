@@ -35,6 +35,7 @@ interface RawProduct extends RawShared {}
 
 interface RawPack extends RawShared {
   isPack: true;
+  navCategories?: string[]; // Ajout du champ navCategories pour les packs
   products: {
     product: {
       _id: string;
@@ -90,13 +91,19 @@ export default function AutresProduitsClient() {
         );
 
         const convertedItems: Product[] = allRawItems
-          .filter(
-            (item) =>
-              item.associations &&
-              item.associations.some(
+          .filter((item) => {
+            // Pour les produits : utiliser associations
+            if (item.associations) {
+              return item.associations.some(
                 (assoc) => assoc.navCategorySlug === "autres-produits"
-              )
-          )
+              );
+            }
+            // Pour les packs : utiliser navCategories
+            if ("navCategories" in item && Array.isArray(item.navCategories)) {
+              return item.navCategories.includes("autres-produits");
+            }
+            return false;
+          })
           .map((item) => ({
             _id: item._id,
             id: item._id,

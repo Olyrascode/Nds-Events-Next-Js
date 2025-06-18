@@ -26,6 +26,7 @@ import {
   MenuItem,
   Divider,
   Grid,
+  Chip,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ProductForm from "./ProductForm";
@@ -159,7 +160,7 @@ export default function EditProductDialog({
       title: initialData?.title || "",
       description: initialData?.description || "",
       category: "packs-complets",
-      navCategory: initialData?.navCategory || "",
+      navCategories: initialData?.navCategories || [],
       products: [],
       discountPercentage: initialData?.discountPercentage || "0",
       minRentalDays: initialData?.minRentalDays || "1",
@@ -353,8 +354,8 @@ export default function EditProductDialog({
 
       const newErrors = {};
       if (!pack.title) newErrors.title = "Le titre est requis";
-      if (!pack.navCategory)
-        newErrors.navCategory = "Le groupe de menu est requis";
+      if (!pack.navCategories || pack.navCategories.length === 0)
+        newErrors.navCategories = "Au moins un groupe de menu est requis";
       if (pack.products.length === 0)
         newErrors.products = "Ajoutez au moins un produit";
 
@@ -454,31 +455,66 @@ export default function EditProductDialog({
           helperText={errors.description}
         />
 
-        <FormControl
+        <Autocomplete
+          multiple
           fullWidth
-          margin="normal"
-          required
-          error={Boolean(errors.navCategory)}
-        >
-          <InputLabel>Groupe de menu</InputLabel>
-          <Select
-            value={pack.navCategory}
-            label="Groupe de menu"
-            onChange={(e) => setPack({ ...pack, navCategory: e.target.value })}
-          >
-            <MenuItem value="la-table">La table</MenuItem>
-            <MenuItem value="le-mobilier">Le Mobilier</MenuItem>
-            <MenuItem value="tentes">Tentes</MenuItem>
-            <MenuItem value="decorations">Décorations</MenuItem>
-            <MenuItem value="autres-produits">Autres produits</MenuItem>
-            <MenuItem value="packs-complets">Packs Complets</MenuItem>
-          </Select>
-          {errors.navCategory && (
-            <Typography color="error" variant="caption">
-              {errors.navCategory}
-            </Typography>
+          options={[
+            { value: "la-table", label: "La table" },
+            { value: "le-mobilier", label: "Le Mobilier" },
+            { value: "tentes", label: "Tentes" },
+            { value: "decorations", label: "Décorations" },
+            { value: "autres-produits", label: "Autres produits" },
+          ]}
+          getOptionLabel={(option) => option.label}
+          value={pack.navCategories.map((cat) => ({
+            value: cat,
+            label:
+              cat === "la-table"
+                ? "La table"
+                : cat === "le-mobilier"
+                ? "Le Mobilier"
+                : cat === "tentes"
+                ? "Tentes"
+                : cat === "decorations"
+                ? "Décorations"
+                : cat === "autres-produits"
+                ? "Autres produits"
+                : cat,
+          }))}
+          onChange={(event, newValue) => {
+            setPack({
+              ...pack,
+              navCategories: newValue.map((option) => option.value),
+            });
+            setErrors({ ...errors, navCategories: "" });
+          }}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => {
+              const { key, ...chipProps } = getTagProps({ index });
+              return (
+                <Chip
+                  key={option.value}
+                  variant="outlined"
+                  label={option.label}
+                  {...chipProps}
+                />
+              );
+            })
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Groupes de menu *"
+              placeholder="Sélectionnez les catégories de navigation"
+              error={Boolean(errors.navCategories)}
+              helperText={
+                errors.navCategories ||
+                "Sélectionnez dans quelles catégories de navigation ce pack apparaîtra"
+              }
+              margin="normal"
+            />
           )}
-        </FormControl>
+        />
 
         <Box sx={{ mt: 3, mb: 2 }}>
           <Typography variant="h6" gutterBottom>

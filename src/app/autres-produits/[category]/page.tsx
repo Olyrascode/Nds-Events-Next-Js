@@ -35,6 +35,7 @@ interface RawPack extends Omit<RawProduct, "associations"> {
     navCategorySlug: string;
     _id?: string;
   }>;
+  navCategories?: string[]; // Nouveau champ pour les packs
   products: {
     product: { _id: string; title: string; imageUrl?: string; price: number };
     quantity: number;
@@ -73,25 +74,31 @@ async function fetchProducts(): Promise<Product[]> {
     slug: slugify(product.title),
   }));
 
-  const packs: Product[] = packsData.map((pack) => ({
-    _id: pack._id,
-    id: pack._id,
-    title: pack.title,
-    name: pack.title,
-    description: pack.description || "",
-    imageUrl: pack.imageUrl || "",
-    price: pack.price || 0,
-    minQuantity: pack.minQuantity || 1,
-    lotSize: pack.lotSize || undefined,
-    discountPercentage: pack.discountPercentage || 0,
-    associations: pack.associations || [],
-    options: pack.options || [],
-    carouselImages: pack.carouselImages || [],
-    deliveryMandatory: pack.deliveryMandatory || false,
-    isPack: true,
-    products: pack.products,
-    slug: pack.slug || slugify(pack.title),
-  }));
+  const packs: Product[] = packsData
+    .filter(
+      (pack) =>
+        // Filtrer les packs qui ont "autres-produits" dans leurs navCategories
+        pack.navCategories && pack.navCategories.includes("autres-produits")
+    )
+    .map((pack) => ({
+      _id: pack._id,
+      id: pack._id,
+      title: pack.title,
+      name: pack.title,
+      description: pack.description || "",
+      imageUrl: pack.imageUrl || "",
+      price: pack.price || 0,
+      minQuantity: pack.minQuantity || 1,
+      lotSize: pack.lotSize || undefined,
+      discountPercentage: pack.discountPercentage || 0,
+      associations: pack.associations || [],
+      options: pack.options || [],
+      carouselImages: pack.carouselImages || [],
+      deliveryMandatory: pack.deliveryMandatory || false,
+      isPack: true,
+      products: pack.products,
+      slug: pack.slug || slugify(pack.title),
+    }));
 
   return [...products, ...packs];
 }

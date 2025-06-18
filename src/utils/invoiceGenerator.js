@@ -296,7 +296,14 @@ export const generateInvoicePDF = async (order, isDelivery) => {
           },
         ]);
 
-        groupedProducts[sectionTitle].forEach((product) => {
+        // Tri alphabétique des produits au sein de chaque catégorie pour une meilleure lisibilité
+        const sortedProducts = groupedProducts[sectionTitle].sort((a, b) => {
+          const nameA = (a.name || a.title || "").toLowerCase();
+          const nameB = (b.name || b.title || "").toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+
+        sortedProducts.forEach((product) => {
           const nbLots = product.quantity || 1;
           const sizeOfLot = product.lotSize || 1;
           const actualItemQuantity = nbLots * sizeOfLot;
