@@ -1,28 +1,33 @@
-import { 
-  FormControl, 
-  FormControlLabel, 
-  Radio, 
-  RadioGroup, 
-  Typography, 
+import {
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Typography,
   Box,
-  Paper
-} from '@mui/material';
+  Paper,
+} from "@mui/material";
 
-export default function DeliveryOptions({ value, onChange, forceDelivery = false, shippingFee }) {
+export default function DeliveryOptions({
+  value,
+  onChange,
+  forceDelivery = false,
+  shippingFee,
+}) {
   // Si forceDelivery est vrai, on force la valeur à "delivery"
   const selectedValue = forceDelivery ? "delivery" : value;
-  
+
   return (
     <Paper sx={{ p: 2, mb: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Méthode de réception
+        Méthode de livraison
       </Typography>
       <FormControl component="fieldset">
         <RadioGroup
           value={selectedValue}
           onChange={forceDelivery ? () => {} : (e) => onChange(e.target.value)}
         >
-          <FormControlLabel 
+          <FormControlLabel
             value="pickup"
             control={<Radio disabled={forceDelivery} />}
             label={
@@ -41,9 +46,8 @@ export default function DeliveryOptions({ value, onChange, forceDelivery = false
               <Box>
                 <Typography variant="subtitle1">Livraison par NDS</Typography>
                 <Typography variant="body2" color="text.secondary">
-                 0.60€ du kilometre 
+                  0.60€ du kilometre
                 </Typography>
-             
               </Box>
             }
           />

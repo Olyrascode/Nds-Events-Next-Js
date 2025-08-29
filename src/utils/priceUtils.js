@@ -8,13 +8,16 @@ export const DELIVERY_FEE = 60;
  */
 export const calculateOrderTotal = (cart, deliveryMethod) => {
   // On somme directement les prix déjà totaux de chaque article.
-  const itemsTotal = cart.reduce((total, item) => total + parseFloat(item.price), 0);
-  const deliveryFee = deliveryMethod === 'delivery' ? DELIVERY_FEE : 0;
+  const itemsTotal = cart.reduce(
+    (total, item) => total + parseFloat(item.price),
+    0
+  );
+  const deliveryFee = deliveryMethod === "delivery" ? DELIVERY_FEE : 0;
 
   return {
     itemsTotal,
     deliveryFee,
-    total: itemsTotal + deliveryFee
+    total: itemsTotal + deliveryFee,
   };
 };
 
@@ -24,5 +27,5 @@ export const calculateOrderTotal = (cart, deliveryMethod) => {
  * @returns {string} - Le prix formaté.
  */
 export const formatPrice = (price) => {
-  return `€${typeof price === 'number' ? price.toFixed(2) : '0.00'}`;
+  return `${typeof price === "number" ? price.toFixed(2) : "0.00"} €`;
 };

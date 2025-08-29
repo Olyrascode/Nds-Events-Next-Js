@@ -407,7 +407,7 @@ export default function OrderConfirmation() {
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-          <Typography>Méthode de réception:</Typography>
+          <Typography>Méthode de livraison:</Typography>
           <Typography>
             {order.deliveryMethod === "delivery"
               ? `Livraison par NDS ${

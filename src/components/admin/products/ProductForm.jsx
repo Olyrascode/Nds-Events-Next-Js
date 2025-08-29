@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import OptionsManager from "./OptionsManager";
+import VariationsManager from "./VariationsManager";
 import ImageUpload from "../common/ImageUpload/ImageUpload";
 import CreateCategoryDialog from "./CreateCategoryDialog";
 import DeleteCategoryDialog from "./DeleteCategoryDialog";
@@ -59,6 +60,8 @@ export default function ProductForm({
     carouselImages: initialData.carouselImages || Array(3).fill(null),
     options: initialData.options || [],
     deliveryMandatory: initialData.deliveryMandatory || false,
+    hasVariations: initialData.hasVariations || false,
+    variations: initialData.variations || [],
     seo: {
       title: (initialData.seo && initialData.seo.title) || "",
       metaDescription:
@@ -134,6 +137,10 @@ export default function ProductForm({
 
   const handleOptionsChange = (newOptions) => {
     setProduct({ ...product, options: newOptions });
+  };
+
+  const handleVariationsChange = (newVariations) => {
+    setProduct({ ...product, variations: newVariations });
   };
 
   const handleAddAssociation = () => {
@@ -417,6 +424,31 @@ export default function ProductForm({
         onChange={handleOptionsChange}
         disabled={loading}
       />
+
+      {/* Case à cocher pour les variations */}
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={product.hasVariations}
+            onChange={(e) =>
+              setProduct({ ...product, hasVariations: e.target.checked })
+            }
+            disabled={loading}
+          />
+        }
+        label="Ce produit comporte des variations"
+        disabled={loading}
+        sx={{ mt: 2 }}
+      />
+
+      {/* Gestionnaire de variations (affiché seulement si hasVariations est coché) */}
+      {product.hasVariations && (
+        <VariationsManager
+          variations={product.variations}
+          onChange={handleVariationsChange}
+          disabled={loading}
+        />
+      )}
 
       {/* Nouvelle case pour Livraison obligatoire */}
       <FormControlLabel
