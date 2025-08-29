@@ -1,33 +1,29 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { createProduct } from '../../services/products.service';
-import {
-  Box,
-  Typography,
-  Alert,
-} from '@mui/material';
-import ProductForm from './products/ProductForm';
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { createProduct } from "../../services/products.service";
+import { Box, Typography, Alert } from "@mui/material";
+import ProductForm from "./products/ProductForm";
 
 export default function ProductsTab() {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (productData) => {
     if (!currentUser?.isAdmin) {
-      setError('Vous devez etre administrateur pour créer un produit');
+      setError("Vous devez etre administrateur pour créer un produit");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
       await createProduct(productData);
       setSuccess(true);
     } catch (error) {
-      setError(error.message || 'erreur pendant la création du produit');
-      console.error('Erreur lors de la creation du produit:', error);
+      setError(error.message || "erreur pendant la création du produit");
+      console.error("Erreur lors de la creation du produit:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -35,7 +31,7 @@ export default function ProductsTab() {
   };
 
   return (
-    <Box sx={{ maxWidth: 800 }}>
+    <Box sx={{ maxWidth: 1200 }}>
       <Typography variant="h5" gutterBottom>
         Créer un nouveau produit
       </Typography>
@@ -52,10 +48,7 @@ export default function ProductsTab() {
         </Alert>
       )}
 
-      <ProductForm
-        onSubmit={handleSubmit}
-        loading={loading}
-      />
+      <ProductForm onSubmit={handleSubmit} loading={loading} />
     </Box>
   );
 }
