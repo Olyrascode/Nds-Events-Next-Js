@@ -66,16 +66,20 @@ export default function ProductOptions({
   return (
     <Box sx={{ mb: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Options du produit
+        Options du produit <span style={{ color: "red" }}>*</span>
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Toutes les options sont obligatoires
       </Typography>
       {options.map((option) => (
-        <FormControl key={option.name} fullWidth margin="normal">
-          <InputLabel>{option.name}</InputLabel>
+        <FormControl key={option.name} fullWidth margin="normal" required>
+          <InputLabel required>{option.name} *</InputLabel>
           <Select
             value={selectedOptions[option.name]?.value || ""}
-            label={option.name}
+            label={`${option.name} *`}
             onChange={(e) => handleOptionChange(option.name, e.target.value)}
             required
+            error={!selectedOptions[option.name]?.value}
           >
             {option.values?.map((valueObj, index) => (
               <MenuItem key={index} value={valueObj.value}>

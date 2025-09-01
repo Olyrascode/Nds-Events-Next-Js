@@ -1,5 +1,6 @@
 import { Typography, Box } from "@mui/material";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { calculateRentalDays } from "../../../utils/dateUtils";
 
 interface CartItem {
@@ -25,10 +26,14 @@ export default function CartSummary({ cart }: CartSummaryProps) {
         Période de location:
       </Typography>
       <Box sx={{ mb: 2 }}>
-        <Typography variant="body2">Du: {format(startDate, "PP")}</Typography>
-        <Typography variant="body2">Au: {format(endDate, "PP")}</Typography>
+        <Typography variant="body2">
+          Du: {format(startDate, "PP", { locale: fr })}
+        </Typography>
+        <Typography variant="body2">
+          Au: {format(endDate, "PP", { locale: fr })}
+        </Typography>
         <Typography variant="body2" sx={{ mt: 1 }}>
-          Durée: {days} {days === 1 ? "day" : "days"}
+          Durée: {days} {days === 1 ? "jour" : "jours"}
         </Typography>
       </Box>
     </Box>

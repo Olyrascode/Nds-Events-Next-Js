@@ -1,5 +1,6 @@
 import { Typography, Box, Divider } from "@mui/material";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { formatPrice } from "../../../../utils/priceUtils";
 
 export default function OrderDetails({ order }) {
@@ -25,8 +26,12 @@ export default function OrderDetails({ order }) {
         <Typography variant="h6" gutterBottom>
           Période de location
         </Typography>
-        <Typography>Du: {format(new Date(order.startDate), "PPP")}</Typography>
-        <Typography>Au: {format(new Date(order.endDate), "PPP")}</Typography>
+        <Typography>
+          Du: {format(new Date(order.startDate), "PPP", { locale: fr })}
+        </Typography>
+        <Typography>
+          Au: {format(new Date(order.endDate), "PPP", { locale: fr })}
+        </Typography>
 
         <Typography sx={{ mt: 2 }}>
           Methode de réception:{" "}

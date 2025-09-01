@@ -11,10 +11,15 @@ import RentalDialog from "@/components/RentalDialog";
 
 interface Product {
   _id: string;
-  navCategory: string;
-  category: string;
+  navCategory?: string; // Ancien système
+  category?: string;
   title: string;
   imageUrl?: string;
+  associations?: Array<{
+    categoryName: string;
+    navCategorySlug: string;
+    _id?: string;
+  }>; // Nouveau système
 }
 
 export default function Tentes() {
@@ -31,8 +36,48 @@ export default function Tentes() {
         const response = await fetch(`${API_URL}/api/products`);
         if (!response.ok) throw new Error("Failed to fetch products");
         const productsData: Product[] = await response.json();
-        const filteredProducts = productsData.filter(
-          (product) => product.navCategory === "tentes"
+
+        // 🔍 DEBUG: Log pour analyser tous les produits
+        console.log(
+          "🔍 [DEBUG TENTES] Tous les produits reçus:",
+          productsData.length
+        );
+
+        // Rechercher les produits de tentes avec l'ancien ET le nouveau système
+        const filteredProducts = productsData.filter((product) => {
+          // Ancien système : navCategory
+          const hasOldNavCategory = product.navCategory === "tentes";
+
+          // Nouveau système : associations avec navCategorySlug = "tentes"
+          const hasNewNavCategory = product.associations?.some(
+            (assoc) => assoc.navCategorySlug === "tentes"
+          );
+
+          // Chercher aussi par nom de catégorie
+          const hasTentCategory = product.associations?.some((assoc) =>
+            assoc.categoryName?.toLowerCase().includes("tente")
+          );
+
+          const isValidTent =
+            hasOldNavCategory || hasNewNavCategory || hasTentCategory;
+
+          // Log pour debug
+          if (product.title?.toLowerCase().includes("tente")) {
+            console.log(`🔍 [DEBUG] Produit: "${product.title}"`);
+            console.log(`   - navCategory: ${product.navCategory}`);
+            console.log(`   - associations:`, product.associations);
+            console.log(`   - hasOldNavCategory: ${hasOldNavCategory}`);
+            console.log(`   - hasNewNavCategory: ${hasNewNavCategory}`);
+            console.log(`   - hasTentCategory: ${hasTentCategory}`);
+            console.log(`   - isValidTent: ${isValidTent}`);
+            console.log("---");
+          }
+
+          return isValidTent;
+        });
+
+        console.log(
+          `✅ [DEBUG TENTES] Produits de tentes trouvés: ${filteredProducts.length}`
         );
         setProducts(filteredProducts);
       } catch (error) {

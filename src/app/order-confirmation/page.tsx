@@ -19,6 +19,7 @@ import {
   Avatar,
 } from "@mui/material";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { formatPrice } from "@/utils/priceUtils";
 import DownloadIcon from "@mui/icons-material/Download";
 import { generateInvoicePDF } from "@/utils/invoiceGenerator";
@@ -401,8 +402,8 @@ export default function OrderConfirmation() {
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
           <Typography>Période de location:</Typography>
           <Typography>
-            {format(new Date(order.startDate), "PP")} -{" "}
-            {format(new Date(order.endDate), "PP")}
+            {format(new Date(order.startDate), "PP", { locale: fr })} -{" "}
+            {format(new Date(order.endDate), "PP", { locale: fr })}
           </Typography>
         </Box>
 

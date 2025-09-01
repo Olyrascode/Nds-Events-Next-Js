@@ -254,7 +254,8 @@ export const generateInvoicePDF = async (order, isDelivery) => {
       return acc;
     }, {});
 
-    const tableColumns = [
+    // Colonnes de base pour facture et bon de livraison
+    const baseColumns = [
       "Réf.",
       "Désignation",
       "Qté",
@@ -262,9 +263,12 @@ export const generateInvoicePDF = async (order, isDelivery) => {
       "%TVA",
       "Mtt HT",
       "Mtt TTC",
-      "Livré",
-      "Récupéré",
     ];
+
+    // Ajouter les colonnes "Livré" et "Récupéré" uniquement pour les bons de livraison
+    const tableColumns = isDelivery
+      ? [...baseColumns, "Livré", "Récupéré"]
+      : baseColumns;
     const tableBody = [];
 
     // Calcul des totaux
@@ -348,7 +352,8 @@ export const generateInvoicePDF = async (order, isDelivery) => {
           const puHT_calculated_from_unit =
             unitPriceTTC_perItem / (1 + tvaRate / 100);
 
-          tableBody.push([
+          // Construction de la ligne de base
+          const rowData = [
             product.reference ||
               product.product?.toString() ||
               product._id?.toString() ||
@@ -359,9 +364,14 @@ export const generateInvoicePDF = async (order, isDelivery) => {
             tvaRate === 5.5 ? "5,5%" : `${tvaRate}%`,
             formatCurrency(mttHT),
             formatCurrency(lineTotalTTC),
-            "",
-            "",
-          ]);
+          ];
+
+          // Ajouter les colonnes "Livré" et "Récupéré" uniquement pour les bons de livraison
+          if (isDelivery) {
+            rowData.push("", "");
+          }
+
+          tableBody.push(rowData);
 
           // Affichage des produits inclus dans le pack
           if (
@@ -375,7 +385,8 @@ export const generateInvoicePDF = async (order, isDelivery) => {
               const quantityInPack = packProduct.quantity || 1;
               const totalQuantity = quantityInPack * product.quantity;
 
-              tableBody.push([
+              // Construction de la ligne de produit de pack de base
+              const packProductRowData = [
                 { content: "", styles: { cellWidth: "wrap" } },
                 {
                   content: `   ${productDetails.title || "Produit inconnu"}`,
@@ -402,9 +413,14 @@ export const generateInvoicePDF = async (order, isDelivery) => {
                 "",
                 "",
                 "",
-                "",
-                "",
-              ]);
+              ];
+
+              // Ajouter les colonnes "Livré" et "Récupéré" uniquement pour les bons de livraison
+              if (isDelivery) {
+                packProductRowData.push("", "");
+              }
+
+              tableBody.push(packProductRowData);
             });
           }
 
@@ -442,7 +458,8 @@ export const generateInvoicePDF = async (order, isDelivery) => {
                   }
                 }
                 if (optionDisplayText.trim() !== "-") {
-                  tableBody.push([
+                  // Construction de la ligne d'option de base
+                  const optionRowData = [
                     { content: "", styles: { cellWidth: "wrap" } },
                     {
                       content: optionDisplayText,
@@ -453,9 +470,14 @@ export const generateInvoicePDF = async (order, isDelivery) => {
                     "",
                     "",
                     "",
-                    "",
-                    "",
-                  ]);
+                  ];
+
+                  // Ajouter les colonnes "Livré" et "Récupéré" uniquement pour les bons de livraison
+                  if (isDelivery) {
+                    optionRowData.push("", "");
+                  }
+
+                  tableBody.push(optionRowData);
                 }
               }
             });
@@ -674,8 +696,7 @@ export const generateInvoicePDF = async (order, isDelivery) => {
 
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.text("PIÈCES ORIGINE : DVS 7064 (04/04/24)", margin, yPosition); // Exemple statique, adapter si nécessaire
-    yPosition += 6; // Augmentation de l'espacement
+    // Ligne "PIÈCES ORIGINE" supprimée
     doc.text(
       "- Les ventes sont conclues avec réserve de propriété et le transfert de propriété n'intervient qu'après complet paiement du prix, (loi 80.335 du 10 mai 1980).",
       margin,

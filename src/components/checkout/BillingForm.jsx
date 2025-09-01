@@ -17,14 +17,21 @@ export default function BillingForm({
   const [useSameAsShipping, setUseSameAsShipping] = useState(false);
 
   const handleChange = (e) => {
+    // Si la case "même adresse" est cochée et que c'est un champ d'adresse, ne pas modifier
+    if (
+      useSameAsShipping &&
+      ["address", "city", "zipCode"].includes(e.target.name)
+    ) {
+      return; // Empêcher la modification des champs synchronisés
+    }
+
     setBillingInfo({
       ...billingInfo,
       [e.target.name]: e.target.value,
     });
-    // Si l'utilisateur modifie un champ manuellement, décocher la case
-    if (useSameAsShipping) {
-      setUseSameAsShipping(false);
-    }
+
+    // Si l'utilisateur modifie un autre champ (prénom, nom, etc.), ne pas décocher la case
+    // La case ne se décoche que si on essaie de modifier les champs d'adresse
   };
 
   const handleCheckboxChange = (e) => {
@@ -68,6 +75,7 @@ export default function BillingForm({
             />
           }
           label="Mon adresse de facturation est la même que mon adresse de livraison"
+          sx={{ mb: 2 }}
         />
       )}
 
@@ -125,6 +133,20 @@ export default function BillingForm({
             fullWidth
             value={billingInfo.address}
             onChange={handleChange}
+            disabled={useSameAsShipping}
+            helperText={
+              useSameAsShipping ? "Synchronisé avec l'adresse de livraison" : ""
+            }
+            sx={
+              useSameAsShipping
+                ? {
+                    "& .MuiInputBase-input": {
+                      backgroundColor: "#f5f5f5",
+                      color: "#666",
+                    },
+                  }
+                : {}
+            }
           />
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -135,6 +157,20 @@ export default function BillingForm({
             fullWidth
             value={billingInfo.city}
             onChange={handleChange}
+            disabled={useSameAsShipping}
+            helperText={
+              useSameAsShipping ? "Synchronisé avec l'adresse de livraison" : ""
+            }
+            sx={
+              useSameAsShipping
+                ? {
+                    "& .MuiInputBase-input": {
+                      backgroundColor: "#f5f5f5",
+                      color: "#666",
+                    },
+                  }
+                : {}
+            }
           />
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -145,6 +181,20 @@ export default function BillingForm({
             fullWidth
             value={billingInfo.zipCode}
             onChange={handleChange}
+            disabled={useSameAsShipping}
+            helperText={
+              useSameAsShipping ? "Synchronisé avec l'adresse de livraison" : ""
+            }
+            sx={
+              useSameAsShipping
+                ? {
+                    "& .MuiInputBase-input": {
+                      backgroundColor: "#f5f5f5",
+                      color: "#666",
+                    },
+                  }
+                : {}
+            }
           />
         </Grid>
       </Grid>

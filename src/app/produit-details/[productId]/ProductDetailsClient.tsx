@@ -24,6 +24,7 @@ import Breadcrumb from "@/components/common/Breadcrumb";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import useSmartLoading from "@/hooks/useSmartLoading";
 import { slugify } from "@/utils/slugify";
+import { validateProductOptions } from "@/utils/validation";
 
 // Duplication de NAV_CATEGORIES_OPTIONS (idéalement, à centraliser)
 const NAV_CATEGORIES_OPTIONS = [
@@ -94,6 +95,7 @@ export default function ProductDetails({
   const [finalPrice, setFinalPrice] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [quantityError, setQuantityError] = useState<string>("");
+  const [optionsError, setOptionsError] = useState<string>("");
   const { isLocalLoading: productLoading, smartLoading } = useSmartLoading();
   // Nouvel état pour stocker l'image actuellement affichée
   const [currentDisplayImage, setCurrentDisplayImage] = useState<string | null>(
@@ -354,7 +356,25 @@ export default function ProductDetails({
     setIsCartOpen(true);
   };
 
-  // La validité du formulaire tient compte du type de produit (lot ou non)
+  // Validation des options : vérifier que toutes les options obligatoires sont sélectionnées
+  const areOptionsValid = useMemo(() => {
+    if (!product?.options || product.options.length === 0) {
+      setOptionsError("");
+      return true;
+    }
+
+    const isValid = validateProductOptions(selectedOptions, product.options);
+
+    if (!isValid) {
+      setOptionsError("Veuillez sélectionner toutes les options requises.");
+    } else {
+      setOptionsError("");
+    }
+
+    return isValid;
+  }, [selectedOptions, product?.options]);
+
+  // La validité du formulaire tient compte du type de produit (lot ou non) ET des options
   const isFormValid =
     product !== null &&
     effectiveStartDate !== null &&
@@ -364,7 +384,8 @@ export default function ProductDetails({
     (product?.lotSize && product.lotSize > 1
       ? quantity <= Math.floor(availableStock / product.lotSize)
       : quantity <= availableStock) &&
-    !quantityError;
+    !quantityError &&
+    areOptionsValid;
 
   // Préparation des images pour affichage - placé avant la condition de rendu
   const allImages = useMemo(() => {
@@ -632,6 +653,12 @@ export default function ProductDetails({
           {quantityError && (
             <Typography color="error" variant="body2">
               {quantityError}
+            </Typography>
+          )}
+
+          {optionsError && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {optionsError}
             </Typography>
           )}
 

@@ -8,15 +8,24 @@ export const validatePassword = (password) => {
 };
 
 export const validateBillingInfo = (billingInfo) => {
-  return Object.values(billingInfo).every(value => value.trim() !== '');
+  return Object.values(billingInfo).every((value) => value.trim() !== "");
 };
 
 export const validateShippingInfo = (shippingInfo, deliveryMethod) => {
-  if (deliveryMethod === 'pickup') return true;
-  return Object.values(shippingInfo).every(value => value.trim() !== '');
+  if (deliveryMethod === "pickup") return true;
+  return Object.values(shippingInfo).every((value) => value.trim() !== "");
 };
 
 export const validateProductOptions = (selectedOptions, requiredOptions) => {
   if (!requiredOptions || requiredOptions.length === 0) return true;
-  return requiredOptions.every(option => selectedOptions[option.name]);
+
+  // Vérifier que chaque option requise a une valeur sélectionnée
+  return requiredOptions.every((option) => {
+    const selectedOption = selectedOptions[option.name];
+    return (
+      selectedOption &&
+      selectedOption.value &&
+      selectedOption.value.trim() !== ""
+    );
+  });
 };
