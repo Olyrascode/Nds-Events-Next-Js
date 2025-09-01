@@ -8,10 +8,13 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { RentalPeriodProvider } from "@/contexts/RentalperiodContext";
 import { StripeProvider } from "@/contexts/StripeContext";
+import { LoadingProvider } from "@/contexts/LoadingContext";
 import ThemeProvider from "@/providers/ThemeProvider";
 import Navigation from "@/components/Navigation/Navigation";
 import Footer from "@/components/Footer/Footer";
 import Breadcrumb from "@/components/common/Breadcrumb";
+import PageLoader from "@/components/common/PageLoader";
+import PageTransitionHandler from "@/components/common/PageTransitionHandler";
 
 export default function ProvidersWrapper({
   children,
@@ -29,16 +32,20 @@ export default function ProvidersWrapper({
   return (
     <Provider store={store}>
       <ThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <RentalPeriodProvider>
-              <Navigation />
-              {shouldShowBreadcrumb && <Breadcrumb />}
-              <StripeProvider>{children}</StripeProvider>
-              <Footer />
-            </RentalPeriodProvider>
-          </CartProvider>
-        </AuthProvider>
+        <LoadingProvider>
+          <PageTransitionHandler />
+          <AuthProvider>
+            <CartProvider>
+              <RentalPeriodProvider>
+                <Navigation />
+                {shouldShowBreadcrumb && <Breadcrumb />}
+                <StripeProvider>{children}</StripeProvider>
+                <Footer />
+                <PageLoader />
+              </RentalPeriodProvider>
+            </CartProvider>
+          </AuthProvider>
+        </LoadingProvider>
       </ThemeProvider>
     </Provider>
   );

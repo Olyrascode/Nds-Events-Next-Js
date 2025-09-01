@@ -8,6 +8,9 @@ import Image from "next/image";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import ErrorMessage from "@/components/common/ErrorMessage";
+import useSmartLoading from "@/hooks/useSmartLoading";
 import "@/app/produits/_Products.scss";
 import { Product } from "../../type/Product";
 import { slugify } from "@/utils/slugify";
@@ -61,89 +64,91 @@ export default function LaTableClient() {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
+  const { isLocalLoading, smartLoading } = useSmartLoading();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const doFetchProducts = async () => {
-      try {
-        const productsResponse = await fetch(`${API_URL}/api/products`);
-        const packsResponse = await fetch(`${API_URL}/api/packs`);
+      const productsResponse = await fetch(`${API_URL}/api/products`);
+      const packsResponse = await fetch(`${API_URL}/api/packs`);
 
-        if (!productsResponse.ok) {
-          throw new Error(
-            `Failed to fetch products: ${productsResponse.status} ${productsResponse.statusText}`
-          );
-        }
-        if (!packsResponse.ok) {
-          throw new Error(
-            `Failed to fetch packs: ${packsResponse.status} ${packsResponse.statusText}`
-          );
-        }
-
-        const productsData: RawProduct[] = await productsResponse.json();
-        const packsData: RawPack[] = await packsResponse.json();
-
-        const allRawItems: (RawProduct | RawPack)[] = [
-          ...productsData,
-          ...packsData.map((p) => ({ ...p, isPack: true as const })), // Marquer les packs
-        ];
-
-        const convertedItems: Product[] = allRawItems
-          .filter((item) => {
-            // Pour les produits : utiliser associations
-            if (item.associations) {
-              return item.associations.some(
-                (assoc) => assoc.navCategorySlug === "la-table"
-              );
-            }
-            // Pour les packs : utiliser navCategories
-            if ("navCategories" in item && Array.isArray(item.navCategories)) {
-              return item.navCategories.includes("la-table");
-            }
-            return false;
-          })
-          .map((item) => ({
-            _id: item._id,
-            id: item._id,
-            title: item.title,
-            name: item.title,
-            description: item.description || "",
-            imageUrl: item.imageUrl || "",
-            price: item.price || 0,
-            minQuantity: item.minQuantity || 1,
-            lotSize: item.lotSize,
-            discountPercentage: item.discountPercentage || 0,
-            associations: item.associations || [],
-            options: item.options || [],
-            carouselImages: item.carouselImages || [],
-            deliveryMandatory: item.deliveryMandatory || false,
-            slug: item.slug || slugify(item.title),
-            isPack: "isPack" in item && item.isPack, // Vérifier si c'est un pack
-            products: "products" in item && item.isPack ? item.products : [], // Ajouter les produits du pack
-          }));
-
-        setProducts(convertedItems);
-
-        const uniqueCategories = Array.from(
-          new Set(
-            convertedItems.flatMap((p) =>
-              p.associations
-                ? p.associations
-                    .filter(
-                      (assoc) =>
-                        assoc.navCategorySlug === "la-table" &&
-                        assoc.categoryName
-                    )
-                    .map((assoc) => assoc.categoryName)
-                : []
-            )
-          )
+      if (!productsResponse.ok) {
+        throw new Error(
+          `Failed to fetch products: ${productsResponse.status} ${productsResponse.statusText}`
         );
-        setCategories(uniqueCategories);
-      } catch (error) {
-        console.error("Erreur fetching products/packs pour La Table:", error);
       }
+      if (!packsResponse.ok) {
+        throw new Error(
+          `Failed to fetch packs: ${packsResponse.status} ${packsResponse.statusText}`
+        );
+      }
+
+      const productsData: RawProduct[] = await productsResponse.json();
+      const packsData: RawPack[] = await packsResponse.json();
+
+      const allRawItems: (RawProduct | RawPack)[] = [
+        ...productsData,
+        ...packsData.map((p) => ({ ...p, isPack: true as const })), // Marquer les packs
+      ];
+
+      const convertedItems: Product[] = allRawItems
+        .filter((item) => {
+          // Pour les produits : utiliser associations
+          if (item.associations) {
+            return item.associations.some(
+              (assoc) => assoc.navCategorySlug === "la-table"
+            );
+          }
+          // Pour les packs : utiliser navCategories
+          if ("navCategories" in item && Array.isArray(item.navCategories)) {
+            return item.navCategories.includes("la-table");
+          }
+          return false;
+        })
+        .map((item) => ({
+          _id: item._id,
+          id: item._id,
+          title: item.title,
+          name: item.title,
+          description: item.description || "",
+          imageUrl: item.imageUrl || "",
+          price: item.price || 0,
+          minQuantity: item.minQuantity || 1,
+          lotSize: item.lotSize,
+          discountPercentage: item.discountPercentage || 0,
+          associations: item.associations || [],
+          options: item.options || [],
+          carouselImages: item.carouselImages || [],
+          deliveryMandatory: item.deliveryMandatory || false,
+          slug: item.slug || slugify(item.title),
+          isPack: "isPack" in item && item.isPack, // Vérifier si c'est un pack
+          products: "products" in item && item.isPack ? item.products : [], // Ajouter les produits du pack
+        }));
+
+      setProducts(convertedItems);
+
+      const uniqueCategories = Array.from(
+        new Set(
+          convertedItems.flatMap((p) =>
+            p.associations
+              ? p.associations
+                  .filter(
+                    (assoc) =>
+                      assoc.navCategorySlug === "la-table" && assoc.categoryName
+                  )
+                  .map((assoc) => assoc.categoryName)
+              : []
+          )
+        )
+      );
+      setCategories(uniqueCategories);
+      setError(null);
     };
-    doFetchProducts();
+
+    smartLoading(doFetchProducts).catch((err) => {
+      console.error("Erreur fetching products/packs pour La Table:", err);
+      setError("Impossible de charger les produits. Veuillez réessayer.");
+    });
   }, []);
 
   const handleRentClick = (product: Product) => {

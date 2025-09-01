@@ -89,7 +89,19 @@ export default function ProductCard({
   const title = product.title || product.name;
 
   return (
-    <Card className="product-card">
+    <Card
+      className="product-card product-card--clickable"
+      onClick={handleViewDetails}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleViewDetails();
+        }
+      }}
+      aria-label={`Voir les détails de ${title}`}
+    >
       <div className="product-card__image-container">
         <Image
           src={imageUrl}
@@ -134,7 +146,10 @@ export default function ProductCard({
         <Button
           variant="contained"
           fullWidth
-          onClick={handleViewDetails}
+          onClick={(e) => {
+            e.stopPropagation(); // Éviter le double-clic
+            handleViewDetails();
+          }}
           className="product-card__button"
           sx={{ mt: 2 }}
         >

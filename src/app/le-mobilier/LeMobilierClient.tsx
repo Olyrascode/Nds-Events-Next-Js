@@ -6,6 +6,9 @@ import { useParams, useRouter } from "next/navigation";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import CategoryLinkFilter from "@/components/CategoryFilter/CategoryLinkFilter";
 import RentalDialog from "@/components/RentalDialog";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import ErrorMessage from "@/components/common/ErrorMessage";
+import useSmartLoading from "@/hooks/useSmartLoading";
 import "@/app/produits/_Products.scss";
 import { Product } from "../../type/Product";
 import { slugify } from "@/utils/slugify";
@@ -65,106 +68,131 @@ export default function LeMobilierClient({
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openRentalDialog, setOpenRentalDialog] = useState<boolean>(false);
+  const { isLocalLoading, smartLoading } = useSmartLoading();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const doFetchProducts = async () => {
       console.log("[LeMobilierClient] Fetching products and packs...");
-      try {
-        const productResponse = await fetch(`${API_URL}/api/products`);
-        const packResponse = await fetch(`${API_URL}/api/packs`);
+      const productResponse = await fetch(`${API_URL}/api/products`);
+      const packResponse = await fetch(`${API_URL}/api/packs`);
 
-        if (!productResponse.ok) {
-          throw new Error(
-            `Failed to fetch products: ${productResponse.status} ${productResponse.statusText}`
-          );
-        }
-        if (!packResponse.ok) {
-          throw new Error(
-            `Failed to fetch packs: ${packResponse.status} ${packResponse.statusText}`
-          );
-        }
-
-        const productsData: RawProduct[] = await productResponse.json();
-        const packsData: RawPack[] = await packResponse.json();
-        console.log("[LeMobilierClient] Raw productsData:", productsData);
-        console.log("[LeMobilierClient] Raw packsData:", packsData);
-
-        const allRawData: (RawProduct | RawPack)[] = [
-          ...productsData,
-          ...packsData.map((p) => ({ ...p, isPack: true as const })),
-        ];
-        console.log(
-          "[LeMobilierClient] All raw data (products + packs merged):",
-          allRawData
+      if (!productResponse.ok) {
+        throw new Error(
+          `Failed to fetch products: ${productResponse.status} ${productResponse.statusText}`
         );
-
-        const convertedItems: Product[] = allRawData
-          .filter((item) => {
-            // Pour les produits : utiliser associations
-            if (item.associations) {
-              return item.associations.some(
-                (assoc) => assoc.navCategorySlug === "le-mobilier"
-              );
-            }
-            // Pour les packs : utiliser navCategories
-            if ("navCategories" in item && Array.isArray(item.navCategories)) {
-              return item.navCategories.includes("le-mobilier");
-            }
-            return false;
-          })
-          .map((item) => ({
-            _id: item._id,
-            id: item._id,
-            title: item.title,
-            name: item.title,
-            description: item.description || "",
-            imageUrl: item.imageUrl || "",
-            price: item.price || 0,
-            minQuantity: item.minQuantity || 1,
-            lotSize: item.lotSize,
-            discountPercentage: item.discountPercentage || 0,
-            associations: item.associations || [],
-            options: item.options || [],
-            carouselImages: item.carouselImages || [],
-            deliveryMandatory: item.deliveryMandatory || false,
-            isPack: "isPack" in item && item.isPack,
-            products: "products" in item && item.isPack ? item.products : [],
-            slug: item.slug || slugify(item.title),
-          }));
-        console.log(
-          "[LeMobilierClient] Converted items (after filter and map for 'le-mobilier'):",
-          convertedItems
-        );
-        setProducts(convertedItems);
-
-        const uniqueCategories = Array.from(
-          new Set(
-            convertedItems.flatMap((p) =>
-              p.associations
-                ? p.associations
-                    .filter(
-                      (assoc) =>
-                        assoc.navCategorySlug === "le-mobilier" && // Filtre par navCategorySlug pour les catégories aussi
-                        assoc.categoryName
-                    )
-                    .map((assoc) => assoc.categoryName)
-                : []
-            )
-          )
-        );
-        setCategories(uniqueCategories);
-      } catch (error) {
-        console.error("Error fetching products or packs:", error);
       }
+      if (!packResponse.ok) {
+        throw new Error(
+          `Failed to fetch packs: ${packResponse.status} ${packResponse.statusText}`
+        );
+      }
+
+      const productsData: RawProduct[] = await productResponse.json();
+      const packsData: RawPack[] = await packResponse.json();
+      console.log("[LeMobilierClient] Raw productsData:", productsData);
+      console.log("[LeMobilierClient] Raw packsData:", packsData);
+
+      const allRawData: (RawProduct | RawPack)[] = [
+        ...productsData,
+        ...packsData.map((p) => ({ ...p, isPack: true as const })),
+      ];
+      console.log(
+        "[LeMobilierClient] All raw data (products + packs merged):",
+        allRawData
+      );
+
+      const convertedItems: Product[] = allRawData
+        .filter((item) => {
+          // Pour les produits : utiliser associations
+          if (item.associations) {
+            return item.associations.some(
+              (assoc) => assoc.navCategorySlug === "le-mobilier"
+            );
+          }
+          // Pour les packs : utiliser navCategories
+          if ("navCategories" in item && Array.isArray(item.navCategories)) {
+            return item.navCategories.includes("le-mobilier");
+          }
+          return false;
+        })
+        .map((item) => ({
+          _id: item._id,
+          id: item._id,
+          title: item.title,
+          name: item.title,
+          description: item.description || "",
+          imageUrl: item.imageUrl || "",
+          price: item.price || 0,
+          minQuantity: item.minQuantity || 1,
+          lotSize: item.lotSize,
+          discountPercentage: item.discountPercentage || 0,
+          associations: item.associations || [],
+          options: item.options || [],
+          carouselImages: item.carouselImages || [],
+          deliveryMandatory: item.deliveryMandatory || false,
+          isPack: "isPack" in item && item.isPack,
+          products: "products" in item && item.isPack ? item.products : [],
+          slug: item.slug || slugify(item.title),
+        }));
+      console.log(
+        "[LeMobilierClient] Converted items (after filter and map for 'le-mobilier'):",
+        convertedItems
+      );
+      setProducts(convertedItems);
+
+      const uniqueCategories = Array.from(
+        new Set(
+          convertedItems.flatMap((p) =>
+            p.associations
+              ? p.associations
+                  .filter(
+                    (assoc) =>
+                      assoc.navCategorySlug === "le-mobilier" && // Filtre par navCategorySlug pour les catégories aussi
+                      assoc.categoryName
+                  )
+                  .map((assoc) => assoc.categoryName)
+              : []
+          )
+        )
+      );
+      setCategories(uniqueCategories);
+      setError(null);
     };
 
-    doFetchProducts();
+    smartLoading(doFetchProducts).catch((err) => {
+      console.error("Error fetching products or packs:", err);
+      setError("Impossible de charger les produits. Veuillez réessayer.");
+    });
   }, []); // useEffect dépendances vides pour charger une seule fois
 
   const handleRentClick = (product: Product) => {
     setSelectedProduct(product);
     setOpenRentalDialog(true);
   };
+
+  const closeRentalDialog = () => {
+    setOpenRentalDialog(false);
+    setSelectedProduct(null);
+  };
+
+  // Afficher le loader pendant le chargement
+  if (isLocalLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <LoadingSpinner message="Chargement des produits..." />
+      </Container>
+    );
+  }
+
+  // Afficher l'erreur si nécessaire
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <ErrorMessage message={error} />
+      </Container>
+    );
+  }
 
   return (
     <div className="products">

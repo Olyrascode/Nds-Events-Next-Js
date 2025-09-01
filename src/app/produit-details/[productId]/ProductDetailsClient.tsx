@@ -21,6 +21,8 @@ import Image from "next/image";
 import "./ProductDetails.scss";
 import SimilarProductsCarousel from "@/components/SimilarProductsCarousel";
 import Breadcrumb from "@/components/common/Breadcrumb";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import useSmartLoading from "@/hooks/useSmartLoading";
 import { slugify } from "@/utils/slugify";
 
 // Duplication de NAV_CATEGORIES_OPTIONS (idéalement, à centraliser)
@@ -92,6 +94,7 @@ export default function ProductDetails({
   const [finalPrice, setFinalPrice] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [quantityError, setQuantityError] = useState<string>("");
+  const { isLocalLoading: productLoading, smartLoading } = useSmartLoading();
   // Nouvel état pour stocker l'image actuellement affichée
   const [currentDisplayImage, setCurrentDisplayImage] = useState<string | null>(
     null
@@ -150,39 +153,35 @@ export default function ProductDetails({
 
   useEffect(() => {
     async function loadProduct() {
-      try {
-        setError(null);
-        const productData = await fetchProductById(actualProductId);
-        console.log("Produit chargé:", productData);
+      const productData = await fetchProductById(actualProductId);
+      console.log("Produit chargé:", productData);
 
-        // Corriger les URLs d'images dans le produit chargé
-        if (productData.imageUrl) {
-          productData.imageUrl = fixImageUrl(productData.imageUrl);
-        }
-
-        // Corriger les URLs des images du carousel
-        if (
-          productData.carouselImages &&
-          productData.carouselImages.length > 0
-        ) {
-          productData.carouselImages = productData.carouselImages.map(
-            (img: { url: string; fileName: string }) => ({
-              ...img,
-              url: fixImageUrl(img.url),
-            })
-          );
-        }
-
-        setProduct(productData);
-        // Définir l'image principale comme image affichée par défaut
-        setCurrentDisplayImage(productData.imageUrl || null);
-        setQuantity(productData.minQuantity || 1);
-      } catch (err) {
-        console.error("Erreur lors du chargement du produit:", err);
-        setError("Impossible de charger le produit.");
+      // Corriger les URLs d'images dans le produit chargé
+      if (productData.imageUrl) {
+        productData.imageUrl = fixImageUrl(productData.imageUrl);
       }
+
+      // Corriger les URLs des images du carousel
+      if (productData.carouselImages && productData.carouselImages.length > 0) {
+        productData.carouselImages = productData.carouselImages.map(
+          (img: { url: string; fileName: string }) => ({
+            ...img,
+            url: fixImageUrl(img.url),
+          })
+        );
+      }
+
+      setProduct(productData);
+      // Définir l'image principale comme image affichée par défaut
+      setCurrentDisplayImage(productData.imageUrl || null);
+      setQuantity(productData.minQuantity || 1);
+      setError(null);
     }
-    loadProduct();
+
+    smartLoading(loadProduct).catch((err) => {
+      console.error("Erreur lors du chargement du produit:", err);
+      setError("Impossible de charger le produit.");
+    });
   }, [actualProductId]);
 
   // On utilise useMemo pour éviter de recréer des objets Date à chaque rendu
@@ -461,6 +460,15 @@ export default function ProductDetails({
     Array.isArray(product?.associations)
   );
 
+  // Afficher le loader pendant le chargement
+  if (productLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <LoadingSpinner message="Chargement du produit..." />
+      </Container>
+    );
+  }
+
   if (error) {
     return (
       <Container>
@@ -474,11 +482,8 @@ export default function ProductDetails({
 
   if (!product) {
     return (
-      <Container>
-        <Breadcrumb items={dynamicBreadcrumbItems} />
-        <Typography align="center" sx={{ mt: 4 }}>
-          Chargement du produit...
-        </Typography>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <LoadingSpinner message="Chargement du produit..." />
       </Container>
     );
   }

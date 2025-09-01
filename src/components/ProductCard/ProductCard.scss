@@ -4,8 +4,32 @@
   min-width: 370px;
   display: flex;
   flex-direction: column;
-  transition: transform 0.5s ease-in-out;
+  transition: all 0.3s ease-in-out;
   border: 2px solid rgb(240, 240, 240);
+
+  &--clickable {
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      border-color: var(--primary-color);
+
+      .product-card__cta-text {
+        color: #c45505 !important;
+        text-decoration: underline;
+      }
+    }
+
+    &:active {
+      transform: translateY(-2px);
+    }
+
+    &:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+  }
 
   &:hover {
     transform: translateY(-3px);
