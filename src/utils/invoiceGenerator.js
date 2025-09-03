@@ -1,14 +1,13 @@
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
-// Fonction pour formater les nombres en devise EUR
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
   })
     .format(amount || 0)
-    .replace(/\s/g, " "); // Remplace tous les types d'espaces (y compris insécables) par un espace standard
+    .replace(/\s/g, " ");
 };
 
 export const generateInvoicePDF = async (order, isDelivery) => {
@@ -26,26 +25,21 @@ export const generateInvoicePDF = async (order, isDelivery) => {
   const doc = new jsPDF();
   const pageHeight = doc.internal.pageSize.height;
   const pageWidth = doc.internal.pageSize.width;
-  const margin = 15; // Marge générale
-  const bottomMargin = 20; // Nouvelle marge inférieure
-  let yPosition = 0; // Suivi de la position verticale
+  const margin = 15;
+  const bottomMargin = 20;
+  let yPosition = 0;
 
   try {
-    // --- Header ---
     yPosition = margin;
 
-    // Logo à gauche
-    const logo = "/img/divers/nds-events-logo.png"; // Assurez-vous que ce chemin est correct pour votre build
+    const logo = "/img/divers/nds-events-logo.png";
     try {
-      // Tentative d'ajout du logo. Si l'image n'est pas trouvée, affiche un avertissement.
-      // Il est préférable de gérer le chargement de l'image de manière asynchrone ou de l'intégrer en base64.
       doc.addImage(logo, "PNG", margin, yPosition, 20, 20);
     } catch (e) {
       console.warn("Logo introuvable au chemin:", logo, e);
       doc.text("NDS Event's Logo", margin, yPosition + 5);
     }
 
-    // Coordonnées de l'entreprise à droite
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text("NDS Event's", pageWidth - margin, yPosition, { align: "right" });
@@ -62,13 +56,12 @@ export const generateInvoicePDF = async (order, isDelivery) => {
       align: "right",
     });
 
-    yPosition += 30; // Espace après les coordonnées de l'entreprise
+    yPosition += 30;
 
-    // Encadré (Titre du document) à gauche
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     const documentTitleText = isDelivery ? "Bon de livraison" : "Facture";
-    // Log pour vérifier la valeur juste avant l'écriture dans le PDF
+
     console.log(
       `[invoiceGenerator] Determined documentTitleText: ${documentTitleText} for Order ID: ${order._id}`
     );
@@ -90,7 +83,6 @@ export const generateInvoicePDF = async (order, isDelivery) => {
     );
     doc.text(`Code client : ${order.userId || "N/A"}`, margin, yPosition + 10);
 
-    // Coordonnées bancaires sous l'encadré facture
     yPosition += 20;
     doc.setFont("helvetica", "bold");
     doc.text("Coordonnées bancaires :", margin, yPosition);
@@ -98,8 +90,7 @@ export const generateInvoicePDF = async (order, isDelivery) => {
     doc.text(`IBAN : FR76 3000 3022 4600 0200 0001 887`, margin, yPosition + 5);
     doc.text(`BIC : SOGEFRPP`, margin, yPosition + 10);
 
-    // Informations Client à droite
-    let clientInfoY = yPosition - 20; // Aligner avec le début de l'encadré facture
+    let clientInfoY = yPosition - 20;
     doc.setFont("helvetica", "bold");
     doc.text("Client :", pageWidth - margin, clientInfoY, { align: "right" });
     doc.setFont("helvetica", "normal");

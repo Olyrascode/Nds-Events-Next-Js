@@ -32,7 +32,10 @@ export default function DeliveryOptions({
             control={<Radio disabled={forceDelivery} />}
             label={
               <Box>
-                <Typography variant="subtitle1">Récupérer au dépôt</Typography>
+                <Typography variant="subtitle1">
+                  Récupération et restitution par vos soins au dépôt NDS
+                  Echirolles
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Gratuit
                 </Typography>
@@ -44,7 +47,9 @@ export default function DeliveryOptions({
             control={<Radio disabled={forceDelivery} />}
             label={
               <Box>
-                <Typography variant="subtitle1">Livraison par NDS</Typography>
+                <Typography variant="subtitle1">
+                  Livraison et récupération par NDS
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   0.60€ du kilometre
                 </Typography>

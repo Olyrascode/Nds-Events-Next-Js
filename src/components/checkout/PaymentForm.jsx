@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   TextField,
@@ -7,14 +7,14 @@ import {
   Alert,
   Paper,
   Grid,
-  CircularProgress
-} from '@mui/material';
+  CircularProgress,
+} from "@mui/material";
 
 export default function PaymentForm({ amount, onSuccess }) {
   const [formData, setFormData] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
   });
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
@@ -25,14 +25,14 @@ export default function PaymentForm({ amount, onSuccess }) {
     setProcessing(true);
 
     // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Mock successful payment
     const mockPaymentIntent = {
-      id: 'mock_' + Math.random().toString(36).substr(2, 9),
+      id: "mock_" + Math.random().toString(36).substr(2, 9),
       amount: amount,
-      status: 'succeeded',
-      created: Date.now()
+      status: "succeeded",
+      created: Date.now(),
     };
 
     setProcessing(false);
@@ -41,9 +41,9 @@ export default function PaymentForm({ amount, onSuccess }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -52,7 +52,7 @@ export default function PaymentForm({ amount, onSuccess }) {
       <Typography variant="h6" gutterBottom>
         Informations de paiement
       </Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -107,11 +107,16 @@ export default function PaymentForm({ amount, onSuccess }) {
           disabled={processing}
           startIcon={processing && <CircularProgress size={20} />}
         >
-          {processing ? 'Processing...' : `Pay ${(amount / 100).toFixed(2)} €`}
+          {processing ? "Processing..." : `Pay ${(amount / 100).toFixed(2)} €`}
         </Button>
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-          This is a test payment form. Any valid-looking card details will be accepted.
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 2, display: "block" }}
+        >
+          This is a test payment form. Any valid-looking card details will be
+          accepted.
         </Typography>
       </Box>
     </Paper>

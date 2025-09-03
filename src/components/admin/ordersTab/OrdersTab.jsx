@@ -42,8 +42,6 @@ const getPaymentMethodLabel = (method) => {
       return "Carte bancaire";
     case "virement":
       return "Virement";
-    case "cheques":
-      return "Chèques";
     case "especes":
       return "Espèces";
     default:

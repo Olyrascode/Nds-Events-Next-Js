@@ -103,6 +103,7 @@ interface Order {
   endDate: string;
   total: number;
   shippingFee?: number;
+  paymentMethod: string;
 }
 
 export default function OrderConfirmation() {
@@ -135,7 +136,7 @@ export default function OrderConfirmation() {
       }
       fetchOrder();
     }
-  }, [orderId, API_URL]);
+  }, [orderId]);
 
   if (error) {
     return (
@@ -186,7 +187,9 @@ export default function OrderConfirmation() {
 
         <Box sx={{ textAlign: "center", mb: 4 }}>
           <Typography variant="h4" gutterBottom color="success.main">
-            Commande confirmée!
+            {order.paymentMethod === "card"
+              ? "Commande confirmée!"
+              : "Commande en attente de règlement"}
           </Typography>
           <Typography variant="subtitle1">Commande #{order._id}</Typography>
           <Typography variant="body2" color="text.secondary">

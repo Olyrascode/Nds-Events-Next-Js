@@ -15,6 +15,7 @@ import Footer from "@/components/Footer/Footer";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import PageLoader from "@/components/common/PageLoader";
 import PageTransitionHandler from "@/components/common/PageTransitionHandler";
+import WelcomeModal from "@/components/common/WelcomeModal";
 
 export default function ProvidersWrapper({
   children,
@@ -42,6 +43,7 @@ export default function ProvidersWrapper({
                 <StripeProvider>{children}</StripeProvider>
                 <Footer />
                 <PageLoader />
+                <WelcomeModal />
               </RentalPeriodProvider>
             </CartProvider>
           </AuthProvider>
